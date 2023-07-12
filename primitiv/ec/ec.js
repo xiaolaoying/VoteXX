@@ -3,7 +3,8 @@ var ec = new EC('secp256k1');
 var BN = require('bn.js');
 
 EC.prototype.randomBN = function() {
-    return new BN(1234);
+    var randomBuffer = randomBytes(20);
+    return new BN(randomBuffer);
 };
 
 EC.prototype.randomPoint = function() {
