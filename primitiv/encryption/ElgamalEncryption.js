@@ -10,19 +10,20 @@ function ElgamalEnc() {
   }
 
   ElgamalEnc.decrypt = function(privKey, ciphertext) {
-    c1_privKey = c1.mul(privKey);
-    return c2.add(c1_privKey.neg());
+    c1_privKey = ciphertext.c1.mul(privKey);
+    return ciphertext.c2.add(c1_privKey.neg());
   }
 
   ElgamalEnc.test = function() {
-    var EC = require('elliptic').ec;
-    var ec = new EC('sepc256k1');
+    var EC = require('../ec/ec');
+    // var ec = new EC('sepc256k1');
 
     var key = ec.genKeyPair();
-    var pubKey = key.getPublic();
-    var privKey = key.getPrivate();
 
-    // var randomness = 
+    var randomness = ec.randomBN();
+    var msg = ec.randomPoint();
+
+    console.log(msg == decrypt(key.privKey, encrypt(key.pubKey, randomness, msg)));
   }
 }
 
@@ -69,5 +70,14 @@ function LiftedElgamalEnc() {
 
   LiftedElgamalEnc.test = function() {
     
+    var EC = require('../ec/ec');
+    // var ec = new EC('sepc256k1');
+
+    var key = ec.genKeyPair();
+
+    var randomness = ec.randomBN();
+    var msg = ec.randomBN();
+
+    console.log(msg == decrypt(key.privKey, encrypt(key.pubKey, msg)));
   }
 }
