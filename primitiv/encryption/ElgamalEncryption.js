@@ -62,10 +62,8 @@ LiftedElgamalEnc.encryptWithRandomness = function(pubKey, randomness, msg, curve
 }
 
 LiftedElgamalEnc.encrypt = function(pubKey, msg, curve) {
-  var randomBuffer = randomBytes(20);
-  var randomBN = new BN(randomBuffer);
-  this.MAX_EXP = new BN(1048576);
-  var randomness = randomBN.mod(this.MAX_EXP);
+  // assert(msg.lt(new BN(2^20)))
+  var randomness = ec.randomBN();
   return [this.encryptWithRandomness(pubKey, randomness, msg, curve), randomness];
 }
 
