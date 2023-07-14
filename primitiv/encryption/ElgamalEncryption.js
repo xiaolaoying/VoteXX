@@ -7,15 +7,15 @@ function ElgamalCiphertext(c1, c2) {
 }
 
 ElgamalCiphertext.prototype.mul = function(e) {
-  return ElgamalCiphertext(this.c1.mul(e), this.c2.mul(e));
+  return new ElgamalCiphertext(this.c1.mul(e), this.c2.mul(e));
 }
 
 ElgamalCiphertext.prototype.add = function(other) {
-  return ElgamalCiphertext(this.c1.add(other.c1), this.c2.add(other.c2));
+  return new ElgamalCiphertext(this.c1.add(other.c1), this.c2.add(other.c2));
 }
 
 ElgamalCiphertext.prototype.neg = function() {
-  return ElgamalCiphertext(this.c1.neg(), this.c2.neg());
+  return new ElgamalCiphertext(this.c1.neg(), this.c2.neg());
 }
 
 function ElgamalEnc() {
@@ -108,3 +108,8 @@ LiftedElgamalEnc.test = function() {
 }
 
 // LiftedElgamalEnc.test();
+module.exports = {
+  LiftedElgamalEnc,
+  ElgamalEnc,
+  ElgamalCiphertext,
+}
