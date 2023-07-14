@@ -15,7 +15,7 @@ var msg = ec.randomBN().mod(BN1024);
 console.log(msg.toString());
 
 // 加密解密
-var cipher = LiftedElgamalEnc.encrypt(pubKey, msg, ec.curve);
+var cipher = LiftedElgamalEnc.encrypt(pubKey, msg, ec.curve, ec);
 var plaintext = LiftedElgamalEnc.decrypt(privKey, cipher[0], ec.curve);
 console.log(plaintext.toString());
 

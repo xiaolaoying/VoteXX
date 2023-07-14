@@ -50,18 +50,19 @@ ElgamalEnc.test = function() {
 }
 
 
-// ElgamalEnc.test();
 
 function LiftedElgamalEnc() {
-  this.MAX_EXP = new BN(1048576);
+
 }
+
+LiftedElgamalEnc.MAX_EXP = new BN(1048576);
 
 LiftedElgamalEnc.encryptWithRandomness = function(pubKey, randomness, msg, curve) {
   g_msg = curve.g.mul(msg);
   return ElgamalEnc.encrypt(pubKey, randomness, g_msg, curve);
 }
 
-LiftedElgamalEnc.encrypt = function(pubKey, msg, curve) {
+LiftedElgamalEnc.encrypt = function(pubKey, msg, curve, ec) {
   // assert(msg.lt(new BN(2^20)))
   var randomness = ec.randomBN();
   return [this.encryptWithRandomness(pubKey, randomness, msg, curve), randomness];
@@ -102,10 +103,12 @@ LiftedElgamalEnc.test = function() {
   var BN1024 = new BN(1024);
   var msg = ec.randomBN().mod(BN1024);
 
-  console.log(msg.eq(this.decrypt(privKey, this.encrypt(pubKey, msg, ec.curve)[0], ec.curve)));
+  console.log(msg.eq(this.decrypt(privKey, this.encrypt(pubKey, msg, ec.curve, ec)[0], ec.curve)));
 }
 
-// LiftedElgamalEnc.test();
+ElgamalEnc.test();
+LiftedElgamalEnc.test();
+
 module.exports = {
   LiftedElgamalEnc,
   ElgamalEnc,
