@@ -18,8 +18,46 @@ ElgamalCiphertext.prototype.neg = function() {
   return new ElgamalCiphertext(this.c1.neg(), this.c2.neg());
 }
 
-function ElgamalEnc() {
+ElgamalCiphertext.prototype.toBytes = function(ec) {
+  var c1_bytes = ec.serializedPoint(this.c1);
+  var c2_bytes = ec.serializedPoint(this.c2);
+
+  return [c1_bytes, c2_bytes];
+}
+
+ElgamalCiphertext.vecToBytes = function(cts, ec) {
+  return cts.map(ct => ct.toBytes(ec));
+}
+
+ElgamalCiphertext.fromBytes = function(bytes, ec) {
+  return new ElgamalCiphertext(ec.deserializedPoint(bytes[0]), ec.deserializedPoint(bytes[1]));
+}
+
+ElgamalCiphertext.vecFromBytes = function(bytes, ec) {
+  return bytes.map(str => ElgamalCiphertext.fromBytes(str, ec));
+}
+
+ElgamalCiphertext.random = function(ec) {
+  return new ElgamalCiphertext(ec.randomPoint(), ec.randomPoint());
+}
+
+ElgamalCiphertext.test = function() {
+  var ec = require('../ec/ec');
+
+  const cts = [ElgamalCiphertext.random(ec), ElgamalCiphertext.random(ec)];
+
+  const bytes = ElgamalCiphertext.vecToBytes(cts, ec);
+
+  const debytes = ElgamalCiphertext.vecFromBytes(bytes, ec);
   
+  console.log(cts);
+  console.log(debytes);
+}
+
+// ElgamalCiphertext.test();
+
+function ElgamalEnc() {
+
 }
 
 ElgamalEnc.encrypt = function(pubKey, randomness, msg, curve) {
