@@ -37,6 +37,10 @@ ElgamalCiphertext.vecFromBytes = function(bytes, ec) {
   return bytes.map(str => ElgamalCiphertext.fromBytes(str, ec));
 }
 
+ElgamalCiphertext.identity = function(ec) {
+  return new ElgamalCiphertext(ec.curve.point(), ec.curve.point());
+}
+
 ElgamalCiphertext.random = function(ec) {
   return new ElgamalCiphertext(ec.randomPoint(), ec.randomPoint());
 }

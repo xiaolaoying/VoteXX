@@ -104,9 +104,9 @@ function FirstMoveData(params, comm, y) {
     this.y = y;
 }
 
-function Proof(Commitment, challeng, response) {
+function Proof(Commitment, challenge, response) {
     this.Commitment = Commitment;
-    this.challeng = challeng;
+    this.challenge = challenge;
     this.response = response;
 }
 
@@ -239,7 +239,7 @@ NullificationNIZK.prototype.get_c_d = function(w, params, c) {
     var c_1 = c.mul(new BN(-1).mod(this.modulus));
     
     for (var i = 0; i < this.listSize; i++) {
-        ci.push(st.pks[i].add(c.mul(c_1)));
+        ci.push(this.st.pks[i].add(c.mul(c_1)));
     }
 
     var polys = this.getPolys(w, params);
@@ -445,16 +445,70 @@ NullificationNIZK.prototype.prove = function(witness) {
     return new Proof(comm, ch, resp);
 }
 
+/**
+ * 
+ * @param {Challenge} ch
+ * @returns {Proof} 
+ */
 NullificationNIZK.prototype.simulate = function(ch) {
-    
+    var challenge = new ChallengeFull(this.getChallengeY(), ch.x);
+
+    var f = [];
+    var z_a = [];
+    var z_b = [];
+    for (let i = 0; i < this.listSizeLog; i++) {
+        f.push(this.ec.randomBN());
+        z_a.push(this.ec.randomBN());
+        z_b.push(this.ec.randomBN());
+    }
+
+    var I = [];
+    var A = [];
+    var B = [];
+
+    for (let i = 0; i < this.listSizeLog; i++) {
+        I.push(this.commit(this.ec.randomBN(), this.ec.randomBN()));
+    }
 }
 
+/**
+ * 
+ * @param {Proof} proof 
+ * @param {BN} cx 
+ * @returns {Boolean}
+ */
 NullificationNIZK.prototype.condition1 = function(proof, cx) {
+    var I = proof.Commitment.I;
+    var A = proof.Commitment.A;
+    var f = proof.Response.f;
+    var z_a = proof.Response.z_a;
 
+    for (let i = 0; i < this.listSizeLog; i++) {
+        if (!(I[i].mul(cx).add(A[i]).eq(commit(f[i], z_a[i])))) {
+            return false;
+        }
+    }
+    return true;
 }
 
+/**
+ * 
+ * @param {Proof} proof 
+ * @param {BN} cx 
+ * @returns {Boolean}
+ */
 NullificationNIZK.prototype.condition2 = function(proof, cx) {
+    var I = proof.Commitment.I;
+    var B = proof.Commitment.B;
+    var f = proof.Response.f;
+    var z_b = proof.Response.z_b;
 
+    for (let i = 0; i < this.listSizeLog; i++) {
+        if (!(I[i].mul(cx).add(B[i]).eq(commit(f[i], z_b[i])))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
@@ -464,33 +518,100 @@ NullificationNIZK.prototype.condition2 = function(proof, cx) {
  * @param {BN} x 
  */
 NullificationNIZK.prototype.mulZ = function(position, z, x) {
+    var res = new BN(1);
+    var positionBits = MapToBinary.toBinary(position, this.listSizeLog);
 
+    for (let i = 0; i < this.listSizeLog; i++) {
+        res = res.mul(positionBits[i] == 0? (x.sub(z[i]).mod(this.modulus)) : z[i]).mod(this.modulus);
+    }
+    return res;
 }
 
-NullificationNIZK.prototype.condition3_left = function(proof, ch) {
+NullificationNIZK.prototype.condition3_left = function(proof, cx) {
+    var f = proof.Response.f;
+    var c_d = proof.Commitment.c_d;
 
+    var ci = [];
+    var c_1 = c.mul(new BN(-1).mod(this.modulus));
+    for (var i = 0; i < this.listSize; i++) {
+        ci.push(st.pks[i].add(c.mul(c_1)));
+    }
+
+    var term1 = this.ec.curve.g.mul(new BN(0));
+    for (var i = 0; i < this.listSize; i++) {
+        term1 = term1.add(ci[i].mul(this.mulZ(i, f, cx)).mod(this.modulus));
+    }
+
+    var term2 = this.ec.curve.g.mul(new BN(0));
+    for (var i = 0; i < this.listSizeLog; i++) {
+        term2 = term2.add(c_d[i].mul(cx.pow(i).mod(this.modulus).neg()).mod(this.modulus));
+    }
+
+    return term1.add(term2);
 }
 
 NullificationNIZK.prototype.condition3_right = function(proof) {
-
+    return this.commit(new BN(0), proof.Response.z_d);
 }
 
-NullificationNIZK.prototype.condition3 = function (proof, ch) {
-
+NullificationNIZK.prototype.condition3 = function(proof, cx) {
+    return this.condition3_left(proof, cx) == this.condition3_right(proof);
 }
 
-NullificationNIZK.prototype.condition4_left = function(proof, cx) {
+NullificationNIZK.prototype.condition4_left = function(proof, cy, cx) {
+    var C = this.dst.cts;
+    var f = proof.Response.f;
+    var D = proof.Commitment.Ds;
 
+    var x_logN = cx.pow(this.listSizeLog).mod(this.modulus);
+    var product1 = ElgamalCiphertext.identity(this.ec);
+
+    for (let i = 0; i < this.listSize; i++) {
+        product1 = product1.add(
+            (C[i].mul(x_logN).add(
+                LiftedElgamalEnc.encryptWithRandomness(
+                    this.st.h, new BN(0), this.mulZ(i, f, cx).neg().mod(this.modulus), this.ec.curve
+                )
+            ).mul(cy.pow(new BN(i)).mod(this.modulus)))
+        );
+    }
+
+    var product2 = ElgamalCiphertext.identity(this.ec);
+    for (let i = 0; i < this,this.listSizeLog; i++) {
+        product2 = product2.add(
+            D[i].mul(cx.pow(new BN(i).mod(this.modulus)))
+        );
+    }
+    
+    return product1.add(product2);
 }
 
 NullificationNIZK.prototype.condition4_right = function(proof) {
-
+    return LiftedElgamalEnc.encryptWithRandomness(this.st.h, proof.Response.R, new BN(0), this.ec.curve);
 }
 
-NullificationNIZK.prototype.condition4 = function(proof, cx) {
+NullificationNIZK.prototype.condition4 = function (proof, cx, cy) {
+    return this.condition4_left(proof, cx, cy) == this.condition4_right(proof);
+}
 
+NullificationNIZK.prototype.condition5 = function(proof, cx) {
+    var left = this.ec.curve.g.mul(proof.Response.v_1).add(this.st.h.mul(proof.Response.v_2));
+    var right = proof.Commitment.m.add(proof.Commitment.c.mul(cx));
+
+    return left == right;
 }
 
 NullificationNIZK.prototype.verify = function(proof) {
-    
+    var cx_simulated = proof.challenge.x;
+    var cy_simulated = proof.challenge.y;
+
+    var cx = cx_simulated.isZero()? this.getChallengeX(proof.Commitment): cx_simulated;
+    var cy = cy_simulated.isZero()? this.getChallengeY(): cy_simulated;
+
+    return (this.condition1(proof, cx) && this.condition2(proof, cx) && this.condition3(proof, cx) && 
+            this.condition4(proof, cx, cy) && this.condition5(proof, cx));
+}
+
+NullificationNIZK.prototype.test = function() {
+
 }
