@@ -401,11 +401,96 @@ NullificationNIZK.prototype.getResponse = function(witness, params, c) {
     return new Response(f, z_a, z_b, z_d, R, v_1, v_2);
 }
 
+// Public:
+
 /**
  * 
  * @param {Witness} witness 
  * @returns {FirstMoveData}
  */
 NullificationNIZK.prototype.FirstMove = function(witness) {
+    var cy = this.getChallengeY();
+    var params = this.getCommitmentParams();
+
+    return new FirstMoveData(params, this.getCommitment(params, witness, cy), cy);
+}
+
+/**
+ * 
+ * @param {FirstMoveData} firstMoveData 
+ * @param {Challenge} ch 
+ * @param {Witness} witness 
+ * @returns {Proof}
+ */
+NullificationNIZK.prototype.SecondMove = function(firstMoveData, ch, witness) {
+    var ch_full = new ChallengeFull(firstMoveData.y, ch.x);
+    var resp = this.getResponse(witness, firstMoveData.params, ch_full);
+
+    return new Proof(firstMoveData.comm, ch_full, resp);
+}
+
+/**
+ * 
+ * @param {Witness} witness 
+ * @returns {Proof}
+ */
+NullificationNIZK.prototype.prove = function(witness) {
+    var cy = this.getChallengeY();
+    var params = this.getCommitmentParams();
+    var comm = this.getCommitment(params, witness, cy);
+    var cx = this.getChallengeX(comm);
+    var ch = new ChallengeFull(cy, cx);
+    var resp = this.getResponse(witness, params, ch);
+
+    return new Proof(comm, ch, resp);
+}
+
+NullificationNIZK.prototype.simulate = function(ch) {
+    
+}
+
+NullificationNIZK.prototype.condition1 = function(proof, cx) {
+
+}
+
+NullificationNIZK.prototype.condition2 = function(proof, cx) {
+
+}
+
+/**
+ * 
+ * @param {number} position 
+ * @param {[BN]} z 
+ * @param {BN} x 
+ */
+NullificationNIZK.prototype.mulZ = function(position, z, x) {
+
+}
+
+NullificationNIZK.prototype.condition3_left = function(proof, ch) {
+
+}
+
+NullificationNIZK.prototype.condition3_right = function(proof) {
+
+}
+
+NullificationNIZK.prototype.condition3 = function (proof, ch) {
+
+}
+
+NullificationNIZK.prototype.condition4_left = function(proof, cx) {
+
+}
+
+NullificationNIZK.prototype.condition4_right = function(proof) {
+
+}
+
+NullificationNIZK.prototype.condition4 = function(proof, cx) {
+
+}
+
+NullificationNIZK.prototype.verify = function(proof) {
     
 }
