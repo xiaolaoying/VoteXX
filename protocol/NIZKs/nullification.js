@@ -1,7 +1,8 @@
 var BN = require('bn.js');
 var Polynomial = require('polynomial');
 var JSON = require('json');
-const { ElgamalCiphertext } = require('../../primitiv/encryption/ElgamalEncryption');
+var SHA256 = require('crypto-js/sha256');
+const { ElgamalCiphertext, LiftedElgamalEnc } = require('../../primitiv/encryption/ElgamalEncryption');
 
 function MapToBinary() {
 
@@ -87,10 +88,10 @@ function Challenge(x) {
     this.x = x;
 }
 
-function Response(z, w, v, z_d, R, v_1, v_2) {
-    this.z = z;
-    this.w = w;
-    this.v = v;
+function Response(f, z_a, z_b, z_d, R, v_1, v_2) {
+    this.f = f;
+    this.z_a = z_a;
+    this.z_b = z_b;
     this.z_d = z_d;
     this.R = R;
     this.v_1 = v_1;
@@ -182,6 +183,8 @@ function NullificationNIZK(ec, modulus, listSize, listSizeLog, st) {
     this.listSize = listSize;
     this.listSizeLog = listSizeLog;
     this.st = st;
+    this.polys = null;
+    
 }
 
 /**
@@ -242,7 +245,7 @@ NullificationNIZK.prototype.get_c_d = function(w, params, c) {
     var polys = this.getPolys(w, params);
     var c_d = [];
     for (var l = 0; l < this.listSize; l++) {
-        var ci_batched = this.ec.curve.g.mul(MapToBinary.ZERO);
+        var ci_batched = new BN(0);
         for (var j = 0; j < this.listSize; j++) {
             if (polys[j][l] != 0) {
                 ci_batched = ci_batched.add(ci[j].mul(new BN(polys[j][l])));
@@ -263,7 +266,16 @@ NullificationNIZK.prototype.get_c_d = function(w, params, c) {
 NullificationNIZK.prototype.get_Ds = function(w, params, cy) {
     var polys = this.getPolys(w, params);
 
-    
+    Ds = [];
+
+    for (let l = 0; l < this.listSizeLog; l++) {
+        var pl_batched = new BN(0);
+        for (let j = 0; j < this.listSizeLog; j++) {
+            pl_batched = pl_batched.add((new BN(polys[j][l])).mul(cy.pow(new BN(j)).mod(this.modulus))).mod(this.modulus); // TODO: 
+        }
+        Ds.push(LiftedElgamalEnc.encryptWithRandomness(this.st.h, params.Rk[l], pl_batched, this.ec.curve));
+    }
+    return Ds;
 }
 
 NullificationNIZK.prototype.getCommitmentParams = function() {
@@ -298,16 +310,102 @@ NullificationNIZK.prototype.getCommitment = function(params, witness, cy) {
         A.push(commit(params.b[i], params.g[i]));
         B.push(commit(witness.indexBits[i].mul(params.b[i]), params.d[i]));
     }
-    var Ds = this.get_Ds();
+    var Ds = this.get_Ds(witness, params, cy);
     var m = commit(params.s_p, params.t_p);
 
     return new Commitment(c, I, B, A, c_d, Ds, m);
 }
 
 NullificationNIZK.prototype.getChallengeY = function() {
+    var bytes = this.st.toBytes(this.ec);
 
+    return new BN(SHA256(bytes).toString(), 16).modulus(this.modulus);
 }
 
+/**
+ * 
+ * @param {Commitment} comm 
+ */
 NullificationNIZK.prototype.getChallengeX = function(comm) {
+    var stBytes = this.st.toBytes(this.ec);
+    var commBytes = comm.toBytes(this.ec);
 
+    return new BN(SHA256(stBytes.concat(commBytes)).toString(), 16).modulus(this.modulus);
+}
+
+/**
+ * 
+ * @param {[BN]} rs 
+ * @param {[BN]} Rk 
+ * @param {ChallengeFull} ch 
+ * @returns {BN}
+ */
+NullificationNIZK.prototype.getR = function(rs, Rk, ch) {
+    var x_logN = ch.x.pow(this.listSizeLog).mod(this.modulus);
+
+    var sum1 = new BN(0);
+    for (let i = 0; i < this.listSize; i++) {
+        var item = rs[i].mul(x_logN).mod(this.modulus).mul(ch.y.pow(new BN(i)).mod(this.modulus)).mod(this.modulus);
+        sum1 = sum1.add(item).mod(this.modulus);
+    }
+
+    var sum2 = new BN(0);
+    for (let i = 0; i < this.listSizeLog; i++) {
+        var item = Rk[i].mul(ch.x.exp(i)).mod(this.modulus);
+        sum2 = sum2.add(item).mod(this.modulus);
+    }
+
+    return sum1.add(sum2).mod(this.modulus);
+}
+
+/**
+ * 
+ * @param {CommitmentParams} params 
+ * @param {ChallengeFull} ch
+ * @return {BN} 
+ */
+NullificationNIZK.prototype.get_z_d = function(params, ch) {
+    var x_logN = ch.x.pow(this.listSizeLog).mod(this.modulus);
+    var term1 = params.t.neg().mul(x_logN).mod(this.modulus);
+
+    var term2 = new BN(0);
+    for (let i = 0; i < this.listSizeLog; i++) {
+        term2 = term2.add(params.rho[i].mul(ch.x.exp(new BN(i)).mod(this.modulus))).mod(this.modulus);
+    }
+
+    return term1.sub(term2).mod(this.modulus);
+}
+
+/**
+ * 
+ * @param {Witness} witness 
+ * @param {CommitmentParams} params 
+ * @param {ChallengeFull} c
+ * @returns {Response} 
+ */
+NullificationNIZK.prototype.getResponse = function(witness, params, c) {
+    var f = [];
+    var z_a = [];
+    var z_b = [];
+
+    for (let i = 0; i < this.listSizeLog; i++) {
+        f.push(witness.indexBits[i].mul(c.x).add(params.b[i]).mod(this.modulus));
+        z_a.push(params.a[i].mul(c.x).add(params.g[i]).mod(this.modulus));
+        z_b.push(params.a[i].mul(c.x.sub(f[f.length - 1])).mod(this.modulus).add(params.d[i]).mod(this.modulus));
+    }
+    var z_d = this.get_z_d(params, c);
+    var R = this.getR(witness.rs, params.Rk, c);
+    var v_1 = params.s_p.add(c.x.mul(witness.secKey).mod(this.modulus)).mod(this.modulus);
+    var v_2 = params.t_p.add(c.x.mul(params.t).mod(this.modulus).mod(this.modulus));
+
+    return new Response(f, z_a, z_b, z_d, R, v_1, v_2);
+}
+
+/**
+ * 
+ * @param {Witness} witness 
+ * @returns {FirstMoveData}
+ */
+NullificationNIZK.prototype.FirstMove = function(witness) {
+    
 }
