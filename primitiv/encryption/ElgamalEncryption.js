@@ -1,5 +1,4 @@
 var BN = require('bn.js');
-var randomBytes = require('randombytes');
 
 function ElgamalCiphertext(c1, c2) {
   this.c1 = c1;

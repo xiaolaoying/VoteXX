@@ -1,7 +1,6 @@
 var EC = require('elliptic').ec;
 var ec = new EC('secp256k1');
 var BN = require('bn.js');
-var randomBytes = require('randombytes');
 
 EC.MAX_NUM = new BN(ec.curve.p);
 
