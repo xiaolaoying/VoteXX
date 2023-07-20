@@ -325,7 +325,7 @@ NullificationNIZK.prototype.getPolys = function(w, params) {
     //     console.log(poly.length);
     //     assert(poly.length == (this.listSizeLog + 1));
     // }
-    
+
     return polys;
 }
 
@@ -375,7 +375,7 @@ NullificationNIZK.prototype.get_Ds = function(w, params, cy) {
 
     for (let l = 0; l < this.listSizeLog; l++) {
         var pl_batched = new BN(0);
-        for (let j = 0; j < this.listSizeLog; j++) {
+        for (let j = 0; j < this.listSize; j++) {
             pl_batched = pl_batched.add((polys[j][l]).mul(cy.pow(new BN(j)).mod(this.modulus))).mod(this.modulus); // TODO: 
         }
         Ds.push(LiftedElgamalEnc.encryptWithRandomness(this.st.h, params.Rk[l], pl_batched, this.ec.curve));
@@ -643,7 +643,7 @@ NullificationNIZK.prototype.condition3_left = function(proof, cx) {
 
     var term1 = this.ec.curve.g.mul(new BN(0));
     for (var i = 0; i < this.listSize; i++) {
-        term1 = term1.add(ci[i].mul(this.mulZ(i, f, cx).mod(this.modulus)));
+        term1 = term1.add(ci[i].mul(this.mulZ(i, f, cx)));
     }
 
     var term2 = this.ec.curve.g.mul(new BN(0));
@@ -659,8 +659,6 @@ NullificationNIZK.prototype.condition3_right = function(proof) {
 }
 
 NullificationNIZK.prototype.condition3 = function(proof, cx) {
-    var left = this.condition3_left(proof, cx);
-    var right = this.condition3_right(proof);
     return this.condition3_left(proof, cx).eq(this.condition3_right(proof));
 }
 
@@ -668,7 +666,7 @@ NullificationNIZK.prototype.condition4_left = function(proof, cx, cy) {
     var C = this.st.cts;
     var f = proof.response.f;
     var D = proof.commitment.Ds;
-
+    
     var x_logN = cx.pow(new BN(this.listSizeLog)).mod(this.modulus);
     var product1 = ElgamalCiphertext.identity(this.ec);
 
@@ -699,10 +697,10 @@ NullificationNIZK.prototype.condition4_right = function(proof) {
 NullificationNIZK.prototype.condition4 = function (proof, cx, cy) {
     var left = this.condition4_left(proof, cx, cy);
     var right = this.condition4_right(proof);
-    console.log(left.c1.x.toString());
-    console.log(left.c1.y.toString());
-    console.log(right.c1.x.toString());
-    console.log(right.c1.y.toString());
+    console.log(left.c2.x.toString());
+    console.log(left.c2.y.toString());
+    console.log(right.c2.x.toString());
+    console.log(right.c2.y.toString());
     return this.condition4_left(proof, cx, cy).eq(this.condition4_right(proof));
 }
 
@@ -747,7 +745,6 @@ NullificationNIZK.test = function() {
 
     // E_0, ..., E_N-1  r_0, ..., r_N-1
     for (let i = 0; i < Math.pow(2, indexBitSize); i++) {
-        console.log((i == index)? MapToBinary.ONE : MapToBinary.ZERO);
         var ct = LiftedElgamalEnc.encrypt(keyPair.getPublic(), (i == index)? MapToBinary.ONE : MapToBinary.ZERO, ec.curve, ec);
         cts.push(ct[0]);
         randomness.push(ct[1]);
