@@ -17,6 +17,10 @@ ElgamalCiphertext.prototype.neg = function() {
   return new ElgamalCiphertext(this.c1.neg(), this.c2.neg());
 }
 
+ElgamalCiphertext.prototype.eq = function(other) {
+  return this.c1.eq(other.c1) && this.c2.eq(other.eq);
+}
+
 ElgamalCiphertext.prototype.toBytes = function(ec) {
   var c1_bytes = ec.serializedPoint(this.c1);
   var c2_bytes = ec.serializedPoint(this.c2);
