@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>election_page</title>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<h3>登录页面</h3>
+<div>
+    <div>
+        <div class="col-md-6 col-md-offset-3">
+            <form enctype="application/x-www-form-urlencoded">
+                {% csrf_token %}
+                <div>
+                    <label for="">用户名</label>
+                    <input type="number" id="sid">
+                </div>
+                <div>
+                    <label for="">加密数据</label>
+                    <input type="number" id="enc_data" >
+                </div>
+                <div>
+                    <label for="">操作时间</label>
+                    <input type="date" id="op_time" >
+                </div>
+                <input type="button" value="submit" class="login_btn btn btn-default">
+                <span></span>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+     // 登录验证
+     $(".login_btn").click(function () {
+         $.ajax({
+             url:"",
+             data:{
+                 sid:$("#sid").val(),
+                 enc_data:$("#enc_data").val(),
+                 op_time:$("#op_time").val(),
+                 csrfmiddlewaretoken:$("[name='csrfmiddlewaretoken']").val()
+             },
+             type:"post",
+             success:function (data) {
+                 console.log(data);
+                 var parse_data=JSON.parse(data);              {# 接收到的data进行反序列化 #}
+             }
+         })
+     });
+</script>
+
+
+</body>
+</html>
