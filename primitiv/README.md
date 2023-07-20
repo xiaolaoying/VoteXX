@@ -1,3 +1,10 @@
+# Install packages and run
+
+```bash
+npm install
+node primitiv/example.js
+```
+
 # Elgamal加密用法
 
 1. 导入模块

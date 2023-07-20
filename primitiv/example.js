@@ -1,6 +1,6 @@
 // 导入加密模块
-var {LiftedElgamalEnc} = require('../primitiv/encryption/ElgamalEncryption');
-var ec = require('../primitiv/ec/ec');
+var {LiftedElgamalEnc} = require('./encryption/ElgamalEncryption');
+var ec = require('./ec/ec');
 var BN = require('bn.js');
 
 // 获取密钥
