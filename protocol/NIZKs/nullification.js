@@ -262,17 +262,226 @@ function NullificationNIZK(ec, st) {
     this.st = st;
     this.polys = null;
     
-    
-}
+    /**
+     * pedersen commitment  Com(m,r) = g^m·ck^r
+     * @param {BN} m 
+     * @param {BN} r
+     * @returns {Point}
+     */
+    this.commit = function(m, r) {
+        return this.ec.curve.g.mul(m).add(this.st.h.mul(r));
+    }
 
-/**
- * pedersen commitment  Com(m,r) = g^m·ck^r
- * @param {BN} m 
- * @param {BN} r
- * @returns {Point}
- */
-NullificationNIZK.prototype.commit = function(m, r) {
-    return this.ec.curve.g.mul(m).add(this.st.h.mul(r));
+    /**
+     * 
+     * @param {Witness} w 
+     * @param {CommitmentParams} params 
+     * @returns {[[BN]]}
+     */
+    this.getPolys = function(w, params) {
+        var polys = [];
+        var betas = params.ai;
+        
+        // console.log(betas);
+        for(var i = 0; i < this.listSize; i++){
+            polys.push([new BN(1)]);
+            var positionBits = MapToBinary.toBinary(i, this.listSizeLog);
+
+            for(var j = 0; j < this.listSizeLog; j++){
+                polys[polys.length - 1] = Polynomial.multiply(
+                        polys[polys.length - 1],
+                        positionBits[j] == 0 ?
+                        [betas[j].neg(), new BN(1).sub(w.indexBits[j])]:
+                        [betas[j], w.indexBits[j]],
+                        this.modulus
+                );
+            }
+        }
+
+        // for(var poly of polys){
+        //     Polynomial.print(poly);
+        //     console.log(poly.length);
+        //     assert(poly.length == (this.listSizeLog + 1));
+        // }
+
+        return polys;
+    }
+
+    /**
+     * 
+     * @param {Witness} w
+     * @param {CommitmentParams} params
+     * @param {Point} c
+     * @return {[Point]}
+     */
+    this.get_c_d = function(w, params, c) {
+        var ci = [];
+
+        var c_1 = c.mul((new BN(-1)).umod(this.modulus));
+        // console.log(c_1.eq(c.mul(new BN(-1))));
+        
+        for (var i = 0; i < this.listSize; i++) {
+            ci.push(this.st.pks[i].add(c_1));
+        }
+
+        var polys = this.getPolys(w, params);
+        var c_d = [];
+        for (var l = 0; l < this.listSizeLog; l++) {
+            var ci_batched = this.ec.curve.g.mul(MapToBinary.ZERO);
+            for (var j = 0; j < this.listSize; j++) {
+                // console.log(polys[j][l]);
+                if (!(polys[j][l].eq(MapToBinary.ZERO))) {
+                    ci_batched = ci_batched.add(ci[j].mul(polys[j][l]));
+                }
+            }
+            c_d.push(ci_batched.add(this.commit(MapToBinary.ZERO, params.rho[l])));
+        }
+
+        return c_d;
+    }
+
+    /**
+     * 
+     * @param {Witness} w 
+     * @param {CommitmentParams} params 
+     * @param {BN} cy 
+     */
+    this.get_Ds = function(w, params, cy) {
+        var polys = this.getPolys(w, params);
+
+        Ds = [];
+
+        for (let l = 0; l < this.listSizeLog; l++) {
+            var pl_batched = new BN(0);
+            for (let j = 0; j < this.listSize; j++) {
+                pl_batched = pl_batched.add((polys[j][l]).mul(cy.pow(new BN(j)).umod(this.modulus))).umod(this.modulus); // TODO: 
+            }
+            Ds.push(LiftedElgamalEnc.encryptWithRandomness(this.st.h, params.Rk[l], pl_batched, this.ec.curve));
+        }
+        return Ds;
+    }
+
+    this.getCommitmentParams = function() {
+        var t = this.ec.randomBN();  // t
+        var s_p = this.ec.randomBN(); // s'
+        var t_p = this.ec.randomBN(); // t'
+        var a = [];  // tau_i
+        var b = [];  // a_i
+        var g = [];  // s_i
+        var d = [];  // t_i
+        var Rk = [];
+        var rho = [];
+        for (var i = 0; i < this.listSizeLog; ++i) {
+            a.push(this.ec.randomBN());
+            b.push(this.ec.randomBN());
+            g.push(this.ec.randomBN());
+            d.push(this.ec.randomBN());
+            Rk.push(this.ec.randomBN());
+            rho.push(this.ec.randomBN());
+        }
+        return new CommitmentParams(t, s_p, t_p, a, b, g, d, Rk, rho);
+    }
+
+    this.getCommitment = function(params, witness, cy) {
+        var c = this.commit(witness.secKey, params.t);
+        var c_d = this.get_c_d(witness, params, c);
+        var I = []; var B = []; var A = [];
+
+        // commit 
+        for (var i = 0; i < this.listSizeLog; i++) {
+            I.push(this.commit(witness.indexBits[i], params.tau[i]));
+            A.push(this.commit(params.ai[i], params.si[i]));
+            B.push(this.commit(witness.indexBits[i].mul(params.ai[i]), params.ti[i]));
+        }
+        var Ds = this.get_Ds(witness, params, cy);
+        var m = this.commit(params.s_p, params.t_p);
+
+        return new Commitment(c, I, B, A, c_d, Ds, m);
+    }
+
+    this.getChallengeY = function() {
+        var bytes = this.st.toBytes(this.ec);
+
+        return new BN(SHA256(bytes.toString()).toString(), 16).umod(this.modulus);
+    }
+
+    /**
+     * 
+     * @param {Commitment} comm 
+     */
+    this.getChallengeX = function(comm) {
+        var stBytes = this.st.toBytes(this.ec);
+        var commBytes = comm.toBytes(this.ec);
+        return new BN(SHA256(stBytes.concat(commBytes).toString()).toString(), 16).umod(this.modulus);
+    }
+
+    /**
+     * 
+     * @param {[BN]} rs 
+     * @param {[BN]} Rk 
+     * @param {ChallengeFull} ch 
+     * @returns {BN}
+     */
+    this.getR = function(rs, Rk, ch) {
+        var x_logN = ch.x.pow(new BN(this.listSizeLog)).umod(this.modulus);
+
+        var sum1 = new BN(0);
+        for (let i = 0; i < this.listSize; i++) {
+            var item = rs[i].mul(x_logN).umod(this.modulus).mul(ch.y.pow(new BN(i)).umod(this.modulus)).umod(this.modulus);
+            sum1 = sum1.add(item).umod(this.modulus);
+        }
+
+        var sum2 = new BN(0);
+        for (let i = 0; i < this.listSizeLog; i++) {
+            var item = Rk[i].mul(ch.x.pow(new BN(i)).umod(this.modulus)).umod(this.modulus);
+            sum2 = sum2.add(item).umod(this.modulus);
+        }
+
+        return sum1.add(sum2).umod(this.modulus);
+    }
+
+    /**
+     * 
+     * @param {CommitmentParams} params 
+     * @param {ChallengeFull} ch
+     * @return {BN} 
+     */
+    this.get_z_d = function(params, ch) {
+        var x_logN = ch.x.pow(new BN(this.listSizeLog)).umod(this.modulus);
+        var term1 = params.t.neg().mul(x_logN).umod(this.modulus);
+
+        var term2 = new BN(0);
+        for (let i = 0; i < this.listSizeLog; i++) {
+            term2 = term2.add(params.rho[i].mul(ch.x.pow(new BN(i)).umod(this.modulus)).umod(this.modulus)).umod(this.modulus);
+        }
+
+        return term1.sub(term2).umod(this.modulus);
+    }
+
+    /**
+     * 
+     * @param {Witness} witness 
+     * @param {CommitmentParams} params 
+     * @param {ChallengeFull} c
+     * @returns {Response} 
+     */
+    this.getResponse = function(witness, params, c) {
+        var f = [];
+        var z_a = [];
+        var z_b = [];
+
+        for (let i = 0; i < this.listSizeLog; i++) {
+            f.push(witness.indexBits[i].mul(c.x).add(params.ai[i]).umod(this.modulus));
+            z_a.push(params.tau[i].mul(c.x).add(params.si[i]).umod(this.modulus));
+            z_b.push(params.tau[i].mul(c.x.sub(f[f.length - 1])).umod(this.modulus).add(params.ti[i]).umod(this.modulus));
+        }
+        var z_d = this.get_z_d(params, c);
+        var R = this.getR(witness.rs, params.Rk, c);
+        var v_1 = params.s_p.add(c.x.mul(witness.secKey).umod(this.modulus)).umod(this.modulus);
+        var v_2 = params.t_p.add(c.x.mul(params.t).umod(this.modulus).umod(this.modulus));
+
+        return new Response(f, z_a, z_b, z_d, R, v_1, v_2);
+    }
 }
 
 NullificationNIZK.commitTest = function() {
@@ -295,216 +504,7 @@ NullificationNIZK.commitTest = function() {
 
 
 NullificationNIZK.commitTest();
-/**
- * 
- * @param {Witness} w 
- * @param {CommitmentParams} params 
- * @returns {[[BN]]}
- */
-NullificationNIZK.prototype.getPolys = function(w, params) {
-    var polys = [];
-    var betas = params.ai;
-    
-    // console.log(betas);
-    for(var i = 0; i < this.listSize; i++){
-        polys.push([new BN(1)]);
-        var positionBits = MapToBinary.toBinary(i, this.listSizeLog);
 
-        for(var j = 0; j < this.listSizeLog; j++){
-            polys[polys.length - 1] = Polynomial.multiply(
-                    polys[polys.length - 1],
-                    positionBits[j] == 0 ?
-                    [betas[j].neg(), new BN(1).sub(w.indexBits[j])]:
-                    [betas[j], w.indexBits[j]],
-                    this.modulus
-            );
-        }
-    }
-
-    // for(var poly of polys){
-    //     Polynomial.print(poly);
-    //     console.log(poly.length);
-    //     assert(poly.length == (this.listSizeLog + 1));
-    // }
-
-    return polys;
-}
-
-/**
- * 
- * @param {Witness} w
- * @param {CommitmentParams} params
- * @param {Point} c
- * @return {[Point]}
- */
-NullificationNIZK.prototype.get_c_d = function(w, params, c) {
-    var ci = [];
-
-    var c_1 = c.mul((new BN(-1)).umod(this.modulus));
-    // console.log(c_1.eq(c.mul(new BN(-1))));
-    
-    for (var i = 0; i < this.listSize; i++) {
-        ci.push(this.st.pks[i].add(c_1));
-    }
-
-    var polys = this.getPolys(w, params);
-    var c_d = [];
-    for (var l = 0; l < this.listSizeLog; l++) {
-        var ci_batched = this.ec.curve.g.mul(MapToBinary.ZERO);
-        for (var j = 0; j < this.listSize; j++) {
-            // console.log(polys[j][l]);
-            if (!(polys[j][l].eq(MapToBinary.ZERO))) {
-                ci_batched = ci_batched.add(ci[j].mul(polys[j][l]));
-            }
-        }
-        c_d.push(ci_batched.add(this.commit(MapToBinary.ZERO, params.rho[l])));
-    }
-
-    return c_d;
-}
-
-/**
- * 
- * @param {Witness} w 
- * @param {CommitmentParams} params 
- * @param {BN} cy 
- */
-NullificationNIZK.prototype.get_Ds = function(w, params, cy) {
-    var polys = this.getPolys(w, params);
-
-    Ds = [];
-
-    for (let l = 0; l < this.listSizeLog; l++) {
-        var pl_batched = new BN(0);
-        for (let j = 0; j < this.listSize; j++) {
-            pl_batched = pl_batched.add((polys[j][l]).mul(cy.pow(new BN(j)).umod(this.modulus))).umod(this.modulus); // TODO: 
-        }
-        Ds.push(LiftedElgamalEnc.encryptWithRandomness(this.st.h, params.Rk[l], pl_batched, this.ec.curve));
-    }
-    return Ds;
-}
-
-NullificationNIZK.prototype.getCommitmentParams = function() {
-    var t = this.ec.randomBN();  // t
-    var s_p = this.ec.randomBN(); // s'
-    var t_p = this.ec.randomBN(); // t'
-    var a = [];  // tau_i
-    var b = [];  // a_i
-    var g = [];  // s_i
-    var d = [];  // t_i
-    var Rk = [];
-    var rho = [];
-    for (var i = 0; i < this.listSizeLog; ++i) {
-        a.push(this.ec.randomBN());
-        b.push(this.ec.randomBN());
-        g.push(this.ec.randomBN());
-        d.push(this.ec.randomBN());
-        Rk.push(this.ec.randomBN());
-        rho.push(this.ec.randomBN());
-    }
-    return new CommitmentParams(t, s_p, t_p, a, b, g, d, Rk, rho);
-}
-
-NullificationNIZK.prototype.getCommitment = function(params, witness, cy) {
-    var c = this.commit(witness.secKey, params.t);
-    var c_d = this.get_c_d(witness, params, c);
-    var I = []; var B = []; var A = [];
-
-    // commit 
-    for (var i = 0; i < this.listSizeLog; i++) {
-        I.push(this.commit(witness.indexBits[i], params.tau[i]));
-        A.push(this.commit(params.ai[i], params.si[i]));
-        B.push(this.commit(witness.indexBits[i].mul(params.ai[i]), params.ti[i]));
-    }
-    var Ds = this.get_Ds(witness, params, cy);
-    var m = this.commit(params.s_p, params.t_p);
-
-    return new Commitment(c, I, B, A, c_d, Ds, m);
-}
-
-NullificationNIZK.prototype.getChallengeY = function() {
-    var bytes = this.st.toBytes(this.ec);
-
-    return new BN(SHA256(bytes.toString()).toString(), 16).umod(this.modulus);
-}
-
-/**
- * 
- * @param {Commitment} comm 
- */
-NullificationNIZK.prototype.getChallengeX = function(comm) {
-    var stBytes = this.st.toBytes(this.ec);
-    var commBytes = comm.toBytes(this.ec);
-    return new BN(SHA256(stBytes.concat(commBytes).toString()).toString(), 16).umod(this.modulus);
-}
-
-/**
- * 
- * @param {[BN]} rs 
- * @param {[BN]} Rk 
- * @param {ChallengeFull} ch 
- * @returns {BN}
- */
-NullificationNIZK.prototype.getR = function(rs, Rk, ch) {
-    var x_logN = ch.x.pow(new BN(this.listSizeLog)).umod(this.modulus);
-
-    var sum1 = new BN(0);
-    for (let i = 0; i < this.listSize; i++) {
-        var item = rs[i].mul(x_logN).umod(this.modulus).mul(ch.y.pow(new BN(i)).umod(this.modulus)).umod(this.modulus);
-        sum1 = sum1.add(item).umod(this.modulus);
-    }
-
-    var sum2 = new BN(0);
-    for (let i = 0; i < this.listSizeLog; i++) {
-        var item = Rk[i].mul(ch.x.pow(new BN(i)).umod(this.modulus)).umod(this.modulus);
-        sum2 = sum2.add(item).umod(this.modulus);
-    }
-
-    return sum1.add(sum2).umod(this.modulus);
-}
-
-/**
- * 
- * @param {CommitmentParams} params 
- * @param {ChallengeFull} ch
- * @return {BN} 
- */
-NullificationNIZK.prototype.get_z_d = function(params, ch) {
-    var x_logN = ch.x.pow(new BN(this.listSizeLog)).umod(this.modulus);
-    var term1 = params.t.neg().mul(x_logN).umod(this.modulus);
-
-    var term2 = new BN(0);
-    for (let i = 0; i < this.listSizeLog; i++) {
-        term2 = term2.add(params.rho[i].mul(ch.x.pow(new BN(i)).umod(this.modulus)).umod(this.modulus)).umod(this.modulus);
-    }
-
-    return term1.sub(term2).umod(this.modulus);
-}
-
-/**
- * 
- * @param {Witness} witness 
- * @param {CommitmentParams} params 
- * @param {ChallengeFull} c
- * @returns {Response} 
- */
-NullificationNIZK.prototype.getResponse = function(witness, params, c) {
-    var f = [];
-    var z_a = [];
-    var z_b = [];
-
-    for (let i = 0; i < this.listSizeLog; i++) {
-        f.push(witness.indexBits[i].mul(c.x).add(params.ai[i]).umod(this.modulus));
-        z_a.push(params.tau[i].mul(c.x).add(params.si[i]).umod(this.modulus));
-        z_b.push(params.tau[i].mul(c.x.sub(f[f.length - 1])).umod(this.modulus).add(params.ti[i]).umod(this.modulus));
-    }
-    var z_d = this.get_z_d(params, c);
-    var R = this.getR(witness.rs, params.Rk, c);
-    var v_1 = params.s_p.add(c.x.mul(witness.secKey).umod(this.modulus)).umod(this.modulus);
-    var v_2 = params.t_p.add(c.x.mul(params.t).umod(this.modulus).umod(this.modulus));
-
-    return new Response(f, z_a, z_b, z_d, R, v_1, v_2);
-}
 
 // Public:
 
@@ -573,6 +573,9 @@ NullificationNIZK.prototype.simulate = function(ch) {
 
     for (let i = 0; i < this.listSizeLog; i++) {
         I.push(this.commit(this.ec.randomBN(), this.ec.randomBN()));
+        A.push(
+
+        );
     }
 }
 
