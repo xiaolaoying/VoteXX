@@ -558,25 +558,61 @@ NullificationNIZK.prototype.prove = function(witness) {
 NullificationNIZK.prototype.simulate = function(ch) {
     var challenge = new ChallengeFull(this.getChallengeY(), ch.x);
 
-    var f = [];
-    var z_a = [];
-    var z_b = [];
+    var proof = new Proof();
+    proof.challenge = challenge;
+    proof.response = new Response();
+    proof.commitment = new Commitment();
+    
+    proof.response.f = [];
+    proof.response.z_a = [];
+    proof.response.z_b = [];
     for (let i = 0; i < this.listSizeLog; i++) {
-        f.push(this.ec.randomBN());
-        z_a.push(this.ec.randomBN());
-        z_b.push(this.ec.randomBN());
+        proof.response.f.push(this.ec.randomBN());
+        proof.response.z_a.push(this.ec.randomBN());
+        proof.response.z_b.push(this.ec.randomBN());
     }
+    proof.response.z_d = this.ec.randomBN();
+    proof.response.R = this.ec.randomBN();
+    proof.response.v_1 = this.ec.randomBN();
+    proof.response.v_2 = this.ec.randomBN();
 
-    var I = [];
-    var A = [];
-    var B = [];
+    proof.commitment.c = this.ec.randomPoint();
+
+    proof.commitment.I = [];
+    proof.commitment.A = [];
+    proof.commitment.B = [];
 
     for (let i = 0; i < this.listSizeLog; i++) {
-        I.push(this.commit(this.ec.randomBN(), this.ec.randomBN()));
-        A.push(
-
+        proof.commitment.I.push(this.commit(this.ec.randomBN(), this.ec.randomBN()));
+        proof.commitment.A.push(
+            this.commit(proof.response.f[i], proof.response.z_a[i]).add(proof.commitment.I[i].mul(ch.x.neg().umod(this.modulus)))
+        );
+        proof.commitment.B.push(
+            this.commit(new BN(0), proof.response.z_b[i]).add(proof.commitment.I[i].mul(proof.response.f[i].sub(ch.x).umod(this.modulus)))
         );
     }
+
+    proof.commitment.Ds = [];
+    proof.commitment.Ds.push(ElgamalCiphertext.identity(this.ec));
+    for (var i = 1; i < this.listSizeLog; i++) {
+        proof.commitment.Ds.push(ElgamalCiphertext.random(this.ec));
+    }
+    proof.commitment.Ds[0] = this.condition4_right(proof).add(
+        (this.condition4_left(proof, challenge.x, challenge.y).neg())
+    );
+
+    proof.commitment.m = this.ec.curve.g.mul(proof.response.v_1).add(this.st.h.mul(proof.response.v_2)).add
+    (proof.commitment.c.mul(challenge.x.neg().umod(this.modulus)));
+
+    proof.commitment.c_d = [];
+    proof.commitment.c_d.push(this.ec.curve.g.mul(new BN(0)));
+    for (var i = 1; i < this.listSizeLog; i++) {
+        proof.commitment.c_d.push(this.ec.randomPoint());
+    }
+    proof.commitment.c_d[0] = this.condition3_left(proof, challenge.x).add
+    (this.condition3_right(proof, challenge.x).mul(new BN(-1).umod(this.modulus)));
+
+    return proof;
 }
 
 /**
@@ -756,6 +792,7 @@ NullificationNIZK.test = function() {
     var proof_sim = NIZK.simulate(new Challenge(ec.randomBN()));
 
     console.log(NIZK.verify(proof));
+    console.log(NIZK.verify(proof_sim));
 }
 
 NullificationNIZK.test();
