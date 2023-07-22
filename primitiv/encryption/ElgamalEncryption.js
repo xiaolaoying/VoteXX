@@ -18,7 +18,7 @@ ElgamalCiphertext.prototype.neg = function() {
 }
 
 ElgamalCiphertext.prototype.eq = function(other) {
-  return this.c1.eq(other.c1) && this.c2.eq(other.eq);
+  return this.c1.eq(other.c1) && this.c2.eq(other.c2);
 }
 
 ElgamalCiphertext.prototype.toBytes = function(ec) {
@@ -41,7 +41,7 @@ ElgamalCiphertext.vecFromBytes = function(bytes, ec) {
 }
 
 ElgamalCiphertext.identity = function(ec) {
-  return new ElgamalCiphertext(ec.curve.point(), ec.curve.point());
+  return new ElgamalCiphertext(ec.curve.point(null, null), ec.curve.point(null, null));
 }
 
 ElgamalCiphertext.random = function(ec) {
@@ -69,7 +69,7 @@ function ElgamalEnc() {
 
 ElgamalEnc.encrypt = function(pubKey, randomness, msg, curve) {
   g_r = curve.g.mul(randomness);
-  pk_r = randomness.isZero() ? curve.g : pubKey.mul(randomness);
+  pk_r = randomness.isZero() ? curve.point(null, null) : pubKey.mul(randomness);
   // console.log(pk_r, curve.g);
   return new ElgamalCiphertext(g_r, pk_r.add(msg));
 }
