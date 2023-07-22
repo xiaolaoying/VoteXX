@@ -69,6 +69,6 @@ Polynomial.test = function() {
     Polynomial.print(Polynomial.multiply(poly1, poly2, new BN(5)));
 }
 
-Polynomial.test();
+// Polynomial.test();
 
 module.exports = Polynomial;

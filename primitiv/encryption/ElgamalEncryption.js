@@ -151,8 +151,8 @@ LiftedElgamalEnc.test = function() {
   console.log(msg.eq(this.decrypt(privKey, this.encrypt(pubKey, msg, ec.curve, ec)[0], ec.curve)));
 }
 
-ElgamalEnc.test();
-LiftedElgamalEnc.test();
+// ElgamalEnc.test();
+// LiftedElgamalEnc.test();
 
 module.exports = {
   LiftedElgamalEnc,

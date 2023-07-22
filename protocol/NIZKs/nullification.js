@@ -1,6 +1,6 @@
 var BN = require('bn.js');
 var SHA256 = require('crypto-js/sha256');
-const { ElgamalCiphertext, LiftedElgamalEnc } = require('../../primitiv/encryption/ElgamalEncryption');
+var { ElgamalCiphertext, LiftedElgamalEnc } = require('../../primitiv/encryption/ElgamalEncryption');
 var Polynomial = require('../../primitiv/polynomial/poly');
 
 function MapToBinary() {
@@ -31,7 +31,7 @@ MapToBinary.test = function() {
     console.log(toBinaryisOk);
 }
 
-MapToBinary.test();
+// MapToBinary.test();
 
 /**
  * 
@@ -298,12 +298,6 @@ function NullificationNIZK(ec, st) {
             }
         }
 
-        // for(var poly of polys){
-        //     Polynomial.print(poly);
-        //     console.log(poly.length);
-        //     assert(poly.length == (this.listSizeLog + 1));
-        // }
-
         return polys;
     }
 
@@ -503,7 +497,7 @@ NullificationNIZK.commitTest = function() {
 }
 
 
-NullificationNIZK.commitTest();
+// NullificationNIZK.commitTest();
 
 
 // Public:
@@ -535,7 +529,7 @@ NullificationNIZK.prototype.SecondMove = function(firstMoveData, ch, witness) {
 }
 
 /**
- * 
+ * 计算commitment和response
  * @param {Witness} witness 
  * @returns {Proof}
  */
@@ -656,7 +650,7 @@ NullificationNIZK.prototype.condition2 = function(proof, cx) {
 }
 
 /**
- * 
+ * 计算求乘f_{j,i_j}
  * @param {number} position 
  * @param {[BN]} z 
  * @param {BN} x 
@@ -698,10 +692,23 @@ NullificationNIZK.prototype.condition3_right = function(proof) {
     return this.commit(new BN(0), proof.response.z_d);
 }
 
+/**
+ * 
+ * @param {Proof} proof 
+ * @param {BN} cx 
+ * @returns {Boolean}
+ */
 NullificationNIZK.prototype.condition3 = function(proof, cx) {
     return this.condition3_left(proof, cx).eq(this.condition3_right(proof));
 }
 
+/**
+ * 
+ * @param {Proof} proof 
+ * @param {BN} cx 
+ * @param {BN} cy 
+ * @returns {ElgamalCiphertext}
+ */
 NullificationNIZK.prototype.condition4_left = function(proof, cx, cy) {
     var C = this.st.cts;
     var f = proof.response.f;
@@ -730,14 +737,32 @@ NullificationNIZK.prototype.condition4_left = function(proof, cx, cy) {
     return product1.add(product2);
 }
 
+/**
+ * 
+ * @param {Proof} proof 
+ * @returns {ElgamalCiphertext}
+ */
 NullificationNIZK.prototype.condition4_right = function(proof) {
     return LiftedElgamalEnc.encryptWithRandomness(this.st.h, proof.response.R, new BN(0), this.ec.curve);
 }
 
+/**
+ * 
+ * @param {Proof} proof 
+ * @param {BN} cx 
+ * @param {BN} cy 
+ * @returns {Boolean}
+ */
 NullificationNIZK.prototype.condition4 = function (proof, cx, cy) {
     return this.condition4_left(proof, cx, cy).eq(this.condition4_right(proof));
 }
 
+/**
+ * 
+ * @param {Proof} proof 
+ * @param {BN} cx 
+ * @returns {Boolean}
+ */
 NullificationNIZK.prototype.condition5 = function(proof, cx) {
     var left = this.ec.curve.g.mul(proof.response.v_1).add(this.st.h.mul(proof.response.v_2));
     var right = proof.commitment.m.add(proof.commitment.c.mul(cx));
@@ -745,6 +770,11 @@ NullificationNIZK.prototype.condition5 = function(proof, cx) {
     return left.eq(right);
 }
 
+/**
+ * 验证
+ * @param {Proof} proof 
+ * @returns {Boolean}
+ */
 NullificationNIZK.prototype.verify = function(proof) {
     var cx_simulated = proof.challenge.x;
     var cy_simulated = proof.challenge.y;
@@ -755,7 +785,6 @@ NullificationNIZK.prototype.verify = function(proof) {
     return (this.condition1(proof, cx) && this.condition2(proof, cx) && this.condition3(proof, cx) && 
             this.condition4(proof, cx, cy) && this.condition5(proof, cx));
 }
-
 NullificationNIZK.test = function() {
     var ec = require('../../primitiv/ec/ec');
     var keyPair = ec.genKeyPair();
@@ -795,4 +824,11 @@ NullificationNIZK.test = function() {
     console.log(NIZK.verify(proof_sim));
 }
 
-NullificationNIZK.test();
+// NullificationNIZK.test();
+
+module.exports = {
+    Statement,
+    Witness,
+    Proof,
+    NullificationNIZK
+}
