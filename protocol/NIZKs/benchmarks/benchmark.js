@@ -1,13 +1,13 @@
 var ec = require('../../../primitiv/ec/ec');
-var { ElgamalCiphertext, LiftedElgamalEnc} = require('../../../primitiv/encryption/ElgamalEncryption');
+var {LiftedElgamalEnc} = require('../../../primitiv/encryption/ElgamalEncryption');
 var BN = require('bn.js');
-var {Statement, Witness, Proof, NullificationNIZK} = require('../nullification');
+var {Statement, Witness, NullificationNIZK} = require('../nullification');
 
 
 function benchmark_NullifyBatchNIZK() {
     
     var listSizeLog_max = 7; // max of listSizeLog/bitSize, i.e., if there are 2^20 ballots, set listSizeLog_max = 20
-    var trials_num = 1;
+    var trials_num = 3;
 
     console.log("=============================================");
     console.log("NullifyBatchNIZK");
@@ -18,14 +18,11 @@ function benchmark_NullifyBatchNIZK() {
         bitSizes.push(i);
     }
 
-    console.log("listSize,creation_time(ms),verification_time(ms),proof_size(KB)\n");
-
     bitSizes.forEach(bitSize => {
         var listSize = Math.pow(2, bitSize);
 
         console.log("listSize: ", listSize);
         console.log("---------------------------------------------");
-        console.log(listSize + ',');
 
         var keyPair = ec.genKeyPair();
         var pks = [];
@@ -81,9 +78,8 @@ function benchmark_NullifyBatchNIZK() {
 
         console.log("creation_time: ", creation_time, " ms");
         console.log("verification_time: ", verification_time, " ms");
-        console.log("proof_size: ", proof_size / 1024, " KB");
         console.log("---------------------------------------------");
-        console.log(creation_time + ',' + verification_time + ',' + proof_size / 1024 + '\n');
+        // console.log(creation_time + ',' + verification_time + '\n');
     });
 
 }
