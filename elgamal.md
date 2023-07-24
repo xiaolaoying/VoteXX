@@ -33,6 +33,8 @@ var plaintext = LiftedElgamalEnc.decrypt(privKey, cipher[0], ec.curve);
 
 ## NullificationNIZK
 
+其实就是example里面的东西
+
 1. 导入模块
 
 ```javascript
@@ -42,7 +44,38 @@ var BN = require('bn.js');
 var {Statement, Witness, NullificationNIZK} = require('../protocol/NIZKs/nullification');
 ```
 
-2. 生成初始数据
+2. 生成随机初始数据
+
+```javascript
+var listSizeLog = 7;
+var listSize = Math.pow(2, listSizeLog);
+
+var keyPair = ec.genKeyPair();
+var pks = [];
+var cts = [];
+var randomnesses = [];
+var secKey;
+
+var index = Math.floor(listSize / 2);
+
+for (let i = 0; i < listSize; i++) {
+    var kp = ec.genKeyPair();
+    pks.push(kp.getPublic());
+    if (i === index) {
+        secKey = kp.getPrivate();
+    }
+}
+
+for (let i = 0; i < listSize; i++) {
+    var ct_r = LiftedElgamalEnc.encrypt(
+        keyPair.getPublic(),
+        i === index ? new BN(1) : new BN(0),
+        ec.curve, ec
+    );
+    cts.push(ct_r[0]);
+    randomnesses.push(ct_r[1]);
+}
+```
 
 3. prove和verify
 
