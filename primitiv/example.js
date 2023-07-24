@@ -2,6 +2,12 @@
 var {LiftedElgamalEnc} = require('./encryption/ElgamalEncryption');
 var ec = require('./ec/ec');
 var BN = require('bn.js');
+var SHA256 = require('crypto-js/sha256');
+
+// 哈希
+var message = 'hello world';
+var hash = SHA256(message);
+console.log(hash.toString());
 
 // 获取密钥
 var key = ec.genKeyPair();
