@@ -34,17 +34,14 @@ var ciphertext2 = cipher[0].mul(BN2);
 var plain2 = LiftedElgamalEnc.decrypt(privKey, ciphertext2, ec.curve);
 console.log(plain2.toString());
 
-
 // 数字签名
-var Schnorr = require('./signature/SchnorrSignature');
 const keyPair = ec.genKeyPair();
 const privateKey = ec.keyFromPrivate(keyPair.getPrivate());
 const publicKey = ec.keyFromPublic(keyPair.getPublic());
 
 var message2 = 'hello world....';
-var messageHash = ec.hash().update(message2).digest();
-const signature = Schnorr.sign(privateKey, messageHash);
-const isValid = Schnorr.verify(publicKey, messageHash, signature);
+const signature = privateKey.sign(message2);
+const isValid = publicKey.verify(message2, signature);
 
 // console.log('Private Key:', privateKey);
 // console.log('Public Key:', publicKey);
