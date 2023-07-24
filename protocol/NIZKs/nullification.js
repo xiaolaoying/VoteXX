@@ -244,7 +244,7 @@ function Witness(index, indexBitSize, rs, secKey) {
     this.secKey = secKey;
 
     var indexBin = MapToBinary.toBinary(index, indexBitSize);
-    for (var bit of indexBin) {
+    for (let bit of indexBin) {
         this.indexBits.push(bit ? MapToBinary.ONE : MapToBinary.ZERO);
     }
 }
@@ -257,6 +257,7 @@ function Witness(index, indexBitSize, rs, secKey) {
 function NullificationNIZK(ec, st) {
     this.ec = ec;
     this.modulus = ec.curve.n;
+    this.red = BN.mont(new BN(this.modulus));
     this.listSize = st.cts.length;
     this.listSizeLog = Math.log2(this.listSize);
     this.st = st;
@@ -281,13 +282,14 @@ function NullificationNIZK(ec, st) {
     this.getPolys = function(w, params) {
         var polys = [];
         var betas = params.ai;
-        
+        var listSize = this.listSize;
+        var listSizeLog = this.listSizeLog;
         // console.log(betas);
-        for(var i = 0; i < this.listSize; i++){
+        for(let i = 0; i < listSize; i++){
             polys.push([new BN(1)]);
             var positionBits = MapToBinary.toBinary(i, this.listSizeLog);
 
-            for(var j = 0; j < this.listSizeLog; j++){
+            for(let j = 0; j < listSizeLog; j++){
                 polys[polys.length - 1] = Polynomial.multiply(
                         polys[polys.length - 1],
                         positionBits[j] == 0 ?
@@ -314,15 +316,17 @@ function NullificationNIZK(ec, st) {
         var c_1 = c.mul((new BN(-1)).mod(this.modulus));
         // console.log(c_1.eq(c.mul(new BN(-1))));
         
-        for (var i = 0; i < this.listSize; i++) {
+        var listSize = this.listSize;
+        var listSizeLog = this.listSizeLog;
+        for (let i = 0; i < listSize; i++) {
             ci.push(this.st.pks[i].add(c_1));
         }
 
         var polys = this.getPolys(w, params);
         var c_d = [];
-        for (var l = 0; l < this.listSizeLog; l++) {
+        for (let l = 0; l < listSizeLog; l++) {
             var ci_batched = this.ec.curve.g.mul(MapToBinary.ZERO);
-            for (var j = 0; j < this.listSize; j++) {
+            for (let j = 0; j < listSize; j++) {
                 // console.log(polys[j][l]);
                 if (!(polys[j][l].eq(MapToBinary.ZERO))) {
                     ci_batched = ci_batched.add(ci[j].mul(polys[j][l]));
@@ -343,12 +347,18 @@ function NullificationNIZK(ec, st) {
     this.get_Ds = function(w, params, cy) {
         var polys = this.getPolys(w, params);
 
+        var listSize = this.listSize;
+        var listSizeLog = this.listSizeLog;
         Ds = [];
 
-        for (let l = 0; l < this.listSizeLog; l++) {
+        for (let l = 0; l < listSizeLog; l++) {
             var pl_batched = new BN(0);
-            for (let j = 0; j < this.listSize; j++) {
-                pl_batched = pl_batched.add((polys[j][l]).mul(cy.pow(new BN(j)).mod(this.modulus))).mod(this.modulus); // TODO: 
+            for (let j = 0; j < listSize; j++) {
+                pl_batched = pl_batched.add((polys[j][l]).mul(cy.toRed(this.red).redPow(new BN(j)).fromRed())).mod(this.modulus); // TODO: 
+                // if (l == listSizeLog-1 && j == listSize-1) {
+                // console.log(cy.toRed(BN.mont(new BN(this.modulus))).redPow(new BN(j)).fromRed().toString());
+                // console.log(cy.pow(new BN(j)).mod(this.modulus).toString());
+                // }
             }
             Ds.push(LiftedElgamalEnc.encryptWithRandomness(this.st.h, params.Rk[l], pl_batched, this.ec.curve));
         }
@@ -366,7 +376,9 @@ function NullificationNIZK(ec, st) {
         params.ti = [];
         params.Rk = [];
         params.rho = [];
-        for (var i = 0; i < this.listSizeLog; ++i) {
+
+        var listSizeLog = this.listSizeLog;
+        for (let i = 0; i < listSizeLog; ++i) {
             params.tau.push(this.ec.randomBN());
             params.ai.push(this.ec.randomBN());
             params.si.push(this.ec.randomBN());
@@ -382,8 +394,9 @@ function NullificationNIZK(ec, st) {
         var c_d = this.get_c_d(witness, params, c);
         var I = []; var B = []; var A = [];
 
+        var listSizeLog = this.listSizeLog;
         // commit 
-        for (var i = 0; i < this.listSizeLog; i++) {
+        for (let i = 0; i < listSizeLog; i++) {
             I.push(this.commit(witness.indexBits[i], params.tau[i]));
             A.push(this.commit(params.ai[i], params.si[i]));
             B.push(this.commit(witness.indexBits[i].mul(params.ai[i]), params.ti[i]));
@@ -418,17 +431,22 @@ function NullificationNIZK(ec, st) {
      * @returns {BN}
      */
     this.getR = function(rs, Rk, ch) {
-        var x_logN = ch.x.pow(new BN(this.listSizeLog)).mod(this.modulus);
+        // var x_logN = ch.x.pow(new BN(this.listSizeLog)).mod(this.modulus);
+        var x_logN = ch.x.toRed(this.red).redPow(new BN(this.listSizeLog)).fromRed();
 
+        var listSize = this.listSize;
+        var listSizeLog = this.listSizeLog;
         var sum1 = new BN(0);
-        for (let i = 0; i < this.listSize; i++) {
-            var item = rs[i].mul(x_logN).mod(this.modulus).mul(ch.y.pow(new BN(i)).mod(this.modulus)).mod(this.modulus);
+        for (let i = 0; i < listSize; i++) {
+            // var item = rs[i].mul(x_logN).mod(this.modulus).mul(ch.y.pow(new BN(i)).mod(this.modulus)).mod(this.modulus);
+            var item = rs[i].mul(x_logN).mod(this.modulus).mul(ch.y.toRed(this.red).redPow(new BN(i)).fromRed()).mod(this.modulus);
             sum1 = sum1.add(item).mod(this.modulus);
         }
 
         var sum2 = new BN(0);
-        for (let i = 0; i < this.listSizeLog; i++) {
-            var item = Rk[i].mul(ch.x.pow(new BN(i)).mod(this.modulus)).mod(this.modulus);
+        for (let i = 0; i < listSizeLog; i++) {
+            var item = Rk[i].mul(ch.x.toRed(this.red).redPow(new BN(i)).fromRed()).mod(this.modulus);
+            // var item = Rk[i].mul(ch.x.pow(new BN(i)).mod(this.modulus)).mod(this.modulus);
             sum2 = sum2.add(item).mod(this.modulus);
         }
 
@@ -442,12 +460,15 @@ function NullificationNIZK(ec, st) {
      * @return {BN} 
      */
     this.get_z_d = function(params, ch) {
-        var x_logN = ch.x.pow(new BN(this.listSizeLog)).mod(this.modulus);
+        var listSizeLog = this.listSizeLog;
+        // var x_logN = ch.x.pow(new BN(this.listSizeLog)).mod(this.modulus);
+        var x_logN = ch.x.toRed(this.red).redPow(new BN(listSizeLog)).fromRed();
         var term1 = params.t.neg().mul(x_logN).umod(this.modulus);
 
         var term2 = new BN(0);
-        for (let i = 0; i < this.listSizeLog; i++) {
-            term2 = term2.add(params.rho[i].mul(ch.x.pow(new BN(i)).mod(this.modulus)).mod(this.modulus)).mod(this.modulus);
+        for (let i = 0; i < listSizeLog; i++) {
+            // term2 = term2.add(params.rho[i].mul(ch.x.pow(new BN(i)).mod(this.modulus)).mod(this.modulus)).mod(this.modulus);
+            term2 = term2.add(params.rho[i].mul(ch.x.toRed(this.red).redPow(new BN(i)).fromRed())).mod(this.modulus);
         }
 
         return term1.sub(term2).mod(this.modulus);
@@ -461,11 +482,12 @@ function NullificationNIZK(ec, st) {
      * @returns {Response} 
      */
     this.getResponse = function(witness, params, c) {
+        var listSizeLog = this.listSizeLog;
         var f = [];
         var z_a = [];
         var z_b = [];
 
-        for (let i = 0; i < this.listSizeLog; i++) {
+        for (let i = 0; i < listSizeLog; i++) {
             f.push(witness.indexBits[i].mul(c.x).add(params.ai[i]).mod(this.modulus));
             z_a.push(params.tau[i].mul(c.x).add(params.si[i]).mod(this.modulus));
             z_b.push(params.tau[i].mul(c.x.sub(f[f.length - 1])).mod(this.modulus).add(params.ti[i]).mod(this.modulus));
@@ -542,7 +564,7 @@ NullificationNIZK.prototype.prove = function(witness) {
     var ch = new ChallengeFull(cy, cx);
     var resp = this.getResponse(witness, params, ch);
 
-    return new Proof(comm, ch, resp);
+    return new Proof(comm, new ChallengeFull(new BN(0), new BN(0)), resp);
 }
 
 /**
@@ -551,6 +573,7 @@ NullificationNIZK.prototype.prove = function(witness) {
  * @returns {Proof} 
  */
 NullificationNIZK.prototype.simulate = function(ch) {
+    var listSizeLog = this.listSizeLog;
     var challenge = new ChallengeFull(this.getChallengeY(), ch.x);
 
     var proof = new Proof();
@@ -561,7 +584,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
     proof.response.f = [];
     proof.response.z_a = [];
     proof.response.z_b = [];
-    for (let i = 0; i < this.listSizeLog; i++) {
+    for (let i = 0; i < listSizeLog; i++) {
         proof.response.f.push(this.ec.randomBN());
         proof.response.z_a.push(this.ec.randomBN());
         proof.response.z_b.push(this.ec.randomBN());
@@ -577,7 +600,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
     proof.commitment.A = [];
     proof.commitment.B = [];
 
-    for (let i = 0; i < this.listSizeLog; i++) {
+    for (let i = 0; i < listSizeLog; i++) {
         proof.commitment.I.push(this.commit(this.ec.randomBN(), this.ec.randomBN()));
         proof.commitment.A.push(
             this.commit(proof.response.f[i], proof.response.z_a[i]).add(proof.commitment.I[i].mul(ch.x.neg().umod(this.modulus)))
@@ -589,7 +612,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
 
     proof.commitment.Ds = [];
     proof.commitment.Ds.push(ElgamalCiphertext.identity(this.ec));
-    for (var i = 1; i < this.listSizeLog; i++) {
+    for (let i = 1; i < listSizeLog; i++) {
         proof.commitment.Ds.push(ElgamalCiphertext.random(this.ec));
     }
     proof.commitment.Ds[0] = this.condition4_right(proof).add(
@@ -601,7 +624,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
 
     proof.commitment.c_d = [];
     proof.commitment.c_d.push(this.ec.curve.g.mul(new BN(0)));
-    for (var i = 1; i < this.listSizeLog; i++) {
+    for (let i = 1; i < this.listSizeLog; i++) {
         proof.commitment.c_d.push(this.ec.randomPoint());
     }
     proof.commitment.c_d[0] = this.condition3_left(proof, challenge.x).add
@@ -621,8 +644,9 @@ NullificationNIZK.prototype.condition1 = function(proof, cx) {
     var A = proof.commitment.A;
     var f = proof.response.f;
     var z_a = proof.response.z_a;
+    var listSizeLog = this.listSizeLog;
 
-    for (let i = 0; i < this.listSizeLog; i++) {
+    for (let i = 0; i < listSizeLog; i++) {
         if (!(I[i].mul(cx).add(A[i]).eq(this.commit(f[i], z_a[i])))) {
             return false;
         }
@@ -642,7 +666,8 @@ NullificationNIZK.prototype.condition2 = function(proof, cx) {
     var f = proof.response.f;
     var z_b = proof.response.z_b;
 
-    for (let i = 0; i < this.listSizeLog; i++) {
+    var listSizeLog = this.listSizeLog;
+    for (let i = 0; i < listSizeLog; i++) {
         if (!(I[i].mul(cx.sub(f[i])).add(B[i]).eq(this.commit(new BN(0), z_b[i])))) {
             return false;
         }
@@ -660,30 +685,34 @@ NullificationNIZK.prototype.mulZ = function(position, z, x) {
     var res = new BN(1);
     var positionBits = MapToBinary.toBinary(position, this.listSizeLog);
 
-    for (let i = 0; i < this.listSizeLog; i++) {
+    var listSizeLog = this.listSizeLog;
+    for (let i = 0; i < listSizeLog; i++) {
         res = res.mul(positionBits[i] == 0? (x.sub(z[i]).mod(this.modulus)) : z[i]).mod(this.modulus);
     }
     return res;
 }
 
 NullificationNIZK.prototype.condition3_left = function(proof, cx) {
+    var listSize = this.listSize;
+    var listSizeLog = this.listSizeLog;
     var f = proof.response.f;
     var c_d = proof.commitment.c_d;
     var c = proof.commitment.c;
     var ci = [];
     var c_1 = c.mul((new BN(-1)).mod(this.modulus));
-    for (var i = 0; i < this.listSize; i++) {
+    for (let i = 0; i < listSize; i++) {
         ci.push(this.st.pks[i].add(c_1));
     }
 
     var term1 = this.ec.curve.g.mul(new BN(0));
-    for (var i = 0; i < this.listSize; i++) {
+    for (let i = 0; i < listSize; i++) {
         term1 = term1.add(ci[i].mul(this.mulZ(i, f, cx)));
     }
 
     var term2 = this.ec.curve.g.mul(new BN(0));
-    for (var i = 0; i < this.listSizeLog; i++) {
-        term2 = term2.add(c_d[i].mul(cx.pow(new BN(i)).mod(this.modulus).neg().umod(this.modulus)));
+    for (let i = 0; i < listSizeLog; i++) {
+        // term2 = term2.add(c_d[i].mul(cx.pow(new BN(i)).mod(this.modulus).neg().umod(this.modulus)));
+        term2 = term2.add(c_d[i].mul(cx.toRed(this.red).redPow(new BN(i)).fromRed().neg().umod(this.modulus)));
     }
 
     return term1.add(term2);
@@ -711,27 +740,32 @@ NullificationNIZK.prototype.condition3 = function(proof, cx) {
  * @returns {ElgamalCiphertext}
  */
 NullificationNIZK.prototype.condition4_left = function(proof, cx, cy) {
+    var listSize = this.listSize;
+    var listSizeLog = this.listSizeLog;
     var C = this.st.cts;
     var f = proof.response.f;
     var D = proof.commitment.Ds;
     
-    var x_logN = cx.pow(new BN(this.listSizeLog)).mod(this.modulus);
+    // var x_logN = cx.pow(new BN(this.listSizeLog)).mod(this.modulus);
+    var x_logN = cx.toRed(this.red).redPow(new BN(listSizeLog)).fromRed();
     var product1 = ElgamalCiphertext.identity(this.ec);
 
-    for (var i = 0; i < this.listSize; i++) {
+    for (let i = 0; i < listSize; i++) {
         product1 = product1.add(
             (C[i].mul(x_logN).add(
                 LiftedElgamalEnc.encryptWithRandomness(
                     this.st.h, new BN(0), this.mulZ(i, f, cx).neg().umod(this.modulus), this.ec.curve
                 )
-            ).mul(cy.pow(new BN(i)).mod(this.modulus)))
+            ).mul(cy.toRed(this.red).redPow(new BN(i)).fromRed()))
+            // ).mul(cy.pow(new BN(i)).mod(this.modulus)))
         );
     }
 
     var product2 = ElgamalCiphertext.identity(this.ec);
-    for (var i = 0; i < this.listSizeLog; i++) {
+    for (let i = 0; i < listSizeLog; i++) {
         product2 = product2.add(
-            D[i].mul(cx.pow(new BN(i)).mod(this.modulus))
+            D[i].mul(cx.toRed(this.red).redPow(new BN(i)).fromRed())
+            // D[i].mul(cx.pow(new BN(i)).mod(this.modulus))
         );
     }
     
@@ -825,7 +859,7 @@ NullificationNIZK.test = function() {
     console.log(NIZK.verify(proof_sim));
 }
 
-NullificationNIZK.test();
+// NullificationNIZK.test();s
 
 module.exports = {
     Statement,

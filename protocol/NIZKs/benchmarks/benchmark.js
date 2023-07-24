@@ -6,8 +6,8 @@ var {Statement, Witness, NullificationNIZK} = require('../nullification');
 
 function benchmark_NullifyBatchNIZK() {
     
-    var listSizeLog_max = 7; // max of listSizeLog/bitSize, i.e., if there are 2^20 ballots, set listSizeLog_max = 20
-    var trials_num = 3;
+    var listSizeLog_max = 20; // max of listSizeLog/bitSize, i.e., if there are 2^20 ballots, set listSizeLog_max = 20
+    var trials_num = 1;
 
     console.log("=============================================");
     console.log("NullifyBatchNIZK");
