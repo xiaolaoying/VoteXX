@@ -1,8 +1,19 @@
-# Usage
+# Install packages and run
 
-详细见example文件夹
+```bash
+npm install
+node primitiv/example.js
+```
 
-## Elgamal加密用法
+# SHA256哈希用法
+```javascript
+var SHA256 = require('crypto-js/sha256');
+var message = 'hello world';
+var hash = SHA256(message);
+console.log(hash.toString());
+```
+
+# Elgamal加密用法
 
 1. 导入模块
 
@@ -31,7 +42,7 @@ var plaintext = LiftedElgamalEnc.decrypt(privKey, cipher[0], ec.curve);
 
 如果这里使用不带随机数的接口，返回的结果是\[密文， 随机数\]，否则直接返回密文。返回随机数时解密需要使用`cipher[0]`进行解密。
 
-## NullificationNIZK
+# NullificationNIZK
 
 其实就是example里面的东西
 

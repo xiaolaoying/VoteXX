@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+test Bulletin Board
+{% for key in list %}
+<p> {{key.public_key}} : {{key.key_type}}
+</p>
+<br />
+{% endfor %}
+</body>
+</html>
