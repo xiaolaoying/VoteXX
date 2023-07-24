@@ -17,14 +17,61 @@ ElgamalCiphertext.prototype.neg = function() {
   return new ElgamalCiphertext(this.c1.neg(), this.c2.neg());
 }
 
+ElgamalCiphertext.prototype.eq = function(other) {
+  return this.c1.eq(other.c1) && this.c2.eq(other.c2);
+}
+
+ElgamalCiphertext.prototype.toBytes = function(ec) {
+  var c1_bytes = ec.serializedPoint(this.c1);
+  var c2_bytes = ec.serializedPoint(this.c2);
+
+  return [c1_bytes, c2_bytes];
+}
+
+ElgamalCiphertext.vecToBytes = function(cts, ec) {
+  return cts.map(ct => ct.toBytes(ec));
+}
+
+ElgamalCiphertext.fromBytes = function(bytes, ec) {
+  return new ElgamalCiphertext(ec.deserializedPoint(bytes[0]), ec.deserializedPoint(bytes[1]));
+}
+
+ElgamalCiphertext.vecFromBytes = function(bytes, ec) {
+  return bytes.map(str => ElgamalCiphertext.fromBytes(str, ec));
+}
+
+ElgamalCiphertext.identity = function(ec) {
+  return new ElgamalCiphertext(ec.curve.point(null, null), ec.curve.point(null, null));
+}
+
+ElgamalCiphertext.random = function(ec) {
+  return new ElgamalCiphertext(ec.randomPoint(), ec.randomPoint());
+}
+
+// ElgamalCiphertext.prototype.size = function(ec) {
+//   return ec.pointByteSize(this.c1) + ec.pointByteSize(this.c2);
+// }
+
+ElgamalCiphertext.test = function() {
+  var ec = require('../ec/ec');
+
+  const cts = [ElgamalCiphertext.random(ec), ElgamalCiphertext.random(ec)];
+  const bytes = ElgamalCiphertext.vecToBytes(cts, ec);
+
+  const debytes = ElgamalCiphertext.vecFromBytes(bytes, ec);
+  console.log(bytes);
+  console.log(cts[0].eq(debytes[0]));
+}
+
+// ElgamalCiphertext.test();
+
 function ElgamalEnc() {
-  
+
 }
 
 ElgamalEnc.encrypt = function(pubKey, randomness, msg, curve) {
   g_r = curve.g.mul(randomness);
-  pk_r = randomness.isZero() ? curve.g : pubKey.mul(randomness);
-  // console.log(pk_r, curve.g);
+  pk_r = randomness.isZero() ? curve.point(null, null) : pubKey.mul(randomness);
   return new ElgamalCiphertext(g_r, pk_r.add(msg));
 }
 
@@ -35,12 +82,10 @@ ElgamalEnc.decrypt = function(privKey, ciphertext, curve) {
 
 ElgamalEnc.test = function() {
   var ec = require('../ec/ec');
-  // var ec = new EC('sepc256k1');
 
   var key = ec.genKeyPair();
   var pubKey = key.getPublic();
   var privKey = key.getPrivate();
-  // console.log(key.pubKey);
 
   var randomness = ec.randomBN();
   var msg = ec.randomPoint();
@@ -62,7 +107,6 @@ LiftedElgamalEnc.encryptWithRandomness = function(pubKey, randomness, msg, curve
 }
 
 LiftedElgamalEnc.encrypt = function(pubKey, msg, curve, ec) {
-  // assert(msg.lt(new BN(2^20)))
   var randomness = ec.randomBN();
   return [this.encryptWithRandomness(pubKey, randomness, msg, curve), randomness];
 }
@@ -93,7 +137,6 @@ LiftedElgamalEnc.dlog = function(value, curve) {
 LiftedElgamalEnc.test = function() {
   
   var ec = require('../ec/ec');
-  // var ec = new EC('sepc256k1');
 
   var key = ec.genKeyPair();
   var pubKey = key.getPublic();
@@ -105,8 +148,8 @@ LiftedElgamalEnc.test = function() {
   console.log(msg.eq(this.decrypt(privKey, this.encrypt(pubKey, msg, ec.curve, ec)[0], ec.curve)));
 }
 
-ElgamalEnc.test();
-LiftedElgamalEnc.test();
+// ElgamalEnc.test();
+// LiftedElgamalEnc.test();
 
 module.exports = {
   LiftedElgamalEnc,
