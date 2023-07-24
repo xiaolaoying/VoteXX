@@ -5,6 +5,14 @@ npm install
 node primitiv/example.js
 ```
 
+# SHA256哈希用法
+```javascript
+var SHA256 = require('crypto-js/sha256');
+var message = 'hello world';
+var hash = SHA256(message);
+console.log(hash.toString());
+```
+
 # Elgamal加密用法
 
 1. 导入模块
