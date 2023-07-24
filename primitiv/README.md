@@ -5,6 +5,20 @@ npm install
 node primitiv/example.js
 ```
 
+# 数字签名
+```javascript
+const keyPair = ec.genKeyPair();
+const privateKey = ec.keyFromPrivate(keyPair.getPrivate());
+const publicKey = ec.keyFromPublic(keyPair.getPublic());
+
+var message2 = 'hello world....';
+const signature = privateKey.sign(message2);
+const isValid = publicKey.verify(message2, signature);
+
+console.log('Signature:', signature.toDER('hex'));
+console.log('Is Valid Signature?', isValid);
+```
+
 # SHA256哈希用法
 ```javascript
 var SHA256 = require('crypto-js/sha256');
