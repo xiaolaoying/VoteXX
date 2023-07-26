@@ -162,15 +162,20 @@ class Polynomial {
         fillchar = fillchar || new Bn(0);
         
         const maxLen = Math.max(iter1.length, iter2.length);
+        const result = [];
         
         for (let i = 0; i < maxLen; i++) {
-          if (i >= iter1.length) {
-            yield [fillchar, iter2[i]];
-          } else if (i >= iter2.length) {
-            yield [iter1[i], fillchar];
-          } else {
-            yield [iter1[i], iter2[i]];
-          }
+            if (i >= iter1.length) {
+                result.push([fillchar, iter2[i]]);
+            } else if (i >= iter2.length) {
+                result.push([iter1[i], fillchar]);
+            } else {
+                result.push([iter1[i], iter2[i]]);
+            }
         }
+        
+        return result;
       }
 }
+
+module.exports = Polynomial;

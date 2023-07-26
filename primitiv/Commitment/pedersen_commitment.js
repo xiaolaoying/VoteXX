@@ -80,3 +80,5 @@ class Commitment{
         return this.commitment.export();
     }
 }
+
+module.exports = {PublicKey, Commitment};

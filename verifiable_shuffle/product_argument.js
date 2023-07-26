@@ -1,3 +1,8 @@
+// Import necessary modules
+//const { EcGroup, Bn } = require('petlib');
+const { polynomial } = require('../primitiv/polynomial/polynomial.js');
+const {PublicKey, Commitment} = require('../primitiv/Commitment/pedersen_commitment.js');
+
 class SingleValueProdArg {
   constructor(com_pk, commitment, product, committed_values, randomizer) {
     this.n = committed_values.length;
