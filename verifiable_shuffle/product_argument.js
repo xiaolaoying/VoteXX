@@ -3,6 +3,11 @@
 const { polynomial } = require('../primitiv/polynomial/polynomial.js');
 const {PublicKey, Commitment} = require('../primitiv/Commitment/pedersen_commitment.js');
 
+// var SHA256 = require('crypto-js/sha256');
+// var message = 'hello world';
+// var hash = SHA256(message);
+// console.log(hash.toString());
+
 class SingleValueProdArg {
   constructor(com_pk, commitment, product, committed_values, randomizer) {
     this.n = committed_values.length;
@@ -109,4 +114,15 @@ class SingleValueProdArg {
   
     return check1 && check2 && check3 && check4 && check5 && check6 && check7;
   }
+}
+
+
+let com_pk = PublicKey(G, n);
+let proof = new SingleValueProdArg(com_pk, commitment, product, committed_values, randomizer);
+var result = proof.verify(com_pk, commitment, product);
+
+if(result){
+  print("success!");
+}else{
+  print("fail!");
 }
