@@ -1,7 +1,7 @@
 {
-  "name": "votexx",
+  "name": "bn",
   "version": "1.0.0",
-  "description": "",
+  "description": "VoteXX is the first election system that has “extreme coercion resistance”.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,8 +17,15 @@
   },
   "homepage": "https://github.com/xiaolaoying/VoteXX#readme",
   "dependencies": {
+    "big-integer": "^1.6.51",
+    "bigint-crypto-utils": "^3.3.0",
+    "bn": "^1.0.5",
+    "crypto": "^1.0.1",
     "crypto-js": "^4.1.1",
     "elliptic": "^6.5.4",
     "numjs": "^0.16.1"
+  },
+  "directories": {
+    "example": "example"
   }
 }

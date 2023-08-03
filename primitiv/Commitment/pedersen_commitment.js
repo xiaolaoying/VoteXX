@@ -1,6 +1,6 @@
 var BN = require('bn.js');
-const EC = require('../ec/ec');
-const { ec } = require('elliptic');
+const EC = require('elliptic').ec;
+const bigInt = require('big-integer');
 
 
 class PublicKey {
@@ -16,16 +16,15 @@ class PublicKey {
             >>> G = EcGroup()
             >>> pk = PublicKey(G, 2)
       **/
-      const curve = new ec('secp256k1');
+      const ec = new EC('secp256k1');
       
-      this.group = curve;
-      this.order = curve.curve.n;
+      this.group = ec;
+      this.order = ec.curve.n;
       this.n = n;
       this.generators = [];
   
       for (let i = 0; i <= this.n; i++) {
-        //console.log(EC.randomPoint());
-        this.generators.push(EC.randomPoint());
+        this.generators.push(ec.g.mul(i+1));
       }
     }
 
@@ -45,14 +44,16 @@ class PublicKey {
           throw new Error(`Incorrect length of input ${values.length} expected ${this.n}`);
         }
         if (randomizer === null || randomizer === undefined) {
-          randomizer = EC.randomBN();
+          randomizer = bigInt.randBetween(0, bigInt(this.order)-bigInt(1));
         }
         let powers = values.concat(randomizer);
 
-        const dotProduct = [0n, 0n];
-        for(let i = 0; i < powers.length; i++){
-          dotProduct[0] += BigInt(powers[i]) * BigInt(this.generators[i].x);
-          dotProduct[1] += BigInt(powers[i]) * BigInt(this.generators[i].y);
+        let dotProduct = this.generators[0].mul(BigInt(powers[0]));
+        // console.log(this.generators[0].x.toString(), this.generators[0].y.toString());
+        // console.log(dotProduct.x.toString(), dotProduct.y.toString());
+        for(let i = 1; i < powers.length; i++){
+          dotProduct = dotProduct.add(this.generators[i].mul(BigInt(powers[i])));
+          // console.log(dotProduct.x.toString(), dotProduct.y.toString());
         }
         let commitment = new Commitment(dotProduct);
         
@@ -70,15 +71,14 @@ class PublicKey {
           throw new Error(`Incorrect length of input ${values.length} expected ${reduced_n}`);
         }
         if (randomizer === null || randomizer === undefined) {
-          randomizer = EC.randomBN();
+          randomizer = bigInt.randBetween(0, bigInt(this.order)-bigInt(1));
         }
 
         let powers = values.concat(randomizer);
 
-        const dotProduct = [0n, 0n];
-        for(let i = 0; i < powers.length; i++){
-          dotProduct[0] += BigInt(powers[i]) * BigInt(generators[i].x);
-          dotProduct[1] += BigInt(powers[i]) * BigInt(generators[i].y);
+        let dotProduct = this.generators[0].mul(BigInt(powers[0]));
+        for(let i = 1; i < powers.length; i++){
+          dotProduct = dotProduct.add(this.generators[i].mul(BigInt(powers[i])));
         }
         let commitment = new Commitment(dotProduct);
 
@@ -119,8 +119,8 @@ class Commitment{
           >>> com == comsum
           True
       **/
-        const resultingCommitment = [BigInt(this.commitment[0]) + BigInt(other.commitment[0]), 
-                                     BigInt(this.commitment[1]) + BigInt(other.commitment[1])];
+     
+        const resultingCommitment = this.commitment.add(other.commitment);
         return new Commitment(resultingCommitment);
     }
 
@@ -139,17 +139,16 @@ class Commitment{
           >>> com == commul
           True
       **/
-        const resultingCommitment = [BigInt(this.commitment[0]) * BigInt(exponent), 
-                                     BigInt(this.commitment[1]) * BigInt(exponent)];
+        const resultingCommitment = this.commitment.mul(BigInt(exponent));
         return new Commitment(resultingCommitment);
     }
 
     isEqual(other) {
-        return this.commitment === other.commitment;
+        return ((this.commitment.x).eq(other.commitment.x)) && ((this.commitment.y).eq(other.commitment.y));
     }
 
     export() {
-        return [this.commitment[0], this.commitment[1]];
+        return [this.commitment.x, this.commitment.y];
     }
 }
 
@@ -157,13 +156,22 @@ module.exports = {PublicKey, Commitment};
 
 
 // example: 
-// let com_pk = new PublicKey(5);
-// let [com, ran] = new PublicKey(2).commit([3, 4]);
-// let [com_2, ran_2] = com_pk.commit_reduced([3, 4], 2);
 
-// console.log(com_pk.export().toString());
-// console.log(com.mul(com_2).commitment.toString());
-// console.log(com.pow(3).commitment.toString());
-// console.log(com.isEqual(com));
-// console.log(com.isEqual(com_2));
-// console.log(com.export().toString());
+// pk = new PublicKey(2);
+// let [com1, rand1] = pk.commit([BigInt(10), BigInt(20)]);
+// let [com2, rand2] = pk.commit([BigInt(13), BigInt(19)]);
+// let comsum = (com1.pow(10)).mul(com2);
+// let [com, rand] = pk.commit([(BigInt(10)*BigInt(10) + BigInt(13)) % BigInt(pk.order), 
+//                             (BigInt(20)*BigInt(10) + BigInt(19)) % BigInt(pk.order)], 
+//                             randomizer=(BigInt(rand1)*BigInt(10)+ BigInt(rand2)) % BigInt(pk.order));
+// console.log(com.isEqual(comsum));
+
+
+pk = new PublicKey(2);
+let [com1, rand1] = pk.commit([10, 20]);
+let commul = com1.pow(100);
+let [com, rand] = pk.commit([1000, 2000], randomizer=100 * rand1);
+console.log(pk.generators[0].mul(BigInt(10)).mul(BigInt(100)).eq(pk.generators[0].mul(BigInt(1000))));
+console.log(pk.generators[1].mul(20).mul(100).eq(pk.generators[1].mul(2000)));
+console.log((pk.generators[2].mul(BigInt(rand1)).mul(100)).eq(pk.generators[2].mul(BigInt(100 * rand1) % BigInt(pk.order))));
+console.log(com.isEqual(commul));
