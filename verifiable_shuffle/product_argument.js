@@ -127,9 +127,9 @@ class SingleValueProdArg {
         console.log(proof.verify(com_pk, commit, product));
         >>> true
         
-        let msgs = [new BN(11), new BN(12), new BN(13)];
-        let proof = SingleValueProdArg(com_pk, commit, product, msgs, rand);
-        console(proof.verify(com_pk, commit, product));
+        let msgs_2 = [new BN(11), new BN(12), new BN(13)];
+        let proof = new SingleValueProdArg(com_pk, commit, product, msgs_2, rand);
+        console.log(proof.verify(com_pk, commit, product));
         >>> false
 
     **/
