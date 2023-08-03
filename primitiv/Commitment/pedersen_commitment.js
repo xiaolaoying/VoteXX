@@ -1,11 +1,10 @@
 var BN = require('bn.js');
 const EC = require('elliptic').ec;
-const bigInt = require('big-integer');
 
 
 class PublicKey {
     // Simple public key for Pedersen's commitment scheme
-    constructor(n) {
+    constructor(ec, n) {
       /**
         Create a public key for the Pedersen commitment scheme.
 
@@ -13,18 +12,20 @@ class PublicKey {
         elements. We set the bases by hashing integers to points on the curve.
 
         Example:
-            >>> G = EcGroup()
-            >>> pk = PublicKey(G, 2)
-      **/
-      const ec = new EC('secp256k1');
-      
+          G = new EC('secp256k1');
+          pk = PublicKey(G, 2);
+      **/      
       this.group = ec;
       this.order = ec.curve.n;
       this.n = n;
       this.generators = [];
   
       for (let i = 0; i <= this.n; i++) {
-        this.generators.push(ec.g.mul(i+1));
+        /**
+         * G's index: 0 -> this.n-1
+         * H's index: this.n
+        **/
+        this.generators.push(ec.g.mul(this.group.genKeyPair().getPrivate()));
       }
     }
 
@@ -36,24 +37,22 @@ class PublicKey {
           it. The randomizer can also be passed in as the optional parameter.
 
           Example:
-              >>> G = EcGroup()
-              >>> pk = PublicKey(G, 2)
-              >>> com, rand = pk.commit([10, 20])
+            G = new EC('secp256k1');
+            pk = PublicKey(G, 2);
+            [com, rand] = pk.commit([10, 20]);
         **/
         if (values.length !== this.n) {
           throw new Error(`Incorrect length of input ${values.length} expected ${this.n}`);
         }
         if (randomizer === null || randomizer === undefined) {
-          randomizer = bigInt.randBetween(0, bigInt(this.order)-bigInt(1));
+          randomizer = this.group.genKeyPair().getPrivate();
         }
         let powers = values.concat(randomizer);
 
-        let dotProduct = this.generators[0].mul(BigInt(powers[0]));
-        // console.log(this.generators[0].x.toString(), this.generators[0].y.toString());
-        // console.log(dotProduct.x.toString(), dotProduct.y.toString());
+        let dotProduct = this.generators[0].mul(new BN(powers[0]));
+
         for(let i = 1; i < powers.length; i++){
-          dotProduct = dotProduct.add(this.generators[i].mul(BigInt(powers[i])));
-          // console.log(dotProduct.x.toString(), dotProduct.y.toString());
+          dotProduct = dotProduct.add(this.generators[i].mul(new BN(powers[i])));
         }
         let commitment = new Commitment(dotProduct);
         
@@ -63,7 +62,7 @@ class PublicKey {
     commit_reduced(values, reduced_n, randomizer = null) {
       /**Commit to a list of values with a reduced number of generators
 
-      Returns two values as in the method above 'commit'
+        Returns two values as in the method above 'commit'
       **/
       let generators = this.generators.slice(0, reduced_n + 1);
 
@@ -71,14 +70,14 @@ class PublicKey {
           throw new Error(`Incorrect length of input ${values.length} expected ${reduced_n}`);
         }
         if (randomizer === null || randomizer === undefined) {
-          randomizer = bigInt.randBetween(0, bigInt(this.order)-bigInt(1));
+          randomizer = this.group.genKeyPair().getPrivate();
         }
 
         let powers = values.concat(randomizer);
 
-        let dotProduct = this.generators[0].mul(BigInt(powers[0]));
+        let dotProduct = this.generators[0].mul(new BN(powers[0]));
         for(let i = 1; i < powers.length; i++){
-          dotProduct = dotProduct.add(this.generators[i].mul(BigInt(powers[i])));
+          dotProduct = dotProduct.add(this.generators[i].mul(new BN(powers[i])));
         }
         let commitment = new Commitment(dotProduct);
 
@@ -88,7 +87,7 @@ class PublicKey {
     export() {
         let exportBytes = [0x00n, 0xFFn];
         for (let gen of this.generators) {
-          exportBytes += [BigInt(gen.x), BigInt(gen.y)];
+          exportBytes += [new BN(gen.x), new BN(gen.y)];
         }
         return exportBytes;
     }
@@ -103,21 +102,21 @@ class Commitment{
 
     mul(other) {
       /**
-      Multiply two Pedersen commitments
+        Multiply two Pedersen commitments
 
-      The commitment scheme is additively homomorphic. Multiplying two
-      commitments gives a commitment to the pointwise sum of the original
-      values.
+        The commitment scheme is additively homomorphic. Multiplying two
+        commitments gives a commitment to the pointwise sum of the original
+        values.
 
-      Example:
-          >>> G = EcGroup()
-          >>> pk = PublicKey(G, 2)
-          >>> com1, rand1 = pk.commit([10, 20])
-          >>> com2, rand2 = pk.commit([13, 19])
-          >>> comsum = com1 * com2
-          >>> com, rand = pk.commit([23, 39], randomizer=rand1 + rand2)
-          >>> com == comsum
-          True
+        Example:
+          pk = new PublicKey(2);
+          let [com1, rand1] = pk.commit([new BN(10), new BN(20)]);
+          let [com2, rand2] = pk.commit([new BN(13), new BN(19)]);
+          let comsum = (com1).mul(com2);
+          let [com, rand] = pk.commit([(new BN(10).add(new BN(13))).mod(new BN(pk.order)), 
+                                       (new BN(20).add(new BN(19))).mod(new BN(pk.order))], 
+                                      randomizer=((new BN(rand1)).add(new BN(rand2))).mod(new BN(pk.order)));
+          console.log(com.isEqual(comsum));
       **/
      
         const resultingCommitment = this.commitment.add(other.commitment);
@@ -131,15 +130,13 @@ class Commitment{
       to a constant power multiplies the committed vector by that constant.
 
       Example:
-          >>> G = EcGroup()
-          >>> pk = PublicKey(G, 2)
-          >>> com1, rand1 = pk.commit([10, 20])
-          >>> commul = com1 ** 10
-          >>> com, rand = pk.commit([100, 200], randomizer=10 * rand1)
-          >>> com == commul
-          True
+        pk = new PublicKey(2);
+        let [com1, rand1] = pk.commit([new BN(10), new BN(20)]);
+        let commul = com1.pow(100);
+        let [com, rand] = pk.commit([new BN(1000), new BN(2000)], randomizer=(new BN(100)).mul(rand1));
+        console.log(com.isEqual(commul));
       **/
-        const resultingCommitment = this.commitment.mul(BigInt(exponent));
+        const resultingCommitment = this.commitment.mul(new BN(exponent));
         return new Commitment(resultingCommitment);
     }
 
@@ -153,25 +150,3 @@ class Commitment{
 }
 
 module.exports = {PublicKey, Commitment};
-
-
-// example: 
-
-// pk = new PublicKey(2);
-// let [com1, rand1] = pk.commit([BigInt(10), BigInt(20)]);
-// let [com2, rand2] = pk.commit([BigInt(13), BigInt(19)]);
-// let comsum = (com1.pow(10)).mul(com2);
-// let [com, rand] = pk.commit([(BigInt(10)*BigInt(10) + BigInt(13)) % BigInt(pk.order), 
-//                             (BigInt(20)*BigInt(10) + BigInt(19)) % BigInt(pk.order)], 
-//                             randomizer=(BigInt(rand1)*BigInt(10)+ BigInt(rand2)) % BigInt(pk.order));
-// console.log(com.isEqual(comsum));
-
-
-pk = new PublicKey(2);
-let [com1, rand1] = pk.commit([10, 20]);
-let commul = com1.pow(100);
-let [com, rand] = pk.commit([1000, 2000], randomizer=100 * rand1);
-console.log(pk.generators[0].mul(BigInt(10)).mul(BigInt(100)).eq(pk.generators[0].mul(BigInt(1000))));
-console.log(pk.generators[1].mul(20).mul(100).eq(pk.generators[1].mul(2000)));
-console.log((pk.generators[2].mul(BigInt(rand1)).mul(100)).eq(pk.generators[2].mul(BigInt(100 * rand1) % BigInt(pk.order))));
-console.log(com.isEqual(commul));
