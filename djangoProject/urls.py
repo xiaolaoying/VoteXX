@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('VoteXX/', include('VoteXX.urls')),
     path('BB/', include('BulletinBoard.urls')),
+    path('auth/', include('VoteXX_auth.urls')),
 
 
     path('', include('server_ui.urls')),
