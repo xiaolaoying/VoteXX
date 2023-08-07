@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建投票</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 class="text-center">创建新的投票</h2>
+
+        <form action="/create_vote" method="post">
+
+            <div class="form-group">
+                <label for="shortName">短名:</label>
+                <input type="text" class="form-control" id="shortName" name="shortName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">具体名字:</label>
+                <input type="text" class="form-control" id="fullName" name="fullName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">介绍:</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+
+            <div class="checkbox">
+                <label><input type="checkbox" name="anonymousOption"> 匿名选项</label>
+            </div>
+
+            <div class="checkbox">
+                <label><input type="checkbox" name="randomVoting"> 随机唱票</label>
+            </div>
+
+            <div class="checkbox">
+                <label><input type="checkbox" name="privateVote"> 私人</label>
+            </div>
+
+            <div class="form-group">
+                <label for="email">邮箱:</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+
+            <div class="form-group">
+                <label for="votingDuration">投票时间 (小时):</label>
+                <input type="number" class="form-control" id="votingDuration" name="votingDuration" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">创建投票</button>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+
+</html>

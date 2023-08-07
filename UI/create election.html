@@ -11,7 +11,75 @@
 </head>
 
 <body>
+    <div id="navtab"></div>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
+    <div class="container">
+        <h2>Create a New Election</h2>
+        <!-- <div class="table-responsive"> -->
+        <table class="table table-bordered table-hover table-striped">
+            <tr>
+                <th class="text-center">Short name:</th>
+                <th><input type="text" placeholder="no spaces" class="form-control"></th>
+            </tr>
+            <tr>
+                <th class="text-center">Name:</th>
+                <th><input type="text" placeholder="the pretty name for your election" class="form-control"></th>
+            </tr>
+            <tr>
+                <th class="text-center">Description:</th>
+                <th><textarea name="" id="" cols="" class="form-control" rows="3"></textarea></th>
+            </tr>
+            <tr>
+                <th class="text-center">type:</th>
+                <th>
+                    <select name="" id="" class="form-control">
+                        <option value="">Election</option>
+                        <option value="">Referendum</option>
+                    </select>
+                </th>
+            </tr>
+            <tr>
+                <th class="text-center">Use voter aliases</th>
+                <th><input type="checkbox"><br>If selected, voter identities will be replaced
+                    with aliases</th>
+            </tr>
+            <tr>
+                <th class="text-center">Randomize answer order:</th>
+                <th><input type="checkbox"><br>enable this if you want the answers to questions
+                    to appear in random order for each voter</th>
+            </tr>
+            <tr>
+                <th class="text-center">Private:</th>
+                <th><input type="checkbox"><br>a private election is only visible to registered voters</th>
+            </tr>
+            <tr>
+                <th class="text-center">Help Email Address: </th>
+                <th><input type="text" class="form-control"
+                        placeholder="An email address voters should contact if they need help."></th>
+            </tr>
+            <tr>
+                <th class="text-center">Voting starts at:</th>
+                <th>
+                    <input type="datetime-local" class="form-control" id="startTime" name="startTime"
+                        min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
+                </th>
+            </tr>
+            <tr>
+                <th class="text-center">Voting ends at:</th>
+                <th>
+                    <input type="datetime-local" class="form-control" id="startTime" name="startTime"
+                        min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
+                </th>
+            </tr>
+        </table>
+        <button type="submit" class="btn btn-primary">commit</button>
+        <!-- </div> -->
 
+    </div>
 </body>
 
 </html>

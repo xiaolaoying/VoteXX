@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
+    <script src="js/jquery-3.7.0.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <title>create election</title>
+</head>
+
+<body>
+    <div id="navtab"></div>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
+    <div class="container">
+        <h2 class="text-center">Create a New Election</h2>
+
+        <form>
+
+            <div class="form-group">
+                <label for="shortName">Short name:</label>
+                <input type="text" class="form-control" id="shortName" name="shortName" placeholder="no spaces" required>
+            </div>
+
+            <div class="form-group">
+                <label for="Name">Name:</label>
+                <input type="text" class="form-control" id="Name" name="Name" placeholder="the pretty name for your election" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="aliases"> Use voter aliases
+                    <span class="text-muted">(voter identities will be replaced)</span>
+                </label>
+            </div>
+
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="Randomize"> Randomize answer order
+                    <span class="text-muted">(the answers to questions appear in random order for each voter)</span>
+                </label>
+            </div>
+
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="Private"> Private
+                    <span class="text-muted">(only visible to registered
+                        voters)</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Help Email Address:</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+
+            <div class="form-group">
+                <label for="startTime">Start Time:</label>
+                <input type="datetime-local" class="form-control" id="startTime" name="startTime"
+                    min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
+            </div>
+
+            <div class="form-group">
+                <label for="endTime">End Time:</label>
+                <input type="datetime-local" class="form-control" id="endTime" name="endTime" min="2023-01-01T00:00:00"
+                    max="2033-12-31T23:59:59" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">commit</button>
+        </form>
+    </div>
+</body>
+
+</html>
