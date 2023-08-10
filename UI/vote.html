@@ -17,6 +17,23 @@
             $("#navtab").load("navbar.html");
         });
     </script>
+    <div class="container">
+        <h2>你最喜欢的颜色是什么?</h2>
+        <form action="/path_to_vote_submission_endpoint" method="post">
+            <div class="radio">
+                <label><input type="radio" name="color" value="red">红色</label>
+            </div>
+            <div class="radio">
+                <label><input type="radio" name="color" value="blue">蓝色</label>
+            </div>
+            <div class="radio">
+                <label><input type="radio" name="color" value="green">绿色</label>
+            </div>
+            <!-- 添加其他颜色选项 -->
+
+            <button type="submit" class="btn btn-primary">提交</button>
+        </form>
+    </div>
 </body>
 
 </html>
