@@ -53,7 +53,8 @@ class Polynomial {
         if (other instanceof Polynomial) {
             const selfCoefficients = this.coefficients;
             const otherCoefficients = other.coefficients;
-            res = Array(this.coefficients.length + other.coefficients.length - 1).fill(Bn.from_num(0));
+
+            res = Array(this.coefficients.length + other.coefficients.length - 1).fill(new BN(0));
         
             for (let selfIndex = 0; selfIndex < selfCoefficients.length; selfIndex++) {
                 for (let otherIndex = 0; otherIndex < otherCoefficients.length; otherIndex++) {
@@ -89,16 +90,17 @@ class Polynomial {
     }
       
     to_big_number(modulo) {
-        const coefficients = this.coefficients.map(x => Bn.from_num(x));
+        const coefficients = this.coefficients.map(x => new BN(x));
         return new Polynomial(coefficients, modulo);
     }
     
     eval(point) {
         if (typeof point === 'number') {
-            point = Bn.from_num(point);
+            point = new BN(point);
         }
     
-        let result = Bn.from_num(0);
+        let result = new BN(0);
+
         for (let index = 0; index < this.coefficients.length; index++) {
             const coefficient = this.coefficients[index];
             result = result.mod_add(coefficient.mul(point.mod_pow(index, this.modulo)), this.modulo);
