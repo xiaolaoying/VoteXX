@@ -2,6 +2,7 @@
 const computechallenge = require('../primitiv/Hash/hash_function.js');
 const {PublicKey, Commitment} = require('../primitiv/Commitment/pedersen_commitment.js');
 const {MultiExponantiation} = require('./multi_exponantiation_argument.js');
+
 const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
@@ -450,3 +451,4 @@ module.exports = {SingleValueProdArg,
                   ZeroArgument, 
                   modular_prod, 
                   modular_sum};
+

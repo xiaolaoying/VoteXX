@@ -34,3 +34,4 @@ let random_comm_B = commits_rand_B.map(b => b[1]);
 
 let proof_Zero = new ZeroArgument(com_pk, A, B, random_comm_A, random_comm_B);
 console.info("Zero Argument:", proof_Zero.verify(com_pk, comm_A, comm_B));
+
