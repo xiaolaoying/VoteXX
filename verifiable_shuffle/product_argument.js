@@ -1,6 +1,7 @@
 // Import necessary modules
 const computechallenge = require('../primitiv/Hash/hash_function.js');
 const {PublicKey, Commitment} = require('../primitiv/Commitment/pedersen_commitment.js');
+const {MultiExponantiation} = require('./multi_exponantiation_argument.js');
 const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
@@ -161,6 +162,267 @@ class SingleValueProdArg {
   }
 }
 
+class ZeroArgument {
+  /*
+    Given commitments to a_1, b_0, ..., a_m, b_m-1 (where each is a vector of value), the prover wants to show that
+    0 = sum(a_i * b_i-1) for i in {1,...,m} where * is the dot product. Following Bayer and Groth
+    in 'Efficient Zero-Knowledge Argument for correctness of a shuffle.
+    For sake simplicity in python notation, and without loss of generality, we work with rows instead of working
+    with columns, as opposed to the original paper.
+  */
+  constructor(
+    com_pk,
+    A,
+    B,
+    random_comm_A,
+    random_comm_B,
+    bilinear_const = new BN(1)
+  ) {
+    this.order = com_pk.group.curve.n;
+    this.m = A.length;
+    this.n = A[0].length;
+    this.bilinear_const = bilinear_const;
+
+    // Prepare announcement
+    A.unshift(Array.from({ length: this.n }, () => com_pk.group.genKeyPair().getPrivate()));
+    B.push(Array.from({ length: this.n }, () => com_pk.group.genKeyPair().getPrivate()));
+    random_comm_A.unshift(com_pk.group.genKeyPair().getPrivate());
+    random_comm_B.push(com_pk.group.genKeyPair().getPrivate());
+    
+    [this.announcement_a0, this.rand_a0] = com_pk.commit_reduced(A[0], this.n, random_comm_A[0]);
+    [this.announcement_bm, this.rand_bm] = com_pk.commit_reduced(B[B.length - 1], this.n, random_comm_B[random_comm_B.length - 1]);
+  
+    let diagonals = [];
+    for (let k = 0; k < 2 * this.m + 1; k++) {
+      let diagonal = new BN(0);
+      for (let i = 0; i < this.m + 1; i++) {
+        let j = this.m - k + i;
+        if (j < 0) {
+          continue;
+        }
+        if (j > this.m) {
+          break;
+        }
+        diagonal = diagonal.add(
+          this.bilinear_map(A[i], B[j], this.bilinear_const, this.order)
+        ).mod(new BN(this.order));
+      }
+      diagonals.push(diagonal);
+    }
+
+    let commitment_rand_diagonals = Array.from({ length: 2 * this.m + 1 }, () => com_pk.group.genKeyPair().getPrivate());
+    commitment_rand_diagonals[this.m + 1] = new BN(0);
+
+    this.announcement_diagonals = [];
+    for (let i = 0; i < this.m * 2 + 1; i++) {
+      let commitment = com_pk.commit_reduced([diagonals[i]], 1, commitment_rand_diagonals[i])[0];
+      this.announcement_diagonals.push(commitment);
+    }
+
+    // Prepare challenge (for the moment we only put two announcements, as I yet need to determine how to deal with
+    // the matrices. Maybe I form a class, maybe not. Once decided, I'll add them here (same for announcement of
+    // diagonals).
+    this.challenge = computechallenge(
+      [this.announcement_a0, this.announcement_bm], this.order
+    );
+    // Compute the response
+    let A_modified = [];
+    for (let j = 0; j < this.m + 1; j++) {
+      let row = [];
+      for (let i = 0; i < this.n; i++) {
+        let modifiedValue = 
+          ((new BN(A[j][i])).mul(((new BN(this.challenge)).pow(new BN(j))).mod(new BN(this.order)))).mod(new BN(this.order));
+        row.push(modifiedValue);
+      }
+      A_modified.push(row);
+    }
+
+    this.response_as = A_modified.slice(0, this.m + 1).reduce((acc, val) =>
+      val.map((x, i) => (new BN(acc[i]).add(new BN(x))).mod(new BN(this.order)))
+    );
+
+    this.response_randomizer_A = modular_sum(
+      Array.from({length: this.m + 1}, (_, i) =>
+        new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(random_comm_A[i])).mod(new BN(this.order))
+      ),
+      this.order
+    );
+
+    let B_modified = [];
+    for (let j = 0; j < this.m + 1; j++) {
+      let row = [];
+      for (let i = 0; i < this.n; i++) {
+        let modifiedValue =
+          ((new BN(B[j][i])).mul(((new BN(this.challenge)).pow(new BN(this.m - j))).mod(new BN(this.order)))).mod(new BN(this.order));
+        row.push(modifiedValue);
+      }
+      B_modified.push(row);
+    }
+
+    this.response_bs = B_modified.slice(0, this.m + 1).reduce((acc, val) => 
+      val.map((x, i) => (new BN(acc[i]).add(new BN(x))).mod(new BN(this.order)))
+    );
+    
+    this.response_randomizer_B = modular_sum(
+      Array.from({length: this.m + 1}, (_, i) =>
+        new BN(this.challenge).pow(new BN(this.m - i)).mod(new BN(this.order)).mul(new BN(random_comm_B[i])).mod(new BN(this.order))
+      ),
+      this.order
+    );
+
+    this.response_randomizer_diagonals = modular_sum(
+      Array.from({ length: this.m * 2 + 1 }, (_, i) =>
+      new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(commitment_rand_diagonals[i])).mod(new BN(this.order))
+      ),
+      this.order
+    );
+  }
+
+  verify(com_pk, commitment_A, commitment_B){
+    /*
+    Verify ZeroArgument proof
+    Example:
+      const ec = new EC('secp256k1');
+      let com_pk = new PublicKey(ec, 3);
+      let order = ec.curve.n;
+      let A = [[new BN(10), new BN(20), new BN(30)], 
+               [new BN(40), new BN(20), new BN(30)], 
+               [new BN(60), new BN(20), new BN(40)]];
+      let B = [[new BN(1), new BN(1), new BN(order).sub(new BN(1))], 
+               [new BN(1), new BN(1), new BN(order).sub(new BN(2))], 
+               [new BN(order).sub(new BN(1)), new BN(1), new BN(1)]];
+      
+      let commits_rand_A = [];
+      for (let i = 0; i < 3; i++) {commits_rand_A.push(com_pk.commit_reduced(A[i], 3));}
+      let comm_A = commits_rand_A.map(a => a[0]);
+      let random_comm_A = commits_rand_A.map(a => a[1]);
+      
+      let commits_rand_B = [];
+      for (let i = 0; i < 3; i++) {commits_rand_B.push(com_pk.commit_reduced(B[i], 3));}
+      let comm_B = commits_rand_B.map(b => b[0]);
+      let random_comm_B = commits_rand_B.map(b => b[1]);
+      
+      let proof_Zero = new ZeroArgument(com_pk, A, B, random_comm_A, random_comm_B);
+      console.log(proof_Zero.verify(com_pk, comm_A, comm_B));
+      >>> True
+
+      const ec = new EC('secp256k1');
+      let com_pk = new PublicKey(ec, 3);
+      let order = ec.curve.n;
+      let A = [[new BN(10), new BN(20), new BN(30)], 
+               [new BN(40), new BN(20), new BN(30)], 
+               [new BN(60), new BN(20), new BN(40)]];
+      let B = [[new BN(2), new BN(1), new BN(order).sub(new BN(1))], 
+               [new BN(1), new BN(1), new BN(order).sub(new BN(2))], 
+               [new BN(order).sub(new BN(1)), new BN(1), new BN(1)]];
+      
+      let commits_rand_A = [];
+      for (let i = 0; i < 3; i++) {commits_rand_A.push(com_pk.commit_reduced(A[i], 3));}
+      let comm_A = commits_rand_A.map(a => a[0]);
+      let random_comm_A = commits_rand_A.map(a => a[1]);
+      
+      let commits_rand_B = [];
+      for (let i = 0; i < 3; i++) {commits_rand_B.push(com_pk.commit_reduced(B[i], 3));}
+      let comm_B = commits_rand_B.map(b => b[0]);
+      let random_comm_B = commits_rand_B.map(b => b[1]);
+      
+      let proof_Zero = new ZeroArgument(com_pk, A, B, random_comm_A, random_comm_B);
+      console.log(proof_Zero.verify(com_pk, comm_A, comm_B));
+      >>> False
+    */
+    const check1 = com_pk.group.curve.validate(this.announcement_a0.commitment);
+    const check2 = com_pk.group.curve.validate(this.announcement_bm.commitment);
+    const check3 = this.announcement_diagonals.slice(0, this.m * 2 + 1).every((announcement) => 
+                   com_pk.group.curve.validate(announcement.commitment));
+
+    const check4 = this.announcement_diagonals[this.m + 1].commitment.x == null 
+                   && this.announcement_diagonals[this.m + 1].commitment.y == null;
+
+    commitment_A.unshift(this.announcement_a0);
+    commitment_B.push(this.announcement_bm);
+    
+    const exponents_5 = Array.from({ length: this.m + 1 }, (_, i) =>
+        new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order))
+    );
+    const check5 =
+      MultiExponantiation.comm_weighted_sum(commitment_A, exponents_5).isEqual(
+        com_pk.commit_reduced(this.response_as, this.n, this.response_randomizer_A)[0]
+      );
+    
+    const exponents_6 = Array.from({ length: this.m + 1 }, (_, i) =>
+      new BN(this.challenge).pow(new BN(this.m - i)).mod(new BN(this.order))
+    );
+    const check6 =
+      MultiExponantiation.comm_weighted_sum(commitment_B, exponents_6).isEqual(
+        com_pk.commit_reduced(this.response_bs, this.n, this.response_randomizer_B)[0]
+      );
+    
+    const exponents_7 = Array.from({ length: this.m * 2 + 1 }, (_, i) =>
+      new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order))
+    );
+    const check7 =
+      MultiExponantiation.comm_weighted_sum(
+        this.announcement_diagonals,
+        exponents_7
+      ).isEqual(
+        com_pk.commit_reduced(
+          [
+            this.bilinear_map(
+              this.response_as,
+              this.response_bs,
+              this.bilinear_const,
+              this.order
+            )
+          ],
+          1,
+          new BN(this.response_randomizer_diagonals)
+        )[0]
+      );
+
+    return check1 && check2 && check3 && check4 && check5 && check6 && check7;
+  }
+  
+  bilinear_map(a, b, bilinear_const, order) {
+    /*
+    Example:
+      let bilinear_const = new BN(3);
+      let order = new BN(1000000);
+      let aa = [new BN(32), new BN(53), new BN(54)];
+      let bb = [new BN(61), new BN(11), new BN(10)];
+      let cc = [new BN(43), new BN(52), new BN(33)];
+      let aa3 = aa.map(a => a.mul(new BN(3)));
+      let sum_aabb = aa.map((la, index) => (new BN(la)).add(new BN(bb[index])));
+
+      console.log(zeroArgument.bilinear_map(sum_aabb, cc, bilinear_const, order) 
+                  .eq((zeroArgument.bilinear_map(aa, cc, bilinear_const, order)
+                      .add(zeroArgument.bilinear_map(bb, cc, bilinear_const, order)))
+                      .mod(order)));
+      >>> true
+
+      console.log(zeroArgument.bilinear_map(cc, sum_aabb, bilinear_const, order)
+                  .eq((zeroArgument.bilinear_map(cc, aa, bilinear_const, order)
+                      .add(zeroArgument.bilinear_map(cc, bb, bilinear_const, order)))
+                      .mod(order)));
+      >>> true
+
+      console.log(zeroArgument.bilinear_map(aa3, cc, bilinear_const, order)
+                  .eq((zeroArgument.bilinear_map(aa, cc, bilinear_const, order)
+                      .mul(new BN(3)))
+                      .mod(order)));
+      >>> true
+    */
+    if (a.length !== b.length) {
+        throw new Error(`Values must be same length. Got ${a.length} and ${b.length}`);
+    }
+    let result = [];
+    for (let i = 0; i < a.length; i++) {
+        result.push(((new BN(a[i])).mul(new BN(b[i])).mul(((new BN(bilinear_const)).pow(new BN(i))))).mod(new BN(order)));
+    }
+
+    return modular_sum(result, order);
+  }
+}
+
 function modular_prod(factors, modulo) {
   // Computes the product of values in a list modulo modulo.
   // Parameters:
@@ -176,4 +438,15 @@ function modular_prod(factors, modulo) {
   return product;
 }
 
-module.exports = { SingleValueProdArg, modular_prod};
+function modular_sum(values, modulo) {
+  let values_sum = new BN(0);
+  for (let i = 0; i < values.length; i++) {
+    values_sum = (new BN(values_sum.add(new BN(values[i])))).mod(new BN(modulo));
+  }
+  return values_sum;
+}
+
+module.exports = {SingleValueProdArg, 
+                  ZeroArgument, 
+                  modular_prod, 
+                  modular_sum};
