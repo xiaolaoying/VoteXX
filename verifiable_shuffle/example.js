@@ -55,7 +55,7 @@ let random_comm_b = commit_b[1];
 let proof_Hadamard = new HadamardProductArgument(com_pk, comm_AA, comm_b, AA, random_comm_AA, random_comm_b);
 console.log("Hadamard Product Argument:", proof_Hadamard.verify(com_pk, comm_AA, comm_b));
 
-//product argument
+//Product Argument
 const A_1 = [[new BN(10), new BN(20), new BN(30)],
              [new BN(40), new BN(20), new BN(30)],
              [new BN(60), new BN(20), new BN(40)]];
