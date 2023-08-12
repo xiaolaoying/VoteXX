@@ -424,6 +424,7 @@ class ZeroArgument {
   }
 }
 
+
 class HadamardProductArgument {
   /**
    * We give an argument for committed values [a_1], [a_2], ..., [a_n] and b_1, b_2, ..., b_n such that
@@ -612,7 +613,6 @@ function modular_sum(values, modulo) {
   }
   return values_sum;
 }
-
 
 module.exports = {SingleValueProdArg, 
                   ZeroArgument, 

@@ -1,6 +1,7 @@
 const EC = require('elliptic').ec;
 const { PublicKey } = require('../primitiv/Commitment/pedersen_commitment.js');
 const { SingleValueProdArg, ZeroArgument, HadamardProductArgument, modular_prod } = require('./product_argument.js');
+
 const BN = require('bn.js');
 
 const ec = new EC('secp256k1');
