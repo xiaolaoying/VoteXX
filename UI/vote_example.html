@@ -5,18 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
-    <script src="js/jquery-3.7.0.js"></script>
-    <script src="BootStrap/js/bootstrap.min.js"></script>
     <title>vote</title>
 </head>
 
 <body>
     <div id="navtab"></div>
-    <script>
-        $(function () {
-            $("#navtab").load("navbar.html");
-        });
-    </script>
     <div class="container">
         <h2>你最喜欢的颜色是什么?</h2>
         <form action="/path_to_vote_submission_endpoint" method="post">
@@ -34,6 +27,13 @@
             <button type="submit" class="btn btn-primary">提交</button>
         </form>
     </div>
+    <script src="js/jquery-3.7.0.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
 </body>
 
 </html>

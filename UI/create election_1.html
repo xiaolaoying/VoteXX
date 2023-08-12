@@ -5,18 +5,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
-    <script src="js/jquery-3.7.0.js"></script>
-    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <style>
+        .input-spacing {
+            margin-bottom: 5px;
+            /* 或者其他你想要的值 */
+        }
+    </style>
     <title>create election</title>
 </head>
 
 <body>
     <div id="navtab"></div>
-    <script>
-        $(function () {
-            $("#navtab").load("navbar.html");
-        });
-    </script>
     <div class="container">
         <h2 class="text-center">Create a New Election</h2>
 
@@ -37,6 +36,12 @@
             <div class="form-group">
                 <label for="description">Description:</label>
                 <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="option">Option:</label>
+                <div id="pollContainer"></div>
+                <button class="btn btn-primary" onclick="addQuestionField()">Add Question</button>
             </div>
 
             <div class="checkbox">
@@ -81,6 +86,15 @@
             <button type="submit" class="btn btn-primary">commit</button>
         </form>
     </div>
+
+    <script src="js/jquery-3.7.0.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script src="js/create_option.js"></script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
 </body>
 
 </html>
