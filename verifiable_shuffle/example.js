@@ -1,7 +1,6 @@
 const EC = require('elliptic').ec;
 const { PublicKey } = require('../primitiv/Commitment/pedersen_commitment.js');
-const { SingleValueProdArg, ZeroArgument, HadamardProductArgument, modular_prod } = require('./product_argument.js');
-
+const { ProductArgument, SingleValueProdArg, ZeroArgument, HadamardProductArgument, modular_prod } = require('./product_argument.js');
 const BN = require('bn.js');
 
 const ec = new EC('secp256k1');
@@ -55,3 +54,24 @@ let comm_b = commit_b[0];
 let random_comm_b = commit_b[1];
 let proof_Hadamard = new HadamardProductArgument(com_pk, comm_AA, comm_b, AA, random_comm_AA, random_comm_b);
 console.log("Hadamard Product Argument:", proof_Hadamard.verify(com_pk, comm_AA, comm_b));
+
+//product argument
+const A_1 = [[new BN(10), new BN(20), new BN(30)],
+             [new BN(40), new BN(20), new BN(30)],
+             [new BN(60), new BN(20), new BN(40)]];
+
+const commits_rands_A_1 = A_1.map(a => com_pk.commit(a));
+const comm_A_1 = commits_rands_A_1.map(a => a[0]);
+const random_comm_A_1 = commits_rands_A_1.map(a => a[1]);
+
+const b_1 = modular_prod(
+Array.from({ length: 3 }, (_, j) =>
+        modular_prod(
+        Array.from({ length: 3 }, (_, i) => new BN(A_1[i][j])),
+        order
+        )
+    ),
+    order
+);
+const proof_product = new ProductArgument(com_pk, comm_A_1, b_1, A_1, random_comm_A_1);
+console.log("Product Argument:", proof_product.verify(com_pk, comm_A_1, b_1));

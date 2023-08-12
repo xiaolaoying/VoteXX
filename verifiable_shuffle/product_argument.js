@@ -6,6 +6,73 @@ const {MultiExponantiation} = require('./multi_exponantiation_argument.js');
 const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
+class ProductArgument {
+  constructor(com_pk, commitment, product, A, randomizers) {
+      this.order = com_pk.order;
+      this.m = A.length;
+      this.n = A[0].length;
+
+      let product_rows_A = [];
+      for (let i = 0; i < this.n; i++) {
+          let row = A.map(a => new BN(a[i]));
+          let product = row.reduce((a, b) => modular_prod([a, b], this.order));
+          product_rows_A.push(product);
+      }
+      
+      [this.commitment_products, this.randomizer_commitment_products] = com_pk.commit(product_rows_A);
+
+      this.hadamard = new HadamardProductArgument(
+          com_pk,
+          commitment,
+          this.commitment_products,
+          A,
+          randomizers,
+          this.randomizer_commitment_products,
+      );
+
+      this.single_value = new SingleValueProdArg(
+          com_pk,
+          this.commitment_products,
+          product,
+          product_rows_A,
+          this.randomizer_commitment_products,
+      );
+  }
+
+  verify(com_pk, commitment, product) {
+  /*
+  Product Argument
+  Example:
+
+      const A_1 = [[new BN(10), new BN(20), new BN(30)],
+                  [new BN(40), new BN(20), new BN(30)],
+                  [new BN(60), new BN(20), new BN(40)]];
+
+      const commits_rands_A_1 = A_1.map(a => com_pk.commit(a));
+      const comm_A_1 = commits_rands_A_1.map(a => a[0]);
+      const random_comm_A_1 = commits_rands_A_1.map(a => a[1]);
+
+      const b_1 = modular_prod(
+      Array.from({ length: 3 }, (_, j) =>
+              modular_prod(
+              Array.from({ length: 3 }, (_, i) => new BN(A_1[i][j])),
+              order
+              )
+          ),
+          order
+      );
+
+      const proof_product = new ProductArgument(com_pk, comm_A_1, b_1, A_1, random_comm_A_1);
+      console.log(proof_product.verify(com_pk, comm_A_1, b_1));
+      >>> true
+  */
+    let check1 = com_pk.group.curve.validate(this.commitment_products.commitment);
+    let check2 = this.hadamard.verify(com_pk, commitment, this.commitment_products);
+    let check3 = this.single_value.verify(com_pk, this.commitment_products, product);
+
+    return check1 && check2 && check3;
+  }
+}
 
 class SingleValueProdArg {
 /**
@@ -424,7 +491,6 @@ class ZeroArgument {
   }
 }
 
-
 class HadamardProductArgument {
   /**
    * We give an argument for committed values [a_1], [a_2], ..., [a_n] and b_1, b_2, ..., b_n such that
@@ -614,7 +680,9 @@ function modular_sum(values, modulo) {
   return values_sum;
 }
 
-module.exports = {SingleValueProdArg, 
+
+module.exports = {ProductArgument,
+                  SingleValueProdArg, 
                   ZeroArgument, 
                   HadamardProductArgument,
                   modular_prod, 
