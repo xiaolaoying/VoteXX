@@ -43,6 +43,7 @@ function addQuestionField() {
 
     // 创建添加选项按钮
     const addOptionButton = document.createElement('button');
+    addOptionButton.type = 'button';
     addOptionButton.className = 'btn btn-secondary input-spacing';
     addOptionButton.textContent = 'Add Option';
     addOptionButton.onclick = function() {
