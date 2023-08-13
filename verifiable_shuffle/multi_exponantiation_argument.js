@@ -43,12 +43,7 @@ class MultiExponantiation{
     
       let weightedSum = list_comms[0].commitment.mul(weights[0]);
       for (let i = 1; i < weights.length; i++) {
-        if(list_comms[i].commitment.x == null || list_comms[i].commitment.y == null){
-          continue;
-        }
-        else{
           weightedSum = weightedSum.add(list_comms[i].commitment.mul(weights[i]));
-        }
       }
       return new Commitment(weightedSum);
     }

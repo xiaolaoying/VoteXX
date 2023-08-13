@@ -6,6 +6,73 @@ const {MultiExponantiation} = require('./multi_exponantiation_argument.js');
 const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
+class ProductArgument {
+  constructor(com_pk, commitment, product, A, randomizers) {
+      this.order = com_pk.order;
+      this.m = A.length;
+      this.n = A[0].length;
+
+      let product_rows_A = [];
+      for (let i = 0; i < this.n; i++) {
+          let row = A.map(a => new BN(a[i]));
+          let product = row.reduce((a, b) => modular_prod([a, b], this.order));
+          product_rows_A.push(product);
+      }
+      
+      [this.commitment_products, this.randomizer_commitment_products] = com_pk.commit(product_rows_A);
+
+      this.hadamard = new HadamardProductArgument(
+          com_pk,
+          commitment,
+          this.commitment_products,
+          A,
+          randomizers,
+          this.randomizer_commitment_products,
+      );
+
+      this.single_value = new SingleValueProdArg(
+          com_pk,
+          this.commitment_products,
+          product,
+          product_rows_A,
+          this.randomizer_commitment_products,
+      );
+  }
+
+  verify(com_pk, commitment, product) {
+  /*
+  Product Argument
+  Example:
+
+      const A_1 = [[new BN(10), new BN(20), new BN(30)],
+                  [new BN(40), new BN(20), new BN(30)],
+                  [new BN(60), new BN(20), new BN(40)]];
+
+      const commits_rands_A_1 = A_1.map(a => com_pk.commit(a));
+      const comm_A_1 = commits_rands_A_1.map(a => a[0]);
+      const random_comm_A_1 = commits_rands_A_1.map(a => a[1]);
+
+      const b_1 = modular_prod(
+      Array.from({ length: 3 }, (_, j) =>
+              modular_prod(
+              Array.from({ length: 3 }, (_, i) => new BN(A_1[i][j])),
+              order
+              )
+          ),
+          order
+      );
+
+      const proof_product = new ProductArgument(com_pk, comm_A_1, b_1, A_1, random_comm_A_1);
+      console.log(proof_product.verify(com_pk, comm_A_1, b_1));
+      >>> true
+  */
+    let check1 = com_pk.group.curve.validate(this.commitment_products.commitment);
+    let check2 = this.hadamard.verify(com_pk, commitment, this.commitment_products);
+    let check3 = this.single_value.verify(com_pk, this.commitment_products, product);
+
+    return check1 && check2 && check3;
+  }
+}
 
 class SingleValueProdArg {
 /**
@@ -424,6 +491,172 @@ class ZeroArgument {
   }
 }
 
+class HadamardProductArgument {
+  /**
+   * We give an argument for committed values [a_1], [a_2], ..., [a_n] and b_1, b_2, ..., b_n such that
+   * b_i equals the product of each element of [a_i], where [·] denotes a vector.
+   * Following Bayer and Groth in 'Efficient Zero-Knowledge Argument for correctness of a shuffle.
+   * For sake simplicity in python notation, and without loss of generality, we work with rows instead of working
+   * with columns, as opposed to the original paper.
+   */
+
+  constructor(com_pk, commitment_A, commitment_b, A, random_comm_A, random_comm_b) {
+    this.order = com_pk.order;
+    this.m = A.length;
+    this.n = A[0].length;
+
+    // Prepare announcement
+    var vectors_b = [A[0]];
+    for (var i = 1; i < this.m; i++) {
+      let result = [];
+      for(let j = 0; j < vectors_b[i - 1].length; j++) {
+          let first = vectors_b[i - 1][j];
+          let second = A[i][j];
+          result[j] = (new BN(first)).mul(new BN(second)).mod(new BN(this.order));
+      }
+      vectors_b.push(result);
+    }
+
+    var random_comm_announcement = Array.from({ length: this.m }, () => com_pk.group.genKeyPair().getPrivate());
+    this.announcement_b = [];
+    for (var i = 0; i < this.m; i++) {
+        this.announcement_b.push(com_pk.commit(vectors_b[i], random_comm_announcement[i])[0]);
+    }
+    random_comm_announcement[0] = random_comm_A[0];
+    random_comm_announcement[this.m - 1] = random_comm_b;
+    this.announcement_b[0] = commitment_A[0];
+    this.announcement_b[this.m - 1] = commitment_b;
+
+    // Compute challenges. One challenge is used for the constant of the bilinear map.
+    // attention to the transcript. Change it
+    //challenge: x
+    this.challenge = computechallenge(this.announcement_b, this.order);
+    var transcript_bilinear = this.announcement_b.slice();
+    transcript_bilinear.push(this.challenge);
+    //challenge: y
+    this.challenge_bilinear = computechallenge(transcript_bilinear, this.order);
+
+    // Engage in the Zero argument proof
+    var opening_vectors_commitments_D = [];
+    for (var i = 0; i < this.m - 1; i++) {
+      var row = [];
+      for (var j = 0; j < this.n; j++) {
+        var value = (new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(vectors_b[i][j]))).mod(new BN(this.order));
+        row.push(value);
+      }
+      opening_vectors_commitments_D.push(row);
+    }
+
+    var random_vectors_commitments_D = [];
+    for (var i = 0; i < this.m - 1; i++) {
+      var value = (new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(random_comm_announcement[i]))).mod(new BN(this.order));
+      random_vectors_commitments_D.push(value);
+    }
+
+    var modified_vectors_b = [];
+    for (var i = 0; i < this.m - 1; i++) {
+      var row = [];
+      for (var j = 0; j < this.n; j++) {
+        var value = ((new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(vectors_b[i + 1][j]))).mod(new BN(this.order));
+        row.push(value);
+      }
+      modified_vectors_b.push(row);
+    }
+
+    let modified_vectors_b_slice = modified_vectors_b.slice(0, this.m - 1);
+    let zippedArr = modified_vectors_b_slice[0].map((_, i) =>
+      modified_vectors_b_slice.map((x) => x[i])
+    );
+    
+    let opening_value_commitment_D = zippedArr.map((arr) =>
+      arr.reduce((sum, current) => (new BN(sum).add(new BN(current))).mod(new BN(this.order)))
+    );
+
+    var random_value_commitment_D = modular_sum(
+      Array.from({ length: this.m - 1 }, (_, i) => ((new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(random_comm_announcement[i + 1]))).mod(new BN(this.order))),
+      this.order
+    );
+
+    let zero_argument_A = A.slice(1);
+    zero_argument_A.push(Array(this.n).fill(-1));
+    let zero_argument_B = opening_vectors_commitments_D;
+    zero_argument_B.push(opening_value_commitment_D);
+    let zero_argument_random_A = random_comm_A.slice(1);
+    zero_argument_random_A.push(0);
+    let zero_argument_random_B = random_vectors_commitments_D;
+    zero_argument_random_B.push(random_value_commitment_D);
+
+    this.zero_argument_proof = new ZeroArgument(
+        com_pk,
+        zero_argument_A,
+        zero_argument_B,
+        zero_argument_random_A,
+        zero_argument_random_B,
+        this.challenge_bilinear
+    );
+  }
+
+  verify(com_pk, commitment_A, commitment_b) {
+    /* Verify Hadamard Product Argument
+    Example:
+      let AA = [[new BN(10), new BN(20), new BN(30)], 
+      [new BN(40), new BN(20), new BN(30)], 
+      [new BN(60), new BN(20), new BN(40)]];
+      let commits_rands_AA = AA.map(a => com_pk.commit(a));
+      let comm_AA = commits_rands_AA.map(a => a[0]);
+      let random_comm_AA = commits_rands_AA.map(a => a[1]);
+
+      let b = [];
+      for (let i = 0; i < 3; i++) {
+      let prod = AA.map(a => new BN(a[i])).reduce((a, b) => new BN(a).mul(new BN(b))).mod(new BN(order));
+      b.push(prod);
+      }
+
+      let commit_b = com_pk.commit(b);
+      let comm_b = commit_b[0];
+      let random_comm_b = commit_b[1];
+      let proof_Hadamard = new HadamardProductArgument(com_pk, comm_AA, comm_b, AA, random_comm_AA, random_comm_b);
+      console.log(proof_Hadamard.verify(com_pk, comm_AA, comm_b));
+      >>> true
+    */
+    let check1 = this.announcement_b[0].isEqual(commitment_A[0]);
+    let check2 = this.announcement_b[this.m - 1].isEqual(commitment_b);
+    
+    let check3 = true;
+    for (let i = 1; i < this.m - 1; i++) {
+        if (!com_pk.group.curve.validate(this.announcement_b[i].commitment)) {
+            check3 = false;
+            break;
+        }
+    }
+    let vectors_commitments_D = [];
+    for(let i = 0; i < this.m - 1; i++) {
+        vectors_commitments_D[i] = (this.announcement_b[i]).pow((new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order)));
+    }
+
+    let exponents = [];
+    for(let i = 0; i < this.m - 1; i++) {
+        exponents[i] = (new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order));
+    }
+
+    let value_commitment_D = MultiExponantiation.comm_weighted_sum(
+        this.announcement_b.slice(1, this.m), exponents
+    );
+
+    let commitment_minus1 = com_pk.commit(Array(this.n).fill(-1), 0);
+
+    let zero_argument_A = commitment_A.slice(1);
+    zero_argument_A.push(commitment_minus1[0]);
+
+    let zero_argument_B = vectors_commitments_D;
+    zero_argument_B.push(value_commitment_D);
+
+    let check4 = this.zero_argument_proof.verify(com_pk, zero_argument_A, zero_argument_B);
+
+    return check1 && check2 && check3 && check4;
+  }
+}
+
 function modular_prod(factors, modulo) {
   // Computes the product of values in a list modulo modulo.
   // Parameters:
@@ -447,8 +680,10 @@ function modular_sum(values, modulo) {
   return values_sum;
 }
 
-module.exports = {SingleValueProdArg, 
+
+module.exports = {ProductArgument,
+                  SingleValueProdArg, 
                   ZeroArgument, 
+                  HadamardProductArgument,
                   modular_prod, 
                   modular_sum};
-
