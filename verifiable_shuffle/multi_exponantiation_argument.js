@@ -5,14 +5,20 @@ const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
 class MultiExponantiation{
-    constructor(com_pk,
-        pk,
-        ciphertexts,
-        exponantiated_reencrypted_product,
-        exponents_commitment,
-        exponents,
-        commitment_randomizer,
-        reencrypted_randomizer,
+  /*
+    We implement the multi exponantiation argument in Bayer and Groth in 'Efficient Zero-Knowledge Argument for
+    correctness of a shuffle. However we, for the moment, do not implement the optimization for the multi
+    exponantiation computation.
+  */
+    constructor(
+      com_pk,
+      pk,
+      ciphertexts,
+      exponantiated_reencrypted_product,
+      exponents_commitment,
+      exponents,
+      commitment_randomizer,
+      reencrypted_randomizer,
     ){
 
     }
@@ -49,4 +55,19 @@ class MultiExponantiation{
     }
 }
 
-module.exports = {MultiExponantiation};
+function prod(factors) {
+  /*
+    Computes the product of values in a list
+    :param factors: list of values to multiply
+    :return: product
+  */
+  let product = new BN(factors[0]);
+  if (factors.length > 1) {
+    for (let i = 1; i < factors.length; i++) {
+      product  = product.mul(new BN(factors[i]));
+    }
+  }
+  return product;
+}
+
+module.exports = {MultiExponantiation, prod};

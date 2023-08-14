@@ -1,4 +1,9 @@
+/**
+ * ElGamal encryption
+ */
 var BN = require('bn.js');
+const EC = require('elliptic').ec;
+const { BallotBundle, ValuesVector } = require('../Ballots/ballot_structure.js');
 
 function ElgamalCiphertext(c1, c2) {
   this.c1 = c1;
@@ -151,8 +156,157 @@ LiftedElgamalEnc.test = function() {
 // ElgamalEnc.test();
 // LiftedElgamalEnc.test();
 
+class KeyPair {
+  // ElGamal key pair
+  constructor(group) {
+    this.group = group;
+    this.sk = this.group.genKeyPair().getPrivate();
+    this.pk = new PublicKey(this.group, this.group.g.mul(this.sk));
+  }
+}
+
+class PublicKey {
+  // ElGamal Public Key
+  constructor(group, pk) {
+    this.group = group;
+    this.infinity = this.group.infinity;
+    this.order = this.group.curve.n;
+    this.pk = pk;
+    this.generator = this.group.g;
+    // Generate a random point R
+    this.pointR = this.generator.mul(this.group.genKeyPair().getPrivate());
+  }
+
+  get_randomizer() {
+    // Return a random value from the publickey randomizer's space
+    return this.group.genKeyPair().getPrivate();
+  }
+
+  encrypt(msg, ephemeral_key = null) {
+    // Encrypt a message
+    //     :param msg: Message to encrypt
+    //     :param ephemeral_key: Randomizer of encryption. This should be empty except if we need the randomizer to
+    //     generate a proof of knowledge which requires the randomizer
+    //     :return: Encryption of msg.
+    const generator = this.group.g;
+
+    if (ephemeral_key instanceof ValuesVector) {
+      const { vid, index, tag, vote } = ephemeral_key;
+
+      const ciphertext1 = new Ciphertext(generator.mul(vid), this.pk.mul(vid).add(msg));
+      const ciphertext2 = new Ciphertext(generator.mul(index), this.pk.mul(index).add(msg));
+      const ciphertext3 = new Ciphertext(generator.mul(tag), this.pk.mul(tag).add(msg));
+      const ciphertext4 = new Ciphertext(generator.mul(vote), this.pk.mul(vote).add(msg));
+
+      return new BallotBundle(ciphertext1, ciphertext2, ciphertext3, ciphertext4);
+    } else if (ephemeral_key === null || ephemeral_key === undefined) {
+      ephemeral_key = this.group.genKeyPair().getPrivate();
+      return new Ciphertext(generator.mul(ephemeral_key), this.pk.mul(ephemeral_key).add(msg));
+    } else {
+      if(msg === this.infinity)
+        return new Ciphertext(generator.mul(ephemeral_key), this.pk.mul(ephemeral_key));
+      else
+        return new Ciphertext(generator.mul(ephemeral_key), this.pk.mul(ephemeral_key).add(msg));
+    }
+  }
+  reencrypt(ctxt, ephemeral_key) {
+    if (ephemeral_key === undefined || ephemeral_key === null) {
+      ephemeral_key = this.group.genKeyPair().getPrivate();
+    }
+    const zero_encryption = this.encrypt(this.infinity, ephemeral_key);
+  
+    return ctxt.mul(zero_encryption);
+  }
+}
+
+class Ciphertext {
+  /**
+   * ElGamal ciphertext
+   */
+  constructor(c1, c2) {
+      this.c1 = c1;
+      this.c2 = c2;
+      this.curve = this.c1.curve;
+  }
+
+  /**
+   * Multiply two ElGamal ciphertexts
+   * ElGamal ciphertexts are homomorphic. You can multiply two ciphertexts to add corresponding plaintexts.
+   *
+   * Example:
+   * const ec = new EC('secp256k1');
+   * const kp = new KeyPair(ec);
+   * const ctxt1 = kp.pk.encrypt(ec.g.mul(10));
+   * const ctxt2 = kp.pk.encrypt(ec.g.mul(1014));
+   * const ctxt = ctxt1.mul(ctxt2);
+   * const msg = ctxt.decrypt(kp.sk);
+   * console.log(msg.eq(ec.g.mul(1024))); // true
+   */
+  mul(other) {
+      return new Ciphertext(this.c1.add(other.c1), this.c2.add(other.c2));
+  }
+
+  /**
+   * Raise ElGamal ciphertexts to a constant exponent
+   * ElGamal ciphertexts are homomorphic. You can raise a ciphertext to a known exponent to multiply the corresponding plaintext by this exponent.
+   *
+   * Example:
+   * const ec = new EC('secp256k1');
+   * const kp = new KeyPair(ec);
+   * const ctxt_1 = kp.pk.encrypt(ec.g.mul(10)).pow(100);
+   * const msg_1 = ctxt_1.decrypt(kp.sk);
+   * console.log(msg_1.eq(ec.g.mul(1000))); // true
+   */
+  pow(exponent) {
+      return new Ciphertext(this.c1.mul(exponent), this.c2.mul(exponent));
+  }
+
+  /**
+   * Check if two ElGamal ciphertexts are equal
+   */
+  eq(other) {
+      return this.c1.eq(other.c1) && this.c2.eq(other.c2);
+  }
+
+  /**
+   * Decrypt ElGamal ciphertext
+   *
+   * Example:
+   * const ec = new EC('secp256k1');
+   * const kp = new KeyPair(ec);
+   * const msg_2 = ec.g.mul(20);
+   * const ctxt_2 = kp.pk.encrypt(msg_2);
+   * const msgRecovered = ctxt_2.decrypt(kp.sk);
+   * console.log(msg_2.eq(msgRecovered)); // true
+   */
+  decrypt(sk) {
+      return this.c2.add(this.c1.mul(sk).neg());
+  }
+
+  /**
+   * Create a list out of the ciphertexts
+   */
+  toList() {
+      return [this.c1, this.c2];
+  }
+
+  /**
+   * Export the ciphertext data as an object
+   */
+  export() {
+      return {
+          c1: this.c1,
+          c2: this.c2,
+          curve: this.curve
+      };
+  }
+}
+
 module.exports = {
   LiftedElgamalEnc,
   ElgamalEnc,
   ElgamalCiphertext,
+  KeyPair,
+  PublicKey,
+  Ciphertext,
 }
