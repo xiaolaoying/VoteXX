@@ -6,7 +6,7 @@ from . import views, url_names as names
 
 urlpatterns = [
     # path('login/', views.toLogin_view, name='toLogin'),
-    path('election/', views.election_view, name='election_page'),
+    path('test/', views.test, name='election_page'),
 
     # election
     # re_path(r'^elections/params$', views.election_params, name=names.ELECTIONS_PARAMS),
@@ -21,6 +21,7 @@ urlpatterns = [
 
     re_path(r'^elections/new$', views.election_new, name=names.ELECTIONS_NEW),
 
+    re_path(r'^elections/voted$', views.elections_voted, name=names.ELECTIONS_VOTED),
 
     re_path(r'^elections/(?P<election_uuid>[^/]+)', include('VoteXX.election_urls')),
 ]

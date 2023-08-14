@@ -65,6 +65,19 @@ class ToyElection(VoteXXModel):
             return query[:limit]
         else:
             return query
+
+    @classmethod
+    def get_by_user_as_voter(cls, user, archived_p=None, limit=None):
+        query = cls.objects.filter(voter__user=user)
+        if archived_p is True:
+            query = query.exclude(archived_at=None)
+        if archived_p is False:
+            query = query.filter(archived_at=None)
+        if limit:
+            return query[:limit]
+        else:
+            return query
+
 """
 draw from helios, a file contains the voters for an election
 """
@@ -107,3 +120,26 @@ class Voter(VoteXXModel):
         except cls.DoesNotExist:
             return None
 
+
+class CastVote(VoteXXModel):
+    # the reference to the voter provides the voter_uuid
+    voter = models.ForeignKey(Voter, on_delete=models.CASCADE)
+
+    # the actual encrypted vote
+    vote = models.CharField(max_length=100)
+
+    # cache the hash of the vote
+    vote_hash = models.CharField(max_length=100)
+
+    # a tiny version of the hash to enable short URLs
+    vote_tinyhash = models.CharField(max_length=50, null=True, unique=True)
+
+    cast_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def get_by_voter(cls, voter):
+        return cls.objects.filter(voter=voter).order_by('-cast_at')
+
+    @classmethod
+    def get_by_election(cls, election):
+        return cls.objects.filter(voter__election=election).order_by('-cast_at')

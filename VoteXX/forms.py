@@ -24,3 +24,9 @@ class ToyElectionForm(forms.Form):
 
     help_email = forms.CharField(required=False, initial="", label="Help Email Address",
                                  help_text='An email address voters should contact if they need help.')
+
+
+class VoterForm(forms.Form):
+    election_name = forms.SlugField(max_length=40,
+                                    help_text='no spaces, will be part of the URL for your election, e.g. my-club-2010')
+

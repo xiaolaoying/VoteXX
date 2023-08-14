@@ -24,11 +24,11 @@ def home(request):
         elections_administered = ToyElection.get_by_user_as_admin(user, archived_p=False, limit=20)
     else:
         elections_administered = None
-    #
-    # if user:
-    #     elections_voted = ToyElection.get_by_user_as_voter(user, limit=5)
-    # else:
-    #     elections_voted = None
+
+    if user:
+        elections_voted = ToyElection.get_by_user_as_voter(user, limit=5)
+    else:
+        elections_voted = None
 
     auth_systems = copy.copy(settings.AUTH_ENABLED_SYSTEMS)
     # try:
@@ -46,5 +46,6 @@ def home(request):
 
     return render_template(request, "index", {'create_p': create_p,
                                               'elections_administered': elections_administered,
+                                              'elections_voted': elections_voted,
                                               'login_box': login_box})
 

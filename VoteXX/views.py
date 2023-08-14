@@ -25,9 +25,10 @@ from .view_utils import SUCCESS, FAILURE, return_json, render_template, render_t
 from . import forms
 from VoteXX import utils, VOTERS_EMAIL, VOTERS_UPLOAD, url_names
 
+from .crypto.utils import hash_b64
+import datetime
 
-
-from .models import User, ToyElection, Voter
+from .models import User, ToyElection, Voter, CastVote
 # Create your views here.
 
 
@@ -35,28 +36,51 @@ from .models import User, ToyElection, Voter
 def toLogin_view(request):
     return render(request, 'login.html')
 
-def election_view(request):
+def test(request):
 
-    from VoteXX import models
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # res = {"user": None, "msg": None}
-        s = request.POST.get("sid")
-        e = request.POST.get("enc_data")
-        o = request.POST.get("op_time")
-        print(request.POST)
+    # if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    #     # res = {"user": None, "msg": None}
+    #     s = request.POST.get("sid")
+    #     e = request.POST.get("enc_data")
+    #     o = request.POST.get("op_time")
+    #     print(request.POST)
+    #
+    #     dic = {'sid': s, 'enc_data': e, 'op_time': o}
+    #     ToyElection.objects.create(**dic)
+    #     # conn = sqlite3.connect("django.db")
+    #     # c = conn.cursor()
+    #     # sql1 = '''
+    #     #     insert into VoteXX_flag(sid, enc_data, op_time)
+    #     # '''
+    #     # c.execute(sql1)
+    #     # conn.commit()
+    #     # conn.close()
 
-        dic = {'sid': s, 'enc_data': e, 'op_time': o}
-        models.Flag.objects.create(**dic)
-        # conn = sqlite3.connect("django.db")
-        # c = conn.cursor()
-        # sql1 = '''
-        #     insert into VoteXX_flag(sid, enc_data, op_time)
-        # '''
-        # c.execute(sql1)
-        # conn.commit()
-        # conn.close()
+    user = get_user(request)
+
+    if user is None:
+        print("fail")
+
+    # voter_form = forms.VoterForm(request.POST)
+    #
+    # voter_params = dict(voter_form.cleaned_data)
+
+    voter_params = dict()
+
+    election = ToyElection.get_by_short_name('test1')
+
+    voter_params['uuid'] = str(uuid.uuid1())
+
+    voter_params['user'] = user
+
+    voter_params['election'] = election
+
+    voter = Voter.objects.create(**voter_params)
+
+
     return render(request, 'election_page.html')
+
 
 
 
@@ -148,16 +172,62 @@ def one_election_view(request, election_uuid):
     else:
         voter = get_voter(request, user, election)
 
-    # if voter:
-    #     # cast any votes?
-    #     votes = CastVote.get_by_voter(voter)
-    # else:
-    #     votes = None
+    if voter:
+        # cast any votes?
+        votes = CastVote.get_by_voter(voter)
+    else:
+        votes = None
 
     # should we show the result?
     # show_result = election.result_released_at or election.result
 
     return render_template(request, 'election_view',
                            {'election': election, 'user': user,
-                            'voter': voter,
-                            'vote_url': vote_url,})
+                            'voter': voter, 'votes': votes,
+                            'vote_url': vote_url})
+
+
+def elections_voted(request):
+    user = get_user(request)
+    elections = ToyElection.get_by_user_as_voter(user)
+
+    return render_template(request, "elections_voted", {'elections': elections})
+
+
+"""
+just for test, the real feature should be implemented in /booth/vote.html
+"""
+def vote_test(request, election_uuid):
+
+    user = get_user(request)
+
+    election = get_election_by_uuid(election_uuid)
+
+    voter = Voter.get_by_election_and_user(election, user)
+
+    # if request.method == "POST":
+    #     cipher = request.POST.get("vote")
+    # else:
+    #     cipher = "error"
+
+    cipher = request.POST.get("vote")
+
+    vote_hash = hash_b64(cipher)
+
+    now = datetime.datetime.now()
+
+    dic = {'voter': voter, 'vote': cipher, 'vote_hash': vote_hash,
+           'vote_tinyhash': vote_hash, 'cast_at': now}
+
+    CastVote.objects.create(**dic)
+
+    return render(request, 'booth/vote.html')
+
+
+def one_election_bboard(request, election_uuid):
+
+    election = get_election_by_uuid(election_uuid)
+
+    ballots = CastVote.get_by_election(election)
+
+    return render(request, 'BB/BB_page.html', locals())

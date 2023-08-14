@@ -35,5 +35,27 @@ this is home page for VoteXX, an Extreme Coercion Resistance e-voting system
 {#<div class="row"></div>#}
 {% endif %}
 
+<h5 class="subheader">Recent Votes</h5>
+{% if elections_voted %}
+<ul>
+{% for election in elections_voted %}
+<li><a href="{% url "election@view" election.uuid %}">{{election.name}}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<em>none yet</em>
+{% endif %}
 
+<div class="row right"><a class="tiny button" href="{% url "elections@voted" %}">see all</a></div>
+<div class="row"></div>
+{% if settings.SHOW_LOGIN_OPTIONS %}
+<h5>Log In to Start Voting</h5>
+{{login_box|safe}}
+{% else %}
+<p>
+Select an election to start voting. You will be asked for your voting credentials after you complete a ballot.
+</p>
+{% endif %}
+
+</div>
 </html>

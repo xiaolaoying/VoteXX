@@ -8,6 +8,8 @@ ELECTION_ARCHIVE="election@archive"
 ELECTION_COPY="election@copy"
 ELECTION_BADGE="election@badge"
 
+ELECTION_VOTETEST = "election@votetest"
+
 ELECTION_TRUSTEES_HOME="election@trustees"
 ELECTION_TRUSTEES_VIEW="election@trustees@view"
 ELECTION_TRUSTEES_NEW="election@trustees@new"

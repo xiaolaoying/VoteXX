@@ -17,4 +17,7 @@ urlpatterns = [
     # election voting-process actions
     re_path(r'^/view$', views.one_election_view, name=names.ELECTION_VIEW),
 
+    re_path(r'^/votetest$', views.vote_test, name=names.ELECTION_VOTETEST),
+    re_path(r'^/bboard$', views.one_election_bboard, name=names.ELECTION_BBOARD),
+
 ]
