@@ -1,9 +1,6 @@
 /**
  * Ballots
  */
-const EC = require('elliptic').ec;
-const BN = require('bn.js');
-
 class BallotBundle {
     /**
      * Multiple ElGamal ciphertexts element
@@ -47,7 +44,7 @@ class BallotBundle {
       );
     }
   
-    equals(other) {
+    eq(other) {
       return (
         this.vid.eq(other.vid) &&
         this.index.eq(other.index) &&
@@ -166,7 +163,7 @@ class VoteVector {
       return new VoteVector(this.ballot.map((x) => x.pow(exponent)));
     }
   
-    equals(other) {
+    eq(other) {
       return this.ballot.every((x, i) => x.eq(other.ballot[i]));
     }
   
@@ -178,9 +175,9 @@ class VoteVector {
       }
     }
   
-    c1Pow(exponent) {
-      return new PointVector(this.c1().map((c1) => c1[0].pow(exponent)));
-    }
+    // c1Pow(exponent) {
+    //   return new PointVector(this.c1().map((c1) => c1[0].pow(exponent)));
+    // }
   
     c2(pointvector = false) {
       if (pointvector) {
@@ -190,9 +187,9 @@ class VoteVector {
       }
     }
   
-    c2Pow(exponent) {
-      return new PointVector(this.c2().map((c2) => c2[0].pow(exponent)));
-    }
+    // c2Pow(exponent) {
+    //   return new PointVector(this.c2().map((c2) => c2[0].pow(exponent)));
+    // }
   
     toList() {
       return [].concat(this.ballot.map((vote) => vote.toList()));

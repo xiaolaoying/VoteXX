@@ -2,8 +2,7 @@
  * ElGamal encryption
  */
 var BN = require('bn.js');
-const EC = require('elliptic').ec;
-const { BallotBundle, ValuesVector } = require('../Ballots/ballot_structure.js');
+const { BallotBundle, ValuesVector } = require('../ballots/ballot_structure.js');
 
 function ElgamalCiphertext(c1, c2) {
   this.c1 = c1;
@@ -169,7 +168,7 @@ class PublicKey {
   // ElGamal Public Key
   constructor(group, pk) {
     this.group = group;
-    this.infinity = this.group.infinity;
+    this.infinity = this.group.g.mul(0);
     this.order = this.group.curve.n;
     this.pk = pk;
     this.generator = this.group.g;
@@ -201,14 +200,12 @@ class PublicKey {
       return new BallotBundle(ciphertext1, ciphertext2, ciphertext3, ciphertext4);
     } else if (ephemeral_key === null || ephemeral_key === undefined) {
       ephemeral_key = this.group.genKeyPair().getPrivate();
-      return new Ciphertext(generator.mul(ephemeral_key), this.pk.mul(ephemeral_key).add(msg));
+        return new Ciphertext(generator.mul(ephemeral_key), this.pk.mul(ephemeral_key).add(msg));
     } else {
-      if(msg === this.infinity)
-        return new Ciphertext(generator.mul(ephemeral_key), this.pk.mul(ephemeral_key));
-      else
         return new Ciphertext(generator.mul(ephemeral_key), this.pk.mul(ephemeral_key).add(msg));
     }
   }
+  
   reencrypt(ctxt, ephemeral_key) {
     if (ephemeral_key === undefined || ephemeral_key === null) {
       ephemeral_key = this.group.genKeyPair().getPrivate();
@@ -226,7 +223,7 @@ class Ciphertext {
   constructor(c1, c2) {
       this.c1 = c1;
       this.c2 = c2;
-      this.curve = this.c1.curve;
+      this.curve = c1.curve;
   }
 
   /**
@@ -243,7 +240,7 @@ class Ciphertext {
    * console.log(msg.eq(ec.g.mul(1024))); // true
    */
   mul(other) {
-      return new Ciphertext(this.c1.add(other.c1), this.c2.add(other.c2));
+        return new Ciphertext(this.c1.add(other.c1), this.c2.add(other.c2));
   }
 
   /**
@@ -266,6 +263,10 @@ class Ciphertext {
    */
   eq(other) {
       return this.c1.eq(other.c1) && this.c2.eq(other.c2);
+  }
+
+  neg(){
+      return new Ciphertext(this.c1.neg(), this.c2.neg());
   }
 
   /**
