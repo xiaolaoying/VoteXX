@@ -120,7 +120,7 @@ for (let i = 0; i < 3; i++) {
     ctxts_shuffle_matrix.push(subList);
 }
 
-let x = new BN(1);
+let x = ec.genKeyPair().getPrivate();
 let exponents = [];
 for(let i = 0; i < 9; i++){
     exponents.push(x.pow(new BN(i)));
@@ -165,32 +165,32 @@ console.log("Multi-exponantiation Argument(Ciphertxt):", proof.verify(com_pk, pk
 
 //Multi-exponantiation Argument - Ballot
 
-let Ballot = [];
+let ballot = [];
 for (let i = 0; i < 9; i++) {
     const ctxt = new BallotBundle(
         pk.encrypt(ec.g.mul(i)),
         pk.encrypt(ec.g.mul(i)),
         pk.encrypt(ec.g.mul(i)),
         new VoteVector([pk.encrypt(ec.g.mul(i))]));
-    Ballot.push(ctxt);
+    ballot.push(ctxt);
 }
-let Ballot_shuffle = [];
+let ballot_shuffle = [];
 for (let i = 0; i < 9; i++) {
-    const ctxt = pk.reencrypt(Ballot[permutation[i]], random[i]);
-    Ballot_shuffle.push(ctxt);
+    const ctxt = pk.reencrypt(ballot[permutation[i]], random[i]);
+    ballot_shuffle.push(ctxt);
 }
-let Ballot_matrix = [];
+let ballot_matrix = [];
 for (let i = 0; i < 3; i++) {
-    const subList = Ballot.slice(i * 3, (i + 1) * 3);
-    Ballot_matrix.push(subList);
+    const subList = ballot.slice(i * 3, (i + 1) * 3);
+    ballot_matrix.push(subList);
 }
-let Ballot_shuffle_matrix = [];
+let ballot_shuffle_matrix = [];
 for (let i = 0; i < 3; i++) {
-    const subList = Ballot_shuffle.slice(i * 3, (i + 1) * 3);
-    Ballot_shuffle_matrix.push(subList);
+    const subList = ballot_shuffle.slice(i * 3, (i + 1) * 3);
+    ballot_shuffle_matrix.push(subList);
 }
-product_ctxts = Ballot_matrix.map((ctxt, i) => MultiExponantiation.ctxt_weighted_sum(ctxt, exponents_matrix[i])).reduce((a, b) => a.mul(b));
+product_ctxts = ballot_matrix.map((ctxt, i) => MultiExponantiation.ctxt_weighted_sum(ctxt, exponents_matrix[i])).reduce((a, b) => a.mul(b));
 
 
-proof = new MultiExponantiation(com_pk, pk, Ballot_shuffle_matrix, product_ctxts, commitment_exponents, permutated_exponents_matrix, randomizers, reencryption_randomization);
-console.log("Multi-exponantiation Argument(Ballot):", proof.verify(com_pk, pk, Ballot_shuffle_matrix, product_ctxts, commitment_exponents));
+proof = new MultiExponantiation(com_pk, pk, ballot_shuffle_matrix, product_ctxts, commitment_exponents, permutated_exponents_matrix, randomizers, reencryption_randomization);
+console.log("Multi-exponantiation Argument(Ballot):", proof.verify(com_pk, pk, ballot_shuffle_matrix, product_ctxts, commitment_exponents));
