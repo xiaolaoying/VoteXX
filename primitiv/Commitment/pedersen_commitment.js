@@ -49,10 +49,10 @@ class PublicKey {
         }
         let powers = values.concat(randomizer);
 
-        let dotProduct = this.generators[0].mul(new BN(powers[0]));
+        let dotProduct = this.generators[0].mul(powers[0]);
 
         for(let i = 1; i < powers.length; i++){
-          dotProduct = dotProduct.add(this.generators[i].mul(new BN(powers[i])));
+          dotProduct = dotProduct.add(this.generators[i].mul(powers[i]));
         }
         let commitment = new Commitment(dotProduct);
         
@@ -75,9 +75,9 @@ class PublicKey {
 
         let powers = values.concat(randomizer);
 
-        let dotProduct = this.generators[0].mul(new BN(powers[0]));
+        let dotProduct = this.generators[0].mul(powers[0]);
         for(let i = 1; i < powers.length; i++){
-          dotProduct = dotProduct.add(this.generators[i].mul(new BN(powers[i])));
+          dotProduct = dotProduct.add(this.generators[i].mul(powers[i]));
         }
         let commitment = new Commitment(dotProduct);
 
@@ -87,7 +87,7 @@ class PublicKey {
     export() {
         let exportBytes = [0x00n, 0xFFn];
         for (let gen of this.generators) {
-          exportBytes += [new BN(gen.x), new BN(gen.y)];
+          exportBytes = [exportBytes[0].add(gen.x), exportBytes[1].add(gen.y)];
         }
         return exportBytes;
     }
@@ -136,7 +136,7 @@ class Commitment{
         let [com, rand] = pk.commit([new BN(1000), new BN(2000)], randomizer=(new BN(100)).mul(rand1));
         console.log(com.isEqual(commul));
       **/
-        const resultingCommitment = this.commitment.mul(new BN(exponent));
+        const resultingCommitment = this.commitment.mul(exponent);
         return new Commitment(resultingCommitment);
     }
 

@@ -1,6 +1,6 @@
 // Import necessary modules
-const computechallenge = require('../primitiv/Hash/hash_function.js');
-const {PublicKey, Commitment} = require('../primitiv/Commitment/pedersen_commitment.js');
+const computechallenge = require('../primitiv/hash/hash_function.js');
+const {PublicKey, Commitment} = require('../primitiv/commitment/pedersen_commitment.js');
 const {MultiExponantiation} = require('./multi_exponantiation_argument.js');
 
 const EC = require('elliptic').ec;
