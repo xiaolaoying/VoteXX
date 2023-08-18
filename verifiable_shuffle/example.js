@@ -176,17 +176,17 @@ for (let i = 0; i < 9; i++) {
 }
 let Ballot_shuffle = [];
 for (let i = 0; i < 9; i++) {
-    const ctxt = pk.reencrypt(ctxts[permutation[i]], random[i]);
+    const ctxt = pk.reencrypt(Ballot[permutation[i]], random[i]);
     Ballot_shuffle.push(ctxt);
 }
 let Ballot_matrix = [];
 for (let i = 0; i < 3; i++) {
-    const subList = ctxts.slice(i * 3, (i + 1) * 3);
+    const subList = Ballot.slice(i * 3, (i + 1) * 3);
     Ballot_matrix.push(subList);
 }
 let Ballot_shuffle_matrix = [];
 for (let i = 0; i < 3; i++) {
-    const subList = ctxts_shuffle.slice(i * 3, (i + 1) * 3);
+    const subList = Ballot_shuffle.slice(i * 3, (i + 1) * 3);
     Ballot_shuffle_matrix.push(subList);
 }
 product_ctxts = Ballot_matrix.map((ctxt, i) => MultiExponantiation.ctxt_weighted_sum(ctxt, exponents_matrix[i])).reduce((a, b) => a.mul(b));
