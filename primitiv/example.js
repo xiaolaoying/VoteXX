@@ -48,3 +48,59 @@ const isValid = publicKey.verify(message2, signature);
 console.log('Signature:', signature.toDER('hex'));
 console.log('Is Valid Signature?', isValid);
 
+// DKG Test
+const EC = require('elliptic').ec;
+const DKG = require('./dkg/dkg');
+var N = 10;
+var DKGList = [];
+
+//  generate N DKG instances & generate private component
+for (let i = 0; i < N; i++) {
+  DKGList.push(new DKG(N, i, new EC('secp256k1')));
+  DKGList[i].generatePrivate();
+}
+
+//  simulate the broadcast of yi
+for (let i = 0; i < N; i++) {
+  for (let j = 0; j < N; j++) {
+    DKGList[i].yiList[j] = DKGList[j].yi;
+  }
+}
+
+//  ZKP 
+//  for n*(n-1) times
+//  Prover: Pi, Verifier: Pj
+for (let i = 0; i < N; i++) {
+  for (let j = 0; j < N; j++) {
+    if (i !== j) {
+      var a = DKGList[i].ZKP_Prove_round1(j);
+      var e = DKGList[j].ZKP_Verify_round1(i, a);
+      var z = DKGList[i].ZKP_Prove_round2(j, e);
+      var res = DKGList[j].ZKP_Verify_round2(i, z);
+      if (res === false) {
+        console.log('ZKP failed for dishonest party '+i);
+      }
+    }
+  }
+}
+
+//  get public key
+for (let i = 0; i < N; i++) {
+  DKGList[i].DKG_getPublic();
+}
+
+//  check if all public keys are the same
+var valid = true;
+for (let i = 0; i < N; i++) {
+  for (let j = 0; j < N; j++) {
+    valid = valid && DKGList[i].y.eq(DKGList[j].y);
+  }
+}
+if (valid === false) {
+  console.log('DKG failed');
+}
+else {
+  console.log('DKG success');
+}
+
+

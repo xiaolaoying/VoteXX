@@ -118,3 +118,65 @@ if (!verified) {
     throw new Error("Verification ERR");
 }
 ```
+
+
+## DKG用法
+
+```javascript
+const EC = require('elliptic').ec;
+const DKG = require('./dkg/dkg');
+
+//	DKG的参与方数目
+var N = 10;
+var DKGList = [];
+
+//  N 个参与方分别调用 `gneratePrivate` 函数生成各自私钥
+for (let i = 0; i < N; i++) {
+  DKGList.push(new DKG(N, i, new EC('secp256k1')));
+  DKGList[i].generatePrivate();
+}
+
+//  需要将各自的 yi 广播给各个参与方，这里采用本地交换来进行模拟
+for (let i = 0; i < N; i++) {
+  for (let j = 0; j < N; j++) {
+    DKGList[i].yiList[j] = DKGList[j].yi;
+  }
+}
+
+//  ZKP 
+//  每两组参与方，都要进行相互的认证
+//  Prover: Pi, Verifier: Pj
+for (let i = 0; i < N; i++) {
+  for (let j = 0; j < N; j++) {
+    if (i !== j) {
+      var a = DKGList[i].ZKP_Prove_round1(j);
+      var e = DKGList[j].ZKP_Verify_round1(i, a);
+      var z = DKGList[i].ZKP_Prove_round2(j, e);
+      var res = DKGList[j].ZKP_Verify_round2(i, z);
+      if (res === false) {
+        console.log('ZKP failed for dishonest party '+i);
+      }
+    }
+  }
+}
+
+//  所有认证均完毕之后，各自调用 `DKG_getPublic` 来获取公共私钥，如果存在不诚实方，返回 null
+for (let i = 0; i < N; i++) {
+  DKGList[i].DKG_getPublic();
+}
+
+//  检查所有的参与方各自获得的公钥，是否相同
+var valid = true;
+for (let i = 0; i < N; i++) {
+  for (let j = 0; j < N; j++) {
+    valid = valid && DKGList[i].y.eq(DKGList[j].y);
+  }
+}
+if (valid === false) {
+  console.log('DKG failed');
+}
+else {
+  console.log('DKG success');
+}
+
+```
