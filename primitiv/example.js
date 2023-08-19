@@ -9,6 +9,7 @@ var message = 'hello world';
 var hash = SHA256(message);
 console.log(hash.toString());
 
+
 // 获取密钥
 var key = ec.genKeyPair();
 var pubKey = key.getPublic();
@@ -47,6 +48,12 @@ const isValid = publicKey.verify(message2, signature);
 // console.log('Public Key:', publicKey);
 console.log('Signature:', signature.toDER('hex'));
 console.log('Is Valid Signature?', isValid);
+
+
+
+
+
+
 
 // DKG Test
 const EC = require('elliptic').ec;

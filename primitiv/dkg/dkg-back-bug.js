@@ -5,10 +5,10 @@ var SHA256 = require('crypto-js/sha256');
 
 
 function generateRandomNumber(ec) {
-  const byteLength = Math.ceil(ec.curve.p.byteLength());
+  const byteLength = Math.ceil(ec.curve.p.byteLength() / 8);
   const randomBytes = crypto.randomBytes(byteLength);
   const randomNumber = new BN(randomBytes);
-  return randomNumber.mod(ec.curve.p);
+  return randomNumber.umod(ec.curve.p);
 }
 
 
@@ -80,7 +80,7 @@ function generateRandomNumber(ec) {
 //   ZKP_Prove_round2(j, e) {
 //     //  z <- r + e*x
 //     //  broadcast z
-//     var z = this.ProverList[j].r.add(e.mul(this.xi)).mod(this.ec.curve.p);
+//     var z = this.ProverList[j].r.add(e.mul(this.xi)).umod(this.ec.curve.p);
 //     return z;
 //   }
 
@@ -130,16 +130,15 @@ function generateRandomNumber(ec) {
 
 
 /**
- * @param {[point]} commitment 
- * @param {BN} response 
+ * @param {[point]} a 
+ * @param {BN} z 
  */
 
-function SchnorrProof(commitment, response) {
-  this.commitment = commitment;
-  this.response = response;
+function SchnorrProof(a, z) {
+  this.a = a;
+  this.z = z;
 }
 
-const ecc = require('../ec/ec');
 
 class SchnorrNIZKProof {
 
@@ -148,52 +147,95 @@ class SchnorrNIZKProof {
   }
 
   
-  generateProof(statement, witness) {
+  generateProof(yi, xi) {
     // 生成零知识证明
-    const r = generateRandomNumber(this.ec);
-    const commitment = this.ec.curve.g.mul(r);
+    var r = generateRandomNumber(this.ec);
+    var a = this.ec.curve.g.mul(r);
 
-    // const statementStr = statement.encode("hex", true);
-    // const commitmentStr = commitment.encode("hex", true);
-    // const challengeStr = SHA256(statementStr + commitmentStr).toString();
+    var yiStr = yi.encode("hex", true);
+    var aStr = a.encode("hex", true);
+    var eStr = SHA256(yiStr + aStr).toString();
 
-    const statementBytes = ecc.serializedPoint(statement);
-    const commitmentBytes = ecc.serializedPoint(commitment);
-    const challengeStr = SHA256([statementBytes, commitmentBytes].toString).toString();
-    // serializedPoint
+    var e = (new BN(eStr, 'hex')).umod(this.ec.curve.p);
 
+    // console.log(e.toString());
+    
+    // e = generateRandomNumber(this.ec);
+    // console.log(e.toString());
 
-    var challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.p);
-    challenge = new BN(567890);
+    var z = r.add(e.mul(xi)).umod(this.ec.curve.p);
 
-    const response = (r.add((challenge.mul(witness)).mod(this.ec.curve.p))).mod(this.ec.curve.p);
+    var rex = r.add(e.mul(xi)).umod(this.ec.curve.p);
 
-    return new SchnorrProof(commitment, response);
-  }
+    console.log('1', ec.curve.g.mul(rex).encode("hex", true));
+    console.log('2', ec.curve.g.mul(z).encode("hex", true));
 
-  verifyProof(proof, statement) {
-    // 验证零知识证明
-    const { commitment, response } = proof;
-    // const statementStr = statement.encode("hex", true);
-    // const commitmentStr = commitment.encode("hex", true);
-    // const challengeStr = SHA256(statementStr + commitmentStr).toString();
-
-    const statementBytes = ecc.serializedPoint(statement);
-    const commitmentBytes = ecc.serializedPoint(commitment);
-    const challengeStr = SHA256([statementBytes, commitmentBytes].toString).toString();
-
-    var challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.p);
-    challenge = new BN(567890);
-    console.log('e2', challenge.toString());
-    const leftSide = this.ec.curve.g.mul(response);
-    const rightSide = commitment.add(statement.mul(challenge));
-
-
+    var leftSide = this.ec.curve.g.mul(rex);
+    var rightSide = this.ec.curve.g.mul(r).add(yi.mul(e));
 
     console.log(leftSide.encode("hex", true));
     console.log(rightSide.encode("hex", true));
 
-    return leftSide.eq(rightSide);
+    console.log(leftSide.eq(rightSide));
+
+    return new SchnorrProof(a, z);
+  }
+
+  // generateProof(yi, xi) {
+  //   // 生成零知识证明
+  //   var r = generateRandomNumber(this.ec);
+  //   var a = this.ec.curve.g.mul(r);
+
+  //   var yiStr = yi.encode("hex", true);
+  //   var aStr = a.encode("hex", true);
+  //   var eStr = SHA256(yiStr + aStr).toString();
+
+  //   var e = (new BN(eStr, 'hex')).umod(this.ec.curve.p);
+
+  //   // console.log(e.toString());
+    
+  //   // e = generateRandomNumber(this.ec);
+  //   // console.log(e.toString());
+
+  //   var z = r.add(e.mul(xi)).umod(this.ec.curve.p);
+
+  //   var rex = r.add(e.mul(xi)).umod(this.ec.curve.p);
+
+  //   console.log('1', ec.curve.g.mul(rex).encode("hex", true));
+  //   console.log('2', ec.curve.g.mul(z).encode("hex", true));
+
+  //   var leftSide = this.ec.curve.g.mul(rex);
+  //   var rightSide = this.ec.curve.g.mul(r).add(yi.mul(e));
+
+  //   console.log(leftSide.encode("hex", true));
+  //   console.log(rightSide.encode("hex", true));
+
+  //   console.log(leftSide.eq(rightSide));
+
+  //   return new SchnorrProof(a, z);
+  // }
+
+  verifyProof(proof, yi) {
+    // 验证零知识证明
+    const { a, z } = proof;
+    const yiStr = yi.encode("hex", true);
+    const aStr = a.encode("hex", true);
+    const eStr = SHA256(yiStr + aStr).toString();
+
+
+    const e = (new BN(eStr, 16)).umod(this.ec.curve.p);
+    console.log(e.toString());
+    console.log(e);
+
+    // const leftSide = this.ec.curve.g.mul(z);
+    // const rightSide = a.add(yi.mul(e));
+
+
+
+    // console.log(leftSide.encode("hex", true));
+    // console.log(rightSide.encode("hex", true));
+
+    // return leftSide.eq(rightSide);
   }
 }
 
@@ -203,12 +245,9 @@ const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 const schnorrNIZKProof = new SchnorrNIZKProof(ec);
 
-const witness = generateRandomNumber(ec);
-const statement = ec.curve.g.mul(witness);
+const xi = generateRandomNumber(ec);
+const yi = ec.curve.g.mul(xi);
 
-var proof = schnorrNIZKProof.generateProof(statement, witness);
-var res = schnorrNIZKProof.verifyProof(proof, statement);
+var proof = schnorrNIZKProof.generateProof(yi, xi);
+var res = schnorrNIZKProof.verifyProof(proof, yi);
 console.log(res);
-
-
-
