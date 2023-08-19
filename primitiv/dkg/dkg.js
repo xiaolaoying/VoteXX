@@ -2,133 +2,15 @@ const BN = require('bn.js');
 const crypto = require('crypto');
 var SHA256 = require('crypto-js/sha256');
 
-
-
+//  生成随机数的函数
 function generateRandomNumber(ec) {
   const byteLength = Math.ceil(ec.curve.p.byteLength());
   const randomBytes = crypto.randomBytes(byteLength);
   const randomNumber = new BN(randomBytes);
-  return randomNumber.mod(ec.curve.p);
+  return randomNumber.mod(ec.curve.n);
 }
 
-
-
-// class DKG {
-//   constructor(n, seq, ec) {
-//     //  n: the number of verifiers
-//     this.n = n;
-//     //  seq: the sequence of the party
-//     this.seq = seq;
-//     //  ec: the elliptic curve used in the DKG
-//     this.ec = ec;
-
-
-    
-//     //  store the public component of Pi
-//     this.yiList = [];
-//     //  always true unless in the verifyProcess others cheat
-//     this.validList = [];
-
-//     this.ProverList = [];
-//     this.VerifierList = [];
-
-//     for (let i = 0; i < this.n; i++) {
-//       this.yiList.push(null);
-//       this.validList.push(true);
-//       this.ProverList.push({r:null});
-//       this.VerifierList.push({a:null, e:null});
-//     }
-
-//   }
-
-
-
-
-//   generatePrivate() {
-//     this.xi = generateRandomNumber(this.ec);
-//     this.yi = this.ec.curve.g.mul(this.xi);
-//     this.yiList[this.seq] = this.yi;
-//     //  broadcast yi
-//   }
-
-//   //  Prover: Pi, Verifier: Pj
-//   ZKP_Prove_round1(j) {
-//     //  r <- Zq
-//     //  a <- g^r
-//     //  store r
-//     //  broadcast a
-//     var r = generateRandomNumber(this.ec);
-//     var a = this.ec.curve.g.mul(r);
-//     this.ProverList[j].r = r;
-//     return a;
-//   }
-
-//   //  Prover: Pj, Verifier: Pi
-//   ZKP_Verify_round1(j, a) {
-//     //  e <- Zq
-//     //  store e
-//     //  broadcast e
-//     //  store a
-
-//     var e = generateRandomNumber(this.ec);
-//     this.VerifierList[j].e = e;
-//     this.VerifierList[j].a = a;
-//     return e;
-//   }
-
-//   //  Prover: Pi, Verifier: Pj
-//   ZKP_Prove_round2(j, e) {
-//     //  z <- r + e*x
-//     //  broadcast z
-//     var z = this.ProverList[j].r.add(e.mul(this.xi)).mod(this.ec.curve.p);
-//     return z;
-//   }
-
-//   //  Prover: Pj, Verifier: Pi
-//   ZKP_Verify_round2(j, z) {
-//     //  check g^z = a * y^e
-//     var a = this.VerifierList[j].a;
-//     var e = this.VerifierList[j].e;
-//     var left = this.ec.curve.g.mul(z);
-//     var right = a.add(this.yiList[j].mul(e));
-//     //  the eq function return bool
-//     var res = left.eq(right);
-//     this.validList[j] = res;
-//     return res;
-//   }
-
-//   //  get public Key Y = y1*y2*...*yn(if all verifiers are honest)
-//   DKG_getPublic() {
-//     var valid = true;
-//     for (let i = 0; i < this.n; i++) {
-//       valid = valid && this.validList[i];
-//     }
-//     //  check if all verifiers are honest
-//     if (valid === false) {
-//       return null;
-//     }
-//     else {
-//       var y = this.yiList[0];
-//       for (let i = 1; i < this.n; i++) {
-//         y = y.add(this.yiList[i]);
-//       }
-//       this.y = y;
-//     }
-
-//   }
-
-// }
-// module.exports = DKG;
-
-
-
-
-
-
-
-// 导入所需的库和函数
-
-
+//  定义 proof 结构体
 /**
  * @param {[point]} commitment 
  * @param {BN} response 
@@ -139,76 +21,118 @@ function SchnorrProof(commitment, response) {
   this.response = response;
 }
 
-const ecc = require('../ec/ec');
-
+//  NIZK 类
 class SchnorrNIZKProof {
 
   constructor(ec) {
     this.ec = ec;
   }
 
-  
   generateProof(statement, witness) {
-    // 生成零知识证明
+    // 生成proof
     const r = generateRandomNumber(this.ec);
-    const commitment = this.ec.curve.g.mul(r);
-
-    // const statementStr = statement.encode("hex", true);
-    // const commitmentStr = commitment.encode("hex", true);
-    // const challengeStr = SHA256(statementStr + commitmentStr).toString();
-
-    const statementBytes = ecc.serializedPoint(statement);
-    const commitmentBytes = ecc.serializedPoint(commitment);
-    const challengeStr = SHA256([statementBytes, commitmentBytes].toString).toString();
-    // serializedPoint
-
-
-    var challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.p);
-    challenge = new BN(567890);
-
-    const response = (r.add((challenge.mul(witness)).mod(this.ec.curve.p))).mod(this.ec.curve.p);
+    const commitment = this.ec.curve.g.mul(r);  //  a <- g^r
+    const statementStr = statement.encode("hex", true);
+    const commitmentStr = commitment.encode("hex", true);
+    const challengeStr = SHA256(statementStr + commitmentStr).toString();
+    const challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.n);  //  e <- hash( y || a )
+    const response = (r.add((challenge.mul(witness)).mod(this.ec.curve.n))).mod(this.ec.curve.n); //  z <- r + e*x
 
     return new SchnorrProof(commitment, response);
   }
 
   verifyProof(proof, statement) {
-    // 验证零知识证明
-    const { commitment, response } = proof;
-    // const statementStr = statement.encode("hex", true);
-    // const commitmentStr = commitment.encode("hex", true);
-    // const challengeStr = SHA256(statementStr + commitmentStr).toString();
-
-    const statementBytes = ecc.serializedPoint(statement);
-    const commitmentBytes = ecc.serializedPoint(commitment);
-    const challengeStr = SHA256([statementBytes, commitmentBytes].toString).toString();
-
-    var challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.p);
-    challenge = new BN(567890);
-    console.log('e2', challenge.toString());
-    const leftSide = this.ec.curve.g.mul(response);
-    const rightSide = commitment.add(statement.mul(challenge));
-
-
-
-    console.log(leftSide.encode("hex", true));
-    console.log(rightSide.encode("hex", true));
-
+    // 验证proof
+    const commitment = proof.commitment;
+    const response = proof.response;
+    const statementStr = statement.encode("hex", true);
+    const commitmentStr = commitment.encode("hex", true);
+    const challengeStr = SHA256(statementStr + commitmentStr).toString();
+    const challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.n);
+    const leftSide = this.ec.curve.g.mul(response);             //  g^z
+    const rightSide = commitment.add(statement.mul(challenge)); //  a * y^e
+    
     return leftSide.eq(rightSide);
   }
+
 }
 
+//  定义 Broadcast 结构体
+/**
+ * @param {[point]} yi 
+ * @param {SchnorrProof} proof 
+ */
+function Broadcast(yi, proof) {
+  this.yi = yi;
+  this.proof = proof;
+}
 
-// test
-const EC = require('elliptic').ec;
-const ec = new EC('secp256k1');
-const schnorrNIZKProof = new SchnorrNIZKProof(ec);
+//  DKG 类
+class DKG {
 
-const witness = generateRandomNumber(ec);
-const statement = ec.curve.g.mul(witness);
+  constructor(n, seq, ec) {  
+    this.n = n;     //  n: the number of verifiers
+    this.seq = seq; //  seq: the sequence of the party
+    this.ec = ec;   //  ec: the elliptic curve used in the DKG
 
-var proof = schnorrNIZKProof.generateProof(statement, witness);
-var res = schnorrNIZKProof.verifyProof(proof, statement);
-console.log(res);
+    this.yiList = [];     //  store the public component of Pi & proof
+    this.proofList = [];  //  store the proof of Pi
+    this.validList = [];  //  always true unless in the verifyProcess others cheat
 
+    this.BB = new Broadcast(null, null);  //  the broadcast of yi and proof
+
+    for (let i = 0; i < this.n; i++) {
+      this.yiList.push(null);
+      this.proofList.push(null);
+      this.validList.push(true);
+    }
+  }
+
+  generatePrivate() {
+    this.xi = generateRandomNumber(this.ec);
+    this.BB.yi = this.ec.curve.g.mul(this.xi);
+    this.yiList[this.seq] = this.BB.yi
+    //  broadcast yi
+  }
+
+  generateProof() {
+    var schnorrNIZKProof = new SchnorrNIZKProof(this.ec);
+    this.BB.proof = schnorrNIZKProof.generateProof(this.BB.yi, this.xi);
+    //  broadcast proof
+  }
+
+  //  Prover: Pj, Verifier: Pi
+  verifyProof(j) {
+    var schnorrNIZKProof = new SchnorrNIZKProof(this.ec);
+    var res = schnorrNIZKProof.verifyProof(this.proofList[j], this.yiList[j]);
+    this.validList[j] = res;
+    return res;
+  }
+
+  //  get public Key Y = y1*y2*...*yn(if all verifiers are honest)
+  DKG_getPublic() {
+    var valid = true;
+    for (let i = 0; i < this.n; i++) {
+      valid = valid && this.validList[i];
+    }
+    
+    //  check if all verifiers are honest
+    if (valid === false) {
+      return null;
+    }
+    else {
+      var y = this.yiList[0];
+      for (let i = 1; i < this.n; i++) {
+        y = y.add(this.yiList[i]);
+      }
+      this.y = y;
+      return y;
+    }
+
+  }
+
+}
+
+module.exports = DKG;
 
 

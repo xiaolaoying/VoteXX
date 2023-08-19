@@ -53,39 +53,37 @@ console.log('Is Valid Signature?', isValid);
 
 
 
-
-
 // DKG Test
-const EC = require('elliptic').ec;
 const DKG = require('./dkg/dkg');
-var N = 10;
+const EC = require('elliptic').ec;
+const curve = new EC('secp256k1');
+var N = 2;
 var DKGList = [];
 
 //  generate N DKG instances & generate private component
 for (let i = 0; i < N; i++) {
-  DKGList.push(new DKG(N, i, new EC('secp256k1')));
+  DKGList.push(new DKG(N, i, curve));
   DKGList[i].generatePrivate();
+  DKGList[i].generateProof();
 }
 
-//  simulate the broadcast of yi
+//  simulate the broadcast of yi&proof
 for (let i = 0; i < N; i++) {
   for (let j = 0; j < N; j++) {
-    DKGList[i].yiList[j] = DKGList[j].yi;
+    DKGList[i].yiList[j] = DKGList[j].BB.yi;
+    DKGList[i].proofList[j] = DKGList[j].BB.proof;
   }
 }
 
-//  ZKP 
+//  ZKP
 //  for n*(n-1) times
 //  Prover: Pi, Verifier: Pj
 for (let i = 0; i < N; i++) {
   for (let j = 0; j < N; j++) {
     if (i !== j) {
-      var a = DKGList[i].ZKP_Prove_round1(j);
-      var e = DKGList[j].ZKP_Verify_round1(i, a);
-      var z = DKGList[i].ZKP_Prove_round2(j, e);
-      var res = DKGList[j].ZKP_Verify_round2(i, z);
+      var res = DKGList[j].verifyProof(i);
       if (res === false) {
-        console.log('ZKP failed for dishonest party '+i);
+        console.log('ZKP failed for dishonest party ' + i);
       }
     }
   }
@@ -110,4 +108,5 @@ else {
   console.log('DKG success');
 }
 
-
+console.log('The public key(in hex string) is:');
+console.log(DKGList[0].y.encode("hex", true));
