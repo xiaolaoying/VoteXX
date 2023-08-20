@@ -210,16 +210,20 @@ def vote_test(request, election_uuid):
     # else:
     #     cipher = "error"
 
-    cipher = request.POST.get("vote")
+    # cipher = request.POST.get("vote")
 
-    vote_hash = hash_b64(cipher)
+    # cipher = utils.from_json(request.POST['vote'])
+    if request.method == "POST":
+        cipher = request.POST.get('vote', None)
 
-    now = datetime.datetime.now()
+        vote_hash = hash_b64(cipher)
 
-    dic = {'voter': voter, 'vote': cipher, 'vote_hash': vote_hash,
-           'vote_tinyhash': vote_hash, 'cast_at': now}
+        now = datetime.datetime.now()
 
-    CastVote.objects.create(**dic)
+        dic = {'voter': voter, 'vote': cipher, 'vote_hash': vote_hash,
+               'vote_tinyhash': vote_hash, 'cast_at': now}
+
+        CastVote.objects.create(**dic)
 
     return render(request, 'booth/vote.html')
 

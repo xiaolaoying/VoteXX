@@ -23,5 +23,5 @@ urlpatterns = [
 
     re_path(r'^elections/voted$', views.elections_voted, name=names.ELECTIONS_VOTED),
 
-    re_path(r'^elections/(?P<election_uuid>[^/]+)', include('VoteXX.election_urls')),
+    re_path(r'^elections/(?P<election_uuid>[^/]+)/', include('VoteXX.election_urls')),
 ]
