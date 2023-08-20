@@ -5,11 +5,8 @@ const curve = new EC('secp256k1');
 var N = 2;
 var DKGList = [];
 
-var BB = [];
+var BB = {yiList: [], proofList: []};
 var globalValid = true;
-for (let i = 0; i < N; i++) {
-    BB.push(new Broadcast(null, null));
-}
 
 
 //  generate N DKG instances & generate private component
@@ -21,8 +18,8 @@ for (let i = 0; i < N; i++) {
 
 //  simulate the broadcast of yi&proof
 for (let i = 0; i < N; i++) {
-    BB[i].yi = DKGList[i].yi;
-    BB[i].proof = DKGList[i].proof;
+    BB.yiList.push(DKGList[i].yi);
+    BB.proofList.push(DKGList[i].proof);
 }
 
 //  ZKP
@@ -31,7 +28,7 @@ for (let i = 0; i < N; i++) {
 for (let i = 0; i < N; i++) {
   for (let j = 0; j < N; j++) {
     if (i !== j) {
-      var res = DKGList[j].verifyProof(BB[i].yi, BB[i].proof);
+      var res = DKGList[j].verifyProof(BB.yiList[i], BB.proofList[i]);
       if (res === false) {
         globalValid = false;
         console.log('ZKP failed for dishonest party ' + i);
@@ -41,8 +38,15 @@ for (let i = 0; i < N; i++) {
 }
 
 //  get public key
+
+//  check if all verifiers are honest
+if (globalValid === false) {
+  // abort
+}
+
+
 for (let i = 0; i < N; i++) {
-  DKGList[i].DKG_getPublic(globalValid, BB);
+  DKGList[i].DKG_getPublic(BB.yiList);
 }
 
 //  check if all public keys are the same

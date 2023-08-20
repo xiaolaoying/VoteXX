@@ -108,25 +108,16 @@ class DKG {
   }
 
   /**
-   * @param {boolean} valid 
-   * @param {[SchnorrProof]} BBList 
+   * @param {[point]} yiList 
    */
   //  get public Key Y = y1*y2*...*yn(if all verifiers are honest)
-  DKG_getPublic(valid, BBList) {
-    //  check if all verifiers are honest
-    if (valid === false) {
-      return null;
-    }
-    else {
-      var y = BBList[0].yi;
-      for (let i = 1; i < this.n; i++) {
-        y = y.add(BBList[i].yi);
-      }
-      this.y = y;
-      return y;
-    }
-
+  DKG_getPublic(yiList) {
+    //  accumulate yi
+    const y = yiList.reduce((acc, yi) => acc.add(yi), this.ec.curve.g.mul(new BN(0)));
+    this.y = y;
+    return y;
   }
+
 
 }
 
