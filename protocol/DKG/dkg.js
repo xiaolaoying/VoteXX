@@ -12,7 +12,7 @@ function generateRandomNumber(ec) {
 
 //  定义 proof 结构体
 /**
- * @param {[point]} commitment 
+ * @param {point} commitment 
  * @param {BN} response 
  */
 
@@ -28,6 +28,10 @@ class SchnorrNIZKProof {
     this.ec = ec;
   }
 
+  /**
+   * @param {point} statement 
+   * @param {BN} witness 
+   */
   generateProof(statement, witness) {
     // 生成proof
     const r = generateRandomNumber(this.ec);
@@ -41,6 +45,10 @@ class SchnorrNIZKProof {
     return new SchnorrProof(commitment, response);
   }
 
+  /**
+   * @param {SchnorrProof} proof 
+   * @param {point} statement 
+   */
   verifyProof(proof, statement) {
     // 验证proof
     const commitment = proof.commitment;
@@ -59,7 +67,7 @@ class SchnorrNIZKProof {
 
 //  定义 Broadcast 结构体
 /**
- * @param {[point]} yi 
+ * @param {point} yi 
  * @param {SchnorrProof} proof 
  */
 function Broadcast(yi, proof) {
@@ -74,56 +82,45 @@ class DKG {
     this.n = n;     //  n: the number of verifiers
     this.seq = seq; //  seq: the sequence of the party
     this.ec = ec;   //  ec: the elliptic curve used in the DKG
-
-    this.yiList = [];     //  store the public component of Pi & proof
-    this.proofList = [];  //  store the proof of Pi
-    this.validList = [];  //  always true unless in the verifyProcess others cheat
-
-    this.BB = new Broadcast(null, null);  //  the broadcast of yi and proof
-
-    for (let i = 0; i < this.n; i++) {
-      this.yiList.push(null);
-      this.proofList.push(null);
-      this.validList.push(true);
-    }
   }
 
   generatePrivate() {
     this.xi = generateRandomNumber(this.ec);
-    this.BB.yi = this.ec.curve.g.mul(this.xi);
-    this.yiList[this.seq] = this.BB.yi
+    this.yi = this.ec.curve.g.mul(this.xi);
     //  broadcast yi
   }
 
   generateProof() {
     var schnorrNIZKProof = new SchnorrNIZKProof(this.ec);
-    this.BB.proof = schnorrNIZKProof.generateProof(this.BB.yi, this.xi);
+    this.proof = schnorrNIZKProof.generateProof(this.yi, this.xi);
     //  broadcast proof
   }
 
   //  Prover: Pj, Verifier: Pi
-  verifyProof(j) {
+  /**
+   * @param {point} yj 
+   * @param {SchnorrProof} proofj 
+   */
+  verifyProof(yj, proofj) {
     var schnorrNIZKProof = new SchnorrNIZKProof(this.ec);
-    var res = schnorrNIZKProof.verifyProof(this.proofList[j], this.yiList[j]);
-    this.validList[j] = res;
+    var res = schnorrNIZKProof.verifyProof(proofj, yj);
     return res;
   }
 
+  /**
+   * @param {boolean} valid 
+   * @param {[SchnorrProof]} BBList 
+   */
   //  get public Key Y = y1*y2*...*yn(if all verifiers are honest)
-  DKG_getPublic() {
-    var valid = true;
-    for (let i = 0; i < this.n; i++) {
-      valid = valid && this.validList[i];
-    }
-    
+  DKG_getPublic(valid, BBList) {
     //  check if all verifiers are honest
     if (valid === false) {
       return null;
     }
     else {
-      var y = this.yiList[0];
+      var y = BBList[0].yi;
       for (let i = 1; i < this.n; i++) {
-        y = y.add(this.yiList[i]);
+        y = y.add(BBList[i].yi);
       }
       this.y = y;
       return y;
@@ -133,6 +130,6 @@ class DKG {
 
 }
 
-module.exports = DKG;
+module.exports = { DKG, Broadcast, SchnorrNIZKProof};
 
 
