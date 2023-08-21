@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+    <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
+    <title>Privacy</title>
+</head>
+
+<body>
+    <div id="navtab"></div>
+    <div class="container">
+        <h2 class="text-center">Vote</h2>
+
+        <form action="#" method="POST" id="voteForm">
+
+            <!-- 问题1 -->
+            <div class="form-group">
+                <label>1. Your favorite color?</label>
+                <div>
+                    <label class="radio-inline">
+                        <input type="radio" name="question1" value="Red"> Red
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="question1" value="Green"> Green
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="question1" value="Blue"> Blue
+                    </label>
+                </div>
+            </div>
+
+            <!-- 问题2 -->
+            <div class="form-group">
+                <label>2. Your favorite fruit?</label>
+                <select class="form-control" name="question2">
+                    <option value="Apple">Apple</option>
+                    <option value="Banana">Banana</option>
+                    <option value="Cherry">Cherry</option>
+                </select>
+            </div>
+
+            <!-- 问题3 -->
+            <div class="form-group">
+                <label>3. Which sports do you like?</label>
+                <div>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="Football" name="question3[]"> Football
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="Basketball" name="question3[]"> Basketball
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" value="Tennis" name="question3[]"> Tennis
+                    </label>
+                </div>
+            </div>
+
+            <!-- 问题4 -->
+            <div class="form-group">
+                <label>4. Sort the animals by your preference:</label>
+                <ul id="sortable" class="list-group">
+                    <li class="list-group-item" data-value="Dog">Dog</li>
+                    <li class="list-group-item" data-value="Cat">Cat</li>
+                    <li class="list-group-item" data-value="Elephant">Elephant</li>
+                    <li class="list-group-item" data-value="Tiger">Tiger</li>
+                </ul>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Your Vote</button>
+        </form>
+    </div>
+    </div>
+
+    <script src="js/jquery-3.7.0.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            $("#sortable").sortable();
+        });
+
+        function submitVote() {
+            let sortedFruits = $('#sortable').sortable("toArray", {
+                attribute: "data-value"
+            });
+            console.log(sortedFruits); // 输出排序后的结果
+        }
+    </script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
+</body>
+
+</html>
