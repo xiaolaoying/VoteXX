@@ -1,5 +1,5 @@
 // DKG Test
-const { DKG, Broadcast, SchnorrNIZKProof} = require('../protocol/DKG/dkg');
+const { DKG } = require('../protocol/DKG/dkg');
 const EC = require('elliptic').ec;
 const curve = new EC('secp256k1');
 var N = 2;
