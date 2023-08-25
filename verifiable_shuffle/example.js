@@ -6,7 +6,7 @@ const { PublicKey } = require('../primitiv/commitment/pedersen_commitment.js');
 
 const { ProductArgument, SingleValueProdArg, ZeroArgument, HadamardProductArgument, modular_prod } = require('./product_argument.js');
 const { MultiExponantiation } = require('./multi_exponantiation_argument.js');
-// const { ShuffleArgument, shuffleArray } = require('./shuffle_argument.js');
+const { ShuffleArgument, shuffleArray } = require('./shuffle_argument.js');
 
 const {BallotBundle, VoteVector} = require('../primitiv/ballots/ballot_structure.js');
 
@@ -164,33 +164,85 @@ proof = new MultiExponantiation(com_pk, pk, ctxts_shuffle_matrix, product_ctxts,
 console.log("Multi-exponantiation Argument(Ciphertxt):", proof.verify(com_pk, pk, ctxts_shuffle_matrix, product_ctxts, commitment_exponents));
 
 //Multi-exponantiation Argument - Ballot
-
-let ballot = [];
+let Ballot = [];
 for (let i = 0; i < 9; i++) {
     const ctxt = new BallotBundle(
         pk.encrypt(ec.g.mul(i)),
         pk.encrypt(ec.g.mul(i)),
         pk.encrypt(ec.g.mul(i)),
         new VoteVector([pk.encrypt(ec.g.mul(i))]));
-    ballot.push(ctxt);
+    Ballot.push(ctxt);
 }
-let ballot_shuffle = [];
+let Ballot_shuffle = [];
 for (let i = 0; i < 9; i++) {
-    const ctxt = pk.reencrypt(ballot[permutation[i]], random[i]);
-    ballot_shuffle.push(ctxt);
+    const ctxt = pk.reencrypt(Ballot[permutation[i]], random[i]);
+    Ballot_shuffle.push(ctxt);
 }
-let ballot_matrix = [];
+let Ballot_matrix = [];
 for (let i = 0; i < 3; i++) {
-    const subList = ballot.slice(i * 3, (i + 1) * 3);
-    ballot_matrix.push(subList);
+    const subList = Ballot.slice(i * 3, (i + 1) * 3);
+    Ballot_matrix.push(subList);
 }
-let ballot_shuffle_matrix = [];
+let Ballot_shuffle_matrix = [];
 for (let i = 0; i < 3; i++) {
-    const subList = ballot_shuffle.slice(i * 3, (i + 1) * 3);
-    ballot_shuffle_matrix.push(subList);
+    const subList = Ballot_shuffle.slice(i * 3, (i + 1) * 3);
+    Ballot_shuffle_matrix.push(subList);
 }
-product_ctxts = ballot_matrix.map((ctxt, i) => MultiExponantiation.ctxt_weighted_sum(ctxt, exponents_matrix[i])).reduce((a, b) => a.mul(b));
+product_ctxts = Ballot_matrix.map((ctxt, i) => MultiExponantiation.ctxt_weighted_sum(ctxt, exponents_matrix[i])).reduce((a, b) => a.mul(b));
 
 
-proof = new MultiExponantiation(com_pk, pk, ballot_shuffle_matrix, product_ctxts, commitment_exponents, permutated_exponents_matrix, randomizers, reencryption_randomization);
-console.log("Multi-exponantiation Argument(Ballot):", proof.verify(com_pk, pk, ballot_shuffle_matrix, product_ctxts, commitment_exponents));
+proof = new MultiExponantiation(com_pk, pk, Ballot_shuffle_matrix, product_ctxts, commitment_exponents, permutated_exponents_matrix, randomizers, reencryption_randomization);
+console.log("Multi-exponantiation Argument(Ballot):", proof.verify(com_pk, pk, Ballot_shuffle_matrix, product_ctxts, commitment_exponents));
+
+// Shuffle Argument
+const m = 3;
+ctxts = [];
+for (let i = 0; i < 10; i++) {
+    ctxts.push(new BallotBundle(
+        pk.encrypt(ec.g.mul(i)),
+        pk.encrypt(ec.g.mul(i)),
+        pk.encrypt(ec.g.mul(i)),
+        new VoteVector([pk.encrypt(ec.g.mul(i))])
+    ));
+}
+
+// We verify that the shuffle also works for single ciphertexts
+// ctxts = [];
+// for (let i = 0; i < 10; i++) {
+//     ctxts.push(pk.encrypt(ec.g.mul(i)));
+// }
+const [preparedCtxts, n] = ShuffleArgument.prepare_ctxts(ctxts, m, pk);
+com_pk = new PublicKey(ec, n);
+const mn = preparedCtxts.length;
+randomizers = [];
+for (let i = 0; i < mn; i++) {
+    randomizers.push(ec.genKeyPair().getPrivate());
+}
+permutation = shuffleArray(Array.from({ length: mn }, (_, i) => i));
+const shuffledCtxts = [];
+permutation.forEach((permuted_index, index) => {
+    shuffledCtxts.push(pk.reencrypt(preparedCtxts[permuted_index], randomizers[index]));
+});
+
+const ctxtsReshaped = ShuffleArgument.reshape_m_n(preparedCtxts, m);
+const shuffledCtxtsReshaped = ShuffleArgument.reshape_m_n(shuffledCtxts, m);
+const permutationReshaped = ShuffleArgument.reshape_m_n(permutation, m);
+const randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m); 
+
+proof = new ShuffleArgument(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped, permutationReshaped, randomizersReshaped);
+console.log("Shuffle Argument: ", proof.verify(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped));
+
+// let ctxts_fake = [];
+// for (let i = 0; i < 10; i++) {
+//     ctxts_fake.push(new BallotBundle(
+//         pk.encrypt(ec.g.mul(i+1)),
+//         pk.encrypt(ec.g.mul(i+1)),
+//         pk.encrypt(ec.g.mul(i+1)),
+//         new VoteVector([pk.encrypt(ec.g.mul(i))])
+//     ));
+// }
+// const [preparedCtxts_fake, n_] = ShuffleArgument.prepare_ctxts(ctxts_fake, m, pk);
+// const ctxtsReshaped_fake = ShuffleArgument.reshape_m_n(preparedCtxts_fake, m);
+
+// proof = new ShuffleArgument(com_pk, pk, ctxtsReshaped_fake, shuffledCtxtsReshaped, permutationReshaped, randomizersReshaped);
+// console.log("Shuffle Argument(false): ", proof.verify(com_pk, pk, ctxtsReshaped_fake, shuffledCtxtsReshaped));
