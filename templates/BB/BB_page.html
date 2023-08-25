@@ -6,8 +6,8 @@
 </head>
 <body>
 test Bulletin Board
-{% for key in list %}
-<p> {{key.public_key}} : {{key.key_type}}
+{% for ballot in ballots %}
+<p> {{ballot.voter_id}} : {{ballot.vote}}
 test
 </p>
 <br />

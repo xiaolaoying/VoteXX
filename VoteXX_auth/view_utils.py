@@ -48,7 +48,7 @@ def render_template(request, template_name, values=None):
 
 
 def render_template_raw(request, template_name, values=None):
-  t = loader.get_template(template_name + '.html')
+  t = loader.get_template('VoteXX_auth/' + template_name + '.html')
   values = values or {}
 
   vars_with_user = prepare_vars(request, values)

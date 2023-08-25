@@ -59,10 +59,17 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
+    'VoteXX.security.HSTSMiddleware',
+
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+STS = False
+if get_from_env('HSTS', '0') == '1':
+    STS = True
 
 ROOT_URLCONF = 'djangoProject.urls'
 
@@ -150,6 +157,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_TEMPLATE_BASE = "VoteXX_auth/base.html"
 
+VoteXX_TEMPLATE_BASE = "server_ui/base.html"
+HELIOS_ADMIN_ONLY = False
+HELIOS_VOTERS_UPLOAD = True
+HELIOS_VOTERS_EMAIL = True
+
+# a relative path where voter upload files are stored
+VOTER_UPLOAD_REL_PATH = "voters/%Y/%m/%d"
+
 # AUTH_ENABLED_SYSTEMS = get_from_env('AUTH_ENABLED_SYSTEMS',
 #                                     get_from_env('AUTH_ENABLED_AUTH_SYSTEMS', 'password,google,facebook')
 #                                     ).split(",")
@@ -157,3 +172,4 @@ AUTH_ENABLED_SYSTEMS = get_from_env('AUTH_ENABLED_SYSTEMS',
                                     get_from_env('AUTH_ENABLED_AUTH_SYSTEMS', 'password')
                                     ).split(",")
 AUTH_DEFAULT_SYSTEM = get_from_env('AUTH_DEFAULT_SYSTEM', get_from_env('AUTH_DEFAULT_AUTH_SYSTEM', None))
+

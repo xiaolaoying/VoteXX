@@ -164,7 +164,6 @@ proof = new MultiExponantiation(com_pk, pk, ctxts_shuffle_matrix, product_ctxts,
 console.log("Multi-exponantiation Argument(Ciphertxt):", proof.verify(com_pk, pk, ctxts_shuffle_matrix, product_ctxts, commitment_exponents));
 
 //Multi-exponantiation Argument - Ballot
-
 let Ballot = [];
 for (let i = 0; i < 9; i++) {
     const ctxt = new BallotBundle(
