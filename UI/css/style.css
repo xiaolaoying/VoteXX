@@ -63,10 +63,6 @@ li.list-group-item {
   cursor: move;
 }
 
-body {
-  background-color: #f8f8f8;
-}
-
 footer {
   background-color: #3d486f;
   color: #ffffff; /* 设置文本颜色为白色，确保在深色背景上可以清晰看到 */
@@ -92,6 +88,26 @@ footer {
 }
 
 .btn-larger {
-    padding: 10px 20px;  /* 调整内边距来改变按钮的大小 */
-    font-size: 25px;    /* 调整文字大小 */
+  padding: 10px 20px; /* 调整内边距来改变按钮的大小 */
+  font-size: 25px; /* 调整文字大小 */
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f8f8;
+}
+
+#content {
+  flex: 1 0 auto;
+}
+
+#footer {
+  flex-shrink: 0; /* 这将确保footer不会缩小 */
 }

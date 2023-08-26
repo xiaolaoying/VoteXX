@@ -11,71 +11,90 @@
 </head>
 
 <body>
-    <div id="navtab"></div>
-    <div class="jumbotron">
-        <h1 style="color: white;">Vote</h1>
-    </div><br>
-    <div class="container container-form">
-        <form action="#" method="POST" id="voteForm">
+    <div id="content">
+        <div id="navtab"></div>
+        <div class="jumbotron">
+            <div class="container">
+                <div class="row equal-height">
+                    <div class="col-md-8" style="color: white;">
+                        <h1>
+                            Make Your Vote
+                            <p>Please make your vote according to the objective situation and personal
+                                preference (make sure it is your personal wish)
+                            </p>
+                        </h1>
 
-            <!-- 问题1 -->
-            <div class="form-group">
-                <h3>1. Your favorite color?</h3>
-                <div>
-                    <label class="radio-inline">
-                        <input type="radio" name="question1" value="Red"> Red
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="question1" value="Green"> Green
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="question1" value="Blue"> Blue
-                    </label>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="inner-content vertical-center">
+                            <button class="btn btn-primary btn-larger" form="Election" type="submit">Confirm Vote</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div><br>
+        <div class="container container-form">
+            <form action="#" id="voteform">
 
-            <!-- 问题2 -->
-            <div class="form-group">
-                <h3>2. Your favorite fruit?</h3>
-                <select class="form-control" name="question2">
-                    <option value="Apple">Apple</option>
-                    <option value="Banana">Banana</option>
-                    <option value="Cherry">Cherry</option>
-                </select>
-            </div>
-
-            <!-- 问题3 -->
-            <div class="form-group">
-                <h3>3. Which sports do you like?</h3>
-                <div>
-                    <label class="checkbox-inline">
-                        <input type="checkbox" value="Football" name="question3[]"> Football
-                    </label>
-                    <label class="checkbox-inline">
-                        <input type="checkbox" value="Basketball" name="question3[]"> Basketball
-                    </label>
-                    <label class="checkbox-inline">
-                        <input type="checkbox" value="Tennis" name="question3[]"> Tennis
-                    </label>
+                <!-- 问题1 -->
+                <div class="form-group">
+                    <h3>1. Your favorite color?</h3>
+                    <div>
+                        <label class="radio-inline">
+                            <input type="radio" name="question1" value="Red"> Red
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="question1" value="Green"> Green
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="question1" value="Blue"> Blue
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <!-- 问题4 -->
-            <div class="form-group">
-                <h3>4. Sort the animals by your preference:</h3>
-                <ul id="sortable" class="list-group">
-                    <li class="list-group-item" data-value="Dog">Dog</li>
-                    <li class="list-group-item" data-value="Cat">Cat</li>
-                    <li class="list-group-item" data-value="Elephant">Elephant</li>
-                    <li class="list-group-item" data-value="Tiger">Tiger</li>
-                </ul>
-            </div>
+                <!-- 问题2 -->
+                <div class="form-group">
+                    <h3>2. Your favorite fruit?</h3>
+                    <select class="form-control" name="question2">
+                        <option value="Apple">Apple</option>
+                        <option value="Banana">Banana</option>
+                        <option value="Cherry">Cherry</option>
+                    </select>
+                </div>
 
-            <button type="submit" class="btn btn-primary center-block btn-lg">Submit Your Vote</button>
-        </form>
-    </div><br>
-    
-    <footer>
+                <!-- 问题3 -->
+                <div class="form-group">
+                    <h3>3. Which sports do you like?</h3>
+                    <div>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" value="Football" name="question3[]"> Football
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" value="Basketball" name="question3[]"> Basketball
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" value="Tennis" name="question3[]"> Tennis
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 问题4 -->
+                <div class="form-group">
+                    <h3>4. Sort the animals by your preference:</h3>
+                    <ul id="sortable" class="list-group">
+                        <li class="list-group-item" data-value="Dog">Dog</li>
+                        <li class="list-group-item" data-value="Cat">Cat</li>
+                        <li class="list-group-item" data-value="Elephant">Elephant</li>
+                        <li class="list-group-item" data-value="Tiger">Tiger</li>
+                    </ul>
+                </div>
+
+            </form>
+        </div><br>
+    </div>
+
+
+    <footer id="footer">
         <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
         <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
         <span class="glyphicon glyphicon-check"></span>
