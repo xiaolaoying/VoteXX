@@ -5,20 +5,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css">
     <title>Nullification</title>
 </head>
 
 <body>
     <div id="navtab"></div>
+    <div class="jumbotron">
+        <h1 style="color: white;">Nullify Vote</h1>
+    </div><br><br><br>
     <div class="container">
-        <h2 class="text-center">Nullify Vote</h2>
         <div class="form-group">
-            <label for="secretKey">Enter Secret Key:</label>
+            <label for="secretKey" class="title">Enter Secret Key:</label>
             <input type="text" class="form-control" id="secretKey" placeholder="Enter secret key">
         </div>
-        <button onclick="Nullificate()" class="btn btn-danger">Nullify</button>
+        <button onclick="Nullificate()" class="btn btn-danger btn-lg center-block">Nullify</button>
         <div id="responseMessage" class="mt-4"></div>
     </div>
+
+    <footer>
+        <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-check"></span>
+    </footer>
+
 
     <script src="js/jquery-3.7.0.js"></script>
     <script src="BootStrap/js/bootstrap.min.js"></script>

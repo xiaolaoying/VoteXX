@@ -6,19 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="css/jquery-ui.min.css">
     <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
-    <title>Privacy</title>
+    <link rel="stylesheet" href="css/style.css">
+    <title>Vote</title>
 </head>
 
 <body>
     <div id="navtab"></div>
-    <div class="container">
-        <h2 class="text-center">Vote</h2>
-
+    <div class="jumbotron">
+        <h1 style="color: white;">Vote</h1>
+    </div><br>
+    <div class="container container-form">
         <form action="#" method="POST" id="voteForm">
 
             <!-- 问题1 -->
             <div class="form-group">
-                <label>1. Your favorite color?</label>
+                <h3>1. Your favorite color?</h3>
                 <div>
                     <label class="radio-inline">
                         <input type="radio" name="question1" value="Red"> Red
@@ -34,7 +36,7 @@
 
             <!-- 问题2 -->
             <div class="form-group">
-                <label>2. Your favorite fruit?</label>
+                <h3>2. Your favorite fruit?</h3>
                 <select class="form-control" name="question2">
                     <option value="Apple">Apple</option>
                     <option value="Banana">Banana</option>
@@ -44,7 +46,7 @@
 
             <!-- 问题3 -->
             <div class="form-group">
-                <label>3. Which sports do you like?</label>
+                <h3>3. Which sports do you like?</h3>
                 <div>
                     <label class="checkbox-inline">
                         <input type="checkbox" value="Football" name="question3[]"> Football
@@ -60,7 +62,7 @@
 
             <!-- 问题4 -->
             <div class="form-group">
-                <label>4. Sort the animals by your preference:</label>
+                <h3>4. Sort the animals by your preference:</h3>
                 <ul id="sortable" class="list-group">
                     <li class="list-group-item" data-value="Dog">Dog</li>
                     <li class="list-group-item" data-value="Cat">Cat</li>
@@ -69,10 +71,15 @@
                 </ul>
             </div>
 
-            <button type="submit" class="btn btn-primary">Submit Your Vote</button>
+            <button type="submit" class="btn btn-primary center-block btn-lg">Submit Your Vote</button>
         </form>
-    </div>
-    </div>
+    </div><br>
+    
+    <footer>
+        <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-check"></span>
+    </footer>
 
     <script src="js/jquery-3.7.0.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>

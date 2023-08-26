@@ -5,98 +5,114 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
-    <style>
-        .input-spacing {
-            margin-bottom: 5px;
-            /* 或者其他你想要的值 */
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
     <title>create election</title>
 </head>
 
 <body>
     <div id="navtab"></div>
-    <div class="container">
-        <h2>Create a New Election</h2>
-        <!-- <div class="table-responsive"> -->
-        <table class="table table-bordered table-hover table-striped">
-            <tr>
-                <th class="text-center">Short name:</th>
-                <th><input type="text" placeholder="no spaces" class="form-control"></th>
-            </tr>
-            <tr>
-                <th class="text-center">Name:</th>
-                <th><input type="text" placeholder="the pretty name for your election" class="form-control"></th>
-            </tr>
-            <tr>
-                <th class="text-center">Description:</th>
-                <th><textarea name="" id="" cols="" class="form-control" rows="3"></textarea></th>
-            </tr>
-            <tr>
-                <th class="text-center">type:</th>
-                <th>
-                    <select name="" id="" class="form-control">
-                        <option value="">Election</option>
-                        <option value="">Referendum</option>
-                    </select>
-                </th>
-            </tr>
-
-            <tr>
-                <th class="text-center">Option:</th>
-                <th>
-                    <div class="form-group">
-                        <div id="pollContainer"></div>
-                        <button class="btn btn-primary" onclick="addQuestionField()">Add Question</button>
+    <div class="jumbotron">
+        <div class="container">
+            <div class="row equal-height">
+                <div class="col-md-8" style="color: white;">
+                    <h1>Create a New Election</h1>
+                    <p>You can create election according to your needs, including title, description, questions...</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="inner-content vertical-center">
+                        <button class="btn btn-primary btn-larger">Commit and Create</button>
                     </div>
-                </th>
-            </tr>
-
-            <tr>
-                <th class="text-center">Use voter aliases</th>
-                <th><input type="checkbox"><br>If selected, voter identities will be replaced
-                    with aliases</th>
-            </tr>
-            <tr>
-                <th class="text-center">Randomize answer order:</th>
-                <th><input type="checkbox"><br>enable this if you want the answers to questions
-                    to appear in random order for each voter</th>
-            </tr>
-            <tr>
-                <th class="text-center">Private:</th>
-                <th><input type="checkbox"><br>a private election is only visible to registered voters</th>
-            </tr>
-            <tr>
-                <th class="text-center">Help Email Address: </th>
-                <th><input type="text" class="form-control"
-                        placeholder="An email address voters should contact if they need help."></th>
-            </tr>
-            <tr>
-                <th class="text-center">Voting starts at:</th>
-                <th>
-                    <input type="datetime-local" class="form-control" id="startTime" name="startTime"
-                        min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
-                </th>
-            </tr>
-            <tr>
-                <th class="text-center">Voting ends at:</th>
-                <th>
-                    <input type="datetime-local" class="form-control" id="startTime" name="startTime"
-                        min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
-                </th>
-            </tr>
-        </table>
-        <button type="submit" class="btn btn-primary">commit</button>
-
-        <script src="js/jquery-3.7.0.js"></script>
-        <script src="BootStrap/js/bootstrap.min.js"></script>
-        <script src="js/create_option.js"></script>
-        <script>
-            $(function () {
-                $("#navtab").load("navbar.html");
-            });
-        </script>
+                </div>
+            </div>
+        </div>
     </div>
+
+
+    <div class="container container-form">
+        <!-- <h2 class="text-center">Create a New Election</h2> -->
+
+        <form>
+            <!-- 标题 -->
+            <div class="form-group">
+                <label for="Title" class="title">Title:</label>
+                <input type="text" class="form-control" id="Title" name="Title" placeholder="the name for your election"
+                    required>
+            </div><br>
+            <!-- 描述 -->
+            <div class="form-group">
+                <label for="description" class="title">Description:</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div><br>
+            <!-- 问题 -->
+            <div class="form-group">
+                <label for="option" class="title">Questions:</label>
+                <div id="pollContainer"></div>
+                <button type="button" class="btn btn-primary" onclick="addQuestionField()">Add Question</button>
+            </div><br>
+            <!-- 额外选项 -->
+            <div class="form-group">
+
+                <label style="margin-bottom: 0;" class="title">Extra options:</label>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="aliases"> Use voter aliases
+                        <span class="text-muted">(voter identities will be replaced)</span>
+                    </label>
+                </div>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="Randomize"> Randomize answer order
+                        <span class="text-muted">(the answers to questions appear in random order for each voter)</span>
+                    </label>
+                </div>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="Private"> Private
+                        <span class="text-muted">(only visible to registered
+                            voters)</span>
+                    </label>
+                </div>
+
+            </div><br>
+            <!-- 联系邮箱 -->
+            <div class="form-group">
+                <label for="email" class="title">Help Email Address:</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div><br>
+            <!-- 起始时间 -->
+            <div class="form-group">
+                <label for="startTime" class="title">Start Time:</label>
+                <input type="datetime-local" class="form-control" id="startTime" name="startTime"
+                    min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
+            </div><br>
+            <!-- 结束时间 -->
+            <div class="form-group">
+                <label for="endTime" class="title">End Time:</label>
+                <input type="datetime-local" class="form-control" id="endTime" name="endTime" min="2023-01-01T00:00:00"
+                    max="2033-12-31T23:59:59" required>
+            </div><br>
+            <!-- 提交按钮 -->
+            <!-- <br>
+            <button type="submit" class="btn btn-primary center-block btn-lg">submit</button> -->
+        </form><br>
+    </div><br><br>
+    <footer>
+        <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-check"></span>
+    </footer>
+
+    <script src="js/jquery-3.7.0.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script src="js/create_option.js"></script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
 </body>
 
 </html>

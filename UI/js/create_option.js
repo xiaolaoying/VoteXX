@@ -28,7 +28,7 @@ function addQuestionField() {
   // 创建问题类型选择下拉框
   const questionTypeSelect = document.createElement("select");
   questionTypeSelect.className = "form-control";
-  const types = ["Single Choice", "Multiple Choice", "Ranking"];
+  const types = ["Single Choice", "Multiple Choice", "Ranking", "Yes-No"];
   types.forEach((type) => {
     const option = document.createElement("option");
     option.value = type;
@@ -82,6 +82,23 @@ function addQuestionField() {
   };
   questionDiv.appendChild(addOptionButton);
 
+  // 监听questionTypeSelect的改变事件
+  questionTypeSelect.addEventListener("change", function () {
+    // 根据选择的类型来决定是否显示添加选项按钮
+    if (questionTypeSelect.value === "Yes-No") {
+      addOptionButton.style.display = "none"; // 隐藏按钮
+    } else {
+      addOptionButton.style.display = "block"; // 显示按钮
+    }
+  });
+
+  // 初始设置，以确保在创建问题时按钮处于正确的状态
+  if (questionTypeSelect.value === "Yes-No") {
+    addOptionButton.style.display = "none";
+  } else {
+    addOptionButton.style.display = "block";
+  }
+
   // 将问题容器添加到主容器中
   pollContainer.appendChild(questionDiv);
 }
@@ -124,6 +141,7 @@ function addOptionField(optionList) {
   updateOptionIndices(optionList);
 }
 
+//更新选项序号
 function updateOptionIndices(optionList) {
   const questionDiv = optionList.parentElement;
   const pollContainer = document.getElementById("pollContainer");
@@ -143,6 +161,8 @@ function updateOptionIndices(optionList) {
     indexSpan.textContent = questionIndex + "." + (i + 1);
   }
 }
+
+//更新问题序号
 function updateQuestionIndices(pollContainer) {
   const questions = pollContainer.getElementsByClassName("questionDiv");
   for (let i = 0; i < questions.length; i++) {
@@ -151,7 +171,10 @@ function updateQuestionIndices(pollContainer) {
     questionLabel.textContent = i + 1 + ". ";
 
     // 更新该问题下的所有选项的序号
-    const optionList = questions[i].getElementsByTagName("div")[1];
-    updateOptionIndices(optionList);
+    const optionList = questions[i].lastElementChild.previousElementSibling;
+    // 根据当前的 DOM 结构，optionList 应该是 questionDiv 的最后一个子元素的前一个子元素
+    if (optionList) {
+      updateOptionIndices(optionList);
+    }
   }
 }
