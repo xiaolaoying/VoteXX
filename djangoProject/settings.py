@@ -12,6 +12,16 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import json
+import sys
+
+TESTING = 'test' in sys.argv
+
+def get_from_env(var, default):
+    if not TESTING and var in os.environ:
+        return os.environ[var]
+    else:
+        return default
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,17 +51,25 @@ INSTALLED_APPS = [
     'VoteXX',
     'server_ui',
     'BulletinBoard',
+    'VoteXX_auth',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'VoteXX.security.HSTSMiddleware',
+
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+STS = False
+if get_from_env('HSTS', '0') == '1':
+    STS = True
 
 ROOT_URLCONF = 'djangoProject.urls'
 
@@ -121,7 +139,37 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+# The two hosts are here so the main site can be over plain HTTP
+# while the voting URLs are served over SSL.
+URL_HOST = get_from_env("URL_HOST", "http://localhost:8000").rstrip("/")
+
+# IMPORTANT: you should not change this setting once you've created
+# elections, as your elections' cast_url will then be incorrect.
+# SECURE_URL_HOST = "https://localhost:8443"
+SECURE_URL_HOST = get_from_env("SECURE_URL_HOST", URL_HOST).rstrip("/")
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_TEMPLATE_BASE = "VoteXX_auth/base.html"
+
+VoteXX_TEMPLATE_BASE = "server_ui/base.html"
+HELIOS_ADMIN_ONLY = False
+HELIOS_VOTERS_UPLOAD = True
+HELIOS_VOTERS_EMAIL = True
+
+# a relative path where voter upload files are stored
+VOTER_UPLOAD_REL_PATH = "voters/%Y/%m/%d"
+
+# AUTH_ENABLED_SYSTEMS = get_from_env('AUTH_ENABLED_SYSTEMS',
+#                                     get_from_env('AUTH_ENABLED_AUTH_SYSTEMS', 'password,google,facebook')
+#                                     ).split(",")
+AUTH_ENABLED_SYSTEMS = get_from_env('AUTH_ENABLED_SYSTEMS',
+                                    get_from_env('AUTH_ENABLED_AUTH_SYSTEMS', 'password')
+                                    ).split(",")
+AUTH_DEFAULT_SYSTEM = get_from_env('AUTH_DEFAULT_SYSTEM', get_from_env('AUTH_DEFAULT_AUTH_SYSTEM', None))
+

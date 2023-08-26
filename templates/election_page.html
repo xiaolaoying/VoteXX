@@ -13,16 +13,8 @@
             <form enctype="application/x-www-form-urlencoded">
                 {% csrf_token %}
                 <div>
-                    <label for="">用户名</label>
-                    <input type="number" id="sid">
-                </div>
-                <div>
-                    <label for="">加密数据</label>
-                    <input type="number" id="enc_data" >
-                </div>
-                <div>
-                    <label for="">操作时间</label>
-                    <input type="date" id="op_time" >
+                    <label for="">election short name</label>
+                    <input type="text" id="short_name">
                 </div>
                 <input type="button" value="submit" class="login_btn btn btn-default">
                 <span></span>
@@ -37,8 +29,6 @@
              url:"",
              data:{
                  sid:$("#sid").val(),
-                 enc_data:$("#enc_data").val(),
-                 op_time:$("#op_time").val(),
                  csrfmiddlewaretoken:$("[name='csrfmiddlewaretoken']").val()
              },
              type:"post",
