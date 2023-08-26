@@ -194,8 +194,42 @@ product_ctxts = Ballot_matrix.map((ctxt, i) => MultiExponantiation.ctxt_weighted
 proof = new MultiExponantiation(com_pk, pk, Ballot_shuffle_matrix, product_ctxts, commitment_exponents, permutated_exponents_matrix, randomizers, reencryption_randomization);
 console.log("Multi-exponantiation Argument(Ballot):", proof.verify(com_pk, pk, Ballot_shuffle_matrix, product_ctxts, commitment_exponents));
 
-// Shuffle Argument
-const m = 3;
+// Shuffle Argument - ciphertext
+let m = 3;
+ctxts = [];
+for (let i = 0; i < 10; i++) {
+    const ctxt = pk.encrypt(ec.g.mul(i));
+    ctxts.push(ctxt);
+}
+
+// We verify that the shuffle also works for single ciphertexts
+// ctxts = [];
+// for (let i = 0; i < 10; i++) {
+//     ctxts.push(pk.encrypt(ec.g.mul(i)));
+// }
+let [preparedCtxts, n] = ShuffleArgument.prepare_ctxts(ctxts, m, pk);
+com_pk = new PublicKey(ec, n);
+let mn = preparedCtxts.length;
+randomizers = [];
+for (let i = 0; i < mn; i++) {
+    randomizers.push(ec.genKeyPair().getPrivate());
+}
+permutation = shuffleArray(Array.from({ length: mn }, (_, i) => i));
+let shuffledCtxts = [];
+permutation.forEach((permuted_index, index) => {
+    shuffledCtxts.push(pk.reencrypt(preparedCtxts[permuted_index], randomizers[index]));
+});
+
+let ctxtsReshaped = ShuffleArgument.reshape_m_n(preparedCtxts, m);
+let shuffledCtxtsReshaped = ShuffleArgument.reshape_m_n(shuffledCtxts, m);
+let permutationReshaped = ShuffleArgument.reshape_m_n(permutation, m);
+let randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m); 
+
+proof = new ShuffleArgument(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped, permutationReshaped, randomizersReshaped);
+console.log("Shuffle Argument(Ciphertext): ", proof.verify(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped));
+
+// Shuffle Argument - Ballot
+m = 3;
 ctxts = [];
 for (let i = 0; i < 10; i++) {
     ctxts.push(new BallotBundle(
@@ -211,26 +245,26 @@ for (let i = 0; i < 10; i++) {
 // for (let i = 0; i < 10; i++) {
 //     ctxts.push(pk.encrypt(ec.g.mul(i)));
 // }
-const [preparedCtxts, n] = ShuffleArgument.prepare_ctxts(ctxts, m, pk);
+[preparedCtxts, n] = ShuffleArgument.prepare_ctxts(ctxts, m, pk);
 com_pk = new PublicKey(ec, n);
-const mn = preparedCtxts.length;
+mn = preparedCtxts.length;
 randomizers = [];
 for (let i = 0; i < mn; i++) {
     randomizers.push(ec.genKeyPair().getPrivate());
 }
 permutation = shuffleArray(Array.from({ length: mn }, (_, i) => i));
-const shuffledCtxts = [];
+shuffledCtxts = [];
 permutation.forEach((permuted_index, index) => {
     shuffledCtxts.push(pk.reencrypt(preparedCtxts[permuted_index], randomizers[index]));
 });
 
-const ctxtsReshaped = ShuffleArgument.reshape_m_n(preparedCtxts, m);
-const shuffledCtxtsReshaped = ShuffleArgument.reshape_m_n(shuffledCtxts, m);
-const permutationReshaped = ShuffleArgument.reshape_m_n(permutation, m);
-const randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m); 
+ctxtsReshaped = ShuffleArgument.reshape_m_n(preparedCtxts, m);
+shuffledCtxtsReshaped = ShuffleArgument.reshape_m_n(shuffledCtxts, m);
+permutationReshaped = ShuffleArgument.reshape_m_n(permutation, m);
+randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m); 
 
 proof = new ShuffleArgument(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped, permutationReshaped, randomizersReshaped);
-console.log("Shuffle Argument: ", proof.verify(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped));
+console.log("Shuffle Argument(Ballot): ", proof.verify(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped));
 
 // let ctxts_fake = [];
 // for (let i = 0; i < 10; i++) {
