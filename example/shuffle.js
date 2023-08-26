@@ -4,9 +4,9 @@ const BN = require('bn.js');
 const { KeyPair } = require('../primitiv/encryption/ElgamalEncryption.js');
 const { PublicKey } = require('../primitiv/commitment/pedersen_commitment.js');
 
-const { ProductArgument, SingleValueProdArg, ZeroArgument, HadamardProductArgument, modular_prod } = require('./product_argument.js');
-const { MultiExponantiation } = require('./multi_exponantiation_argument.js');
-const { ShuffleArgument, shuffleArray } = require('./shuffle_argument.js');
+const { ProductArgument, SingleValueProdArg, ZeroArgument, HadamardProductArgument, modular_prod } = require('../protocol/NIZKs/verifiable_shuffle/product_argument.js');
+const { MultiExponantiation } = require('../protocol/NIZKs/verifiable_shuffle/multi_exponantiation_argument.js');
+const { ShuffleArgument, shuffleArray } = require('../protocol/NIZKs/verifiable_shuffle/shuffle_argument.js');
 
 const {BallotBundle, VoteVector} = require('../primitiv/ballots/ballot_structure.js');
 

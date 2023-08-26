@@ -2,11 +2,11 @@
 const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
-const {KeyPair, Ciphertext} = require('../primitiv/encryption/ElgamalEncryption.js');
-const {PublicKey, Commitment} = require('../primitiv/commitment/pedersen_commitment.js');
+const {KeyPair, Ciphertext} = require('../../../primitiv/encryption/ElgamalEncryption.js');
+const {PublicKey, Commitment} = require('../../../primitiv/commitment/pedersen_commitment.js');
 
-const computechallenge = require('../primitiv/hash/hash_function.js');
-const {BallotBundle, VoteVector} = require('../primitiv/ballots/ballot_structure.js');
+const computechallenge = require('../../../primitiv/hash/hash_function.js');
+const {BallotBundle, VoteVector} = require('../../../primitiv/ballots/ballot_structure.js');
 
 
 class MultiExponantiation{
