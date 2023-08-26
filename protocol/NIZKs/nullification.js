@@ -796,11 +796,15 @@ NullificationNIZK.prototype.condition5 = function(proof, cx) {
  * @returns {Boolean}
  */
 NullificationNIZK.prototype.verify = function(proof) {
-    var cx_simulated = proof.challenge.x;
-    var cy_simulated = proof.challenge.y;
+    // var cx_simulated = proof.challenge.x;
+    // var cy_simulated = proof.challenge.y;
 
-    var cx = cx_simulated.isZero()? this.getChallengeX(proof.commitment): cx_simulated;
-    var cy = cy_simulated.isZero()? this.getChallengeY(): cy_simulated;
+    // var cx = cx_simulated.isZero()? this.getChallengeX(proof.commitment): cx_simulated;
+    // var cy = cy_simulated.isZero()? this.getChallengeY(): cy_simulated;
+
+    // Don't allow simulation.
+    var cx = this.getChallengeX(proof.commitment);
+    var cy = this.getChallengeY();
 
     return (this.condition1(proof, cx) && this.condition2(proof, cx) && this.condition3(proof, cx) && 
             this.condition4(proof, cx, cy) && this.condition5(proof, cx));
