@@ -10,28 +10,46 @@
 </head>
 
 <body>
-    <div id="navtab"></div>
-    <div class="jumbotron">
-        <h1 style="color: white;">Vote</h1>
-    </div><br>
-    <div class="container container-form">
-        <form action="#" method="post">
-            <div class="form-group">
-                <h3>1. Do you like eating apples?</h3>
-                <div>
-                    <label class="radio-inline">
-                        <input type="radio" name="question1" value="Yes"> Yes
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="question1" value="No"> No
-                    </label>
+    <div id="content">
+        <div id="navtab"></div>
+        <div class="jumbotron">
+            <div class="container">
+                <div class="row equal-height">
+                    <div class="col-md-8" style="color: white;">
+                        <h1>
+                            Make Your Vote
+                            <p>Please make your vote according to the objective situation and personal
+                                preference (make sure it is your personal wish)
+                            </p>
+                        </h1>
+        
+                    </div>
+                    <div class="col-md-4">
+                        <div class="inner-content vertical-center">
+                            <button class="btn btn-primary btn-larger" form="Election" type="submit">Confirm Vote</button>
+                        </div>
+                    </div>
                 </div>
-            </div><br>
-            <button type="submit" class="btn btn-primary center-block btn-lg">Submit Your Vote</button>
-        </form>
+            </div>
+        </div><br>
+        <div class="container container-form">
+            <form action="#" id="voteform">
+                <div class="form-group">
+                    <h3>1. Do you like eating apples?</h3>
+                    <div>
+                        <label class="radio-inline">
+                            <input type="radio" name="question1" value="Yes"> Yes
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="question1" value="No"> No
+                        </label>
+                    </div>
+                </div><br>
+            </form>
+        </div>
     </div>
 
-    <footer>
+    <footer id="footer">
         <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
         <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
         <span class="glyphicon glyphicon-check"></span>
