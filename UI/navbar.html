@@ -14,14 +14,20 @@
         <div class="collapse navbar-collapse" id="base-nav">
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="About.html" style="font-size: 20px;">About</a></li>
-                <li class="dropdown">
-                    <a href="#" style="font-size: 20px;" class="dropdown-toggle" data-toggle="dropdown">
-                        Help<b class="caret"></b>
+                <li><a href="https://github.com/xiaolaoying/VoteXX" target="_blank" style="font-size: 20px;">Code</a>
+                </li>
+                <li id="loginButton">
+                    <p class="navbar-btn">&nbsp;&nbsp;
+                        <a href="#" class="btn btn-default " style="font-size: 16px;" onclick="login()">Login</a>
+                    </p>
+                </li>
+                <li class="dropdown" style="display: none;font-size: 20px;" id="userDropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown">
+                        User123<b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu" style="font-size: 18px;">
-                        <li><a href="#">Profile</a></li>
+                        <li><a href="profile.html">Profile</a></li>
                         <li><a href="create election.html">Create a Election</a></li>
-                        <li><a href="nullification.html">Nullify a Election</a></li>
                         <li><a href="#" onclick="logout()">Logout</a></li>
                     </ul>
                 </li>
