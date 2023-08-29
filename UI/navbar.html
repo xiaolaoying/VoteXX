@@ -15,95 +15,21 @@
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="About.html" style="font-size: 20px;">About</a></li>
                 <li class="dropdown">
-                    <a href="#" style="font-size: 20px;" class="dropdown-toggle" data-toggle="dropdown">
+                    <a href="#" style="font-size: 20px;" class="dropdown-toggle" data-toggle="dropdown" id="Help">
                         Help<b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu" style="font-size: 18px;">
-                        <li><a href="#">Profile</a></li>
-                        <li><a href="create election.html">Create a Election</a></li>
-                        <li><a href="nullification.html">Nullify a Election</a></li>
-                        <li><a href="#" onclick="logout()">Logout</a></li>
+                        <li><a href="https://github.com/xiaolaoying/VoteXX" target="_blank">Code</a></li>
+                        <li><a href="Docs.html">Docs</a></li>
+                        <li><a href="FAQ.html">FAQ</a></li>
                     </ul>
                 </li>
+                <li>
+                    <p class="navbar-btn">&nbsp;&nbsp;
+                    <a href="login.html" class="btn btn-default" style="font-size: 16px;">Login</a>
+                </p>
+            </li>
             </ul>
-        </div>
-
-        <!-- 登录部分 -->
-        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <label class="modal-title" id="loginModalLabel">Login</label>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form>
-                            <!-- ID -->
-                            <div class="form-group">
-                                <label for="userID">ID</label>
-                                <input type="text" class="form-control" id="userID" placeholder="Enter your ID">
-                            </div>
-
-                            <!-- Password -->
-                            <div class="form-group">
-                                <label for="userPassword">Password</label>
-                                <input type="password" class="form-control" id="userPassword"
-                                    placeholder="Enter your password">
-                            </div>
-
-                            <!-- Register -->
-                            <div class="form-group">
-                                <p>Don't have an account? <a href="#" id="showRegisterModal">Register here</a>.</p>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="loginActionBtn">Login</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- 注册 -->
-        <div class="modal fade" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="registerModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <label class="modal-title" id="registerModalLabel">Register</label>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <!-- ... other parts of the modal ... -->
-                    <div class="modal-body">
-                        <form>
-                            <div class="form-group">
-                                <label for="registerUsername">Username</label>
-                                <input type="text" class="form-control" id="registerUsername"
-                                    placeholder="Choose a username">
-                            </div>
-                            <div class="form-group">
-                                <label for="registerPassword">Password</label>
-                                <input type="password" class="form-control" id="registerPassword"
-                                    placeholder="Enter a password">
-                            </div>
-                            <div class="form-group">
-                                <label for="registerEmail">Email</label>
-                                <input type="email" class="form-control" id="registerEmail"
-                                    placeholder="Enter your email">
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="registerBtn">Register</button>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </nav>
