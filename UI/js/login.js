@@ -53,7 +53,6 @@ $(document).ready(function () {
 
       // Display a success message
       alert("Registration success!");
-
     } else {
       alert("Please enter a valid username.");
     }
