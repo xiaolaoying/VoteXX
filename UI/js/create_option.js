@@ -22,7 +22,7 @@ function addQuestionField() {
 
   // 创建一个列容器来放置问题类型选择框
   const questionTypeCol = document.createElement("div");
-  questionTypeCol.className = "col-md-2";
+  questionTypeCol.className = "col-md-3";
   rowDiv.appendChild(questionTypeCol);
 
   // 创建问题类型选择下拉框
@@ -39,7 +39,7 @@ function addQuestionField() {
 
   // 创建一个列容器来放置问题输入框
   const questionInputCol = document.createElement("div");
-  questionInputCol.className = "col-md-10";
+  questionInputCol.className = "col-md-9";
   rowDiv.appendChild(questionInputCol);
 
   // 创建问题输入框组
