@@ -12,15 +12,24 @@
             </div>
         </div>
         <div class="collapse navbar-collapse" id="base-nav">
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="About.html" style="font-size: 20px;">About</a></li>
-                <li class="dropdown">
-                    <a href="#" style="font-size: 20px;" class="dropdown-toggle" data-toggle="dropdown">
-                        Help<b class="caret"></b>
+            <ul class="nav navbar-nav navbar-right" style="font-size: 20px;">
+                <li><a href="About.html">About</a></li>
+                <!-- <li><a href="Help.html">Help</a></li> -->
+                <li><a href="https://github.com/xiaolaoying/VoteXX" target="_blank">Code</a></li>
+                <!-- <li><a href="Privacy.html">Privacy</a></li> -->
+                <li id="loginButton">
+                    <p class="navbar-btn">&nbsp;&nbsp;
+                        <a href="#" class="btn btn-default " style="font-size: 16px;" onclick="login()">Login</a>
+                    </p>
+                </li>
+                <li class="dropdown" style="display: none;" id="userDropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown">
+                        User123<b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu" style="font-size: 18px;">
-                        <li><a href="profile.html">Profile</a></li>
+                        <li><a href="#">Profile</a></li>
                         <li><a href="create election.html">Create a Election</a></li>
+                        <li><a href="nullification.html">Nullify a Election</a></li>
                         <li><a href="#" onclick="logout()">Logout</a></li>
                     </ul>
                 </li>
