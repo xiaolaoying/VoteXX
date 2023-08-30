@@ -10,20 +10,44 @@
 </head>
 
 <body>
-    <div id="navtab"></div>
-    <div class="jumbotron">
-        <h1 style="color: white;">Nullify Vote</h1>
-    </div><br><br><br>
-    <div class="container">
-        <div class="form-group">
-            <label for="secretKey" class="title">Enter Secret Key:</label>
-            <input type="text" class="form-control" id="secretKey" placeholder="Enter secret key">
+    <div id="content">
+        <div id="navtab"></div>
+        <div class="jumbotron">
+            <div class="container">
+                <div class="row equal-height">
+                    <div class="col-md-8" style="color: white;">
+                        <h1>
+                            Nullification
+                            <p>If you or your representative is under duress, or just want to cancel a previous vote,
+                                you can use the screct key to nullify the vote.
+                            </p>
+                        </h1>
+
+                    </div>
+                    <div class="col-md-4">
+                        <div class="inner-content vertical-center">
+                            <button onclick="Nullificate()" class="btn btn-danger btn-larger">Nullify</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><br>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <form action="#" id="Nullification">
+                        <div class="form-group">
+                            <label for="secretKey" class="title">Enter Secret Key:</label>
+                            <input type="text" class="form-control" id="secretKey" placeholder="Enter secret key">
+                        </div>
+                        <div id="responseMessage" class="mt-4"></div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <button onclick="Nullificate()" class="btn btn-danger btn-lg center-block">Nullify</button>
-        <div id="responseMessage" class="mt-4"></div>
     </div>
 
-    <footer>
+    <footer id="footer">
         <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
         <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
         <span class="glyphicon glyphicon-check"></span>
