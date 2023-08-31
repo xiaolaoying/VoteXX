@@ -27,7 +27,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="inner-content vertical-center">
-                            <button class="btn btn-primary btn-larger" form="Election" type="submit">Confirm
+                            <button class="btn btn-primary btn-larger btn-3d" form="voteform" type="submit">Confirm
                                 Vote</button>
                         </div>
                     </div>
@@ -35,10 +35,43 @@
             </div>
         </div><br>
 
+        <!-- Election信息 -->
         <div class="container">
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
-                    <form action="#" id="voteform">
+                    <h2>Election Information</h2>
+
+                    <!-- 组织者 -->
+                    <div class="form-group">
+                        <label for="organizer" class="title">Organizer:</label>
+                        <span id="organizer">Organizer Name</span>
+                    </div>
+
+                    <!-- 开始时间 -->
+                    <div class="form-group">
+                        <label for="startTimeInfo" class="title">Start Time:</label>
+                        <span id="startTimeInfo">2023-01-01 00:00</span>
+                    </div>
+
+                    <!-- 结束时间 -->
+                    <div class="form-group">
+                        <label for="endTimeInfo" class="title">End Time:</label>
+                        <span id="endTimeInfo">2023-12-31 23:59</span>
+                    </div>
+
+                    <!-- Bulletin Board 链接 -->
+                    <div class="form-group">
+                        <label for="bulletinLink" class="title">Bulletin Board:</label>
+                        <a href="#" id="bulletinLink">Click to view Bulletin Board</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <form action="" id="voteform">
 
                         <!-- 问题1 -->
                         <div class="form-group">
@@ -97,6 +130,27 @@
                 </div>
             </div>
         </div>
+
+        <!-- 消息 -->
+        <div id="successModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <label class="modal-title">Message</label>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Vote success!</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
 
@@ -109,18 +163,7 @@
     <script src="js/jquery-3.7.0.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
     <script src="BootStrap/js/bootstrap.min.js"></script>
-    <script>
-        $(function () {
-            $("#sortable").sortable();
-        });
-
-        function submitVote() {
-            let sortedFruits = $('#sortable').sortable("toArray", {
-                attribute: "data-value"
-            });
-            console.log(sortedFruits); // 输出排序后的结果
-        }
-    </script>
+    <script src="js/vote.js"></script>
     <script>
         $(function () {
             $("#navtab").load("navbar.html");

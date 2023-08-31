@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+    <title>Profile</title>
+</head>
+
+<body>
+    <div id="content">
+        <div id="navtab"></div>
+
+        <div class="container" style="margin-top: 5rem;">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <h2 class="mt-4">Profile</h2>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="mt-4">Administration</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="create election.html" class="btn btn-primary pull-right btn-3d">Create Election</a>
+                        </div>
+                    </div>
+                    <ul id="Administration">
+                        <li><a href="#" draggable="false">Election 1</a></li>
+                        <li><a href="#" draggable="false">Election 2</a></li>
+                    </ul>
+
+                    <h3 class="mt-4">Recent Votes</h3>
+                    <ul id="RecentVotes">
+                        <li><a href="ELection.html" draggable="false">Election A</a></li>
+                        <li><a href="#" draggable="false">Election B</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <footer id="footer">
+        <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-check"></span>
+    </footer>
+
+    <script src="js/jquery-3.7.0.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
+</body>
+
+</html>
