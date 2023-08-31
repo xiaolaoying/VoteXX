@@ -119,3 +119,15 @@ body {
   /* max-height: 500px; */
   object-fit: cover;
 }
+
+.btn-3d {
+    box-shadow: 0px 0px 0px 1px rgba(0,0,0,0.5), 0px 0px 0px 3px #fff, 0px 5px 5px 5px rgba(0,0,0,0.5), 0px 10px 10px 10px rgba(0,0,0,0.5);
+    border-radius: 15px;
+    transition: all 0.1s;
+    margin-right: 20px;
+}
+
+.btn-3d:active {
+    box-shadow: 0px 0px 0px 1px rgba(0,0,0,0.5), 0px 0px 0px 3px #fff, 0px 2px 2px 2px rgba(0,0,0,0.5), 0px 4px 4px 4px rgba(0,0,0,0.5);
+    transform: translateY(4px);
+}
