@@ -26,17 +26,49 @@
                     </div>
                     <div class="col-md-4">
                         <div class="inner-content vertical-center">
-                            <button class="btn btn-primary btn-larger" form="Election" type="submit">Confirm
-                                Vote</button>
+                            <button class="btn btn-primary btn-larger" form="voteform">Confirm Vote</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div><br>
+
         <div class="container">
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
-                    <form action="#" id="voteform">
+                    <h2>Election Information</h2>
+
+                    <!-- 组织者 -->
+                    <div class="form-group">
+                        <label for="organizer" class="title">Organizer:</label>
+                        <span id="organizer">Organizer Name</span>
+                    </div>
+
+                    <!-- 开始时间 -->
+                    <div class="form-group">
+                        <label for="startTimeInfo" class="title">Start Time:</label>
+                        <span id="startTimeInfo">2023-01-01 00:00</span>
+                    </div>
+
+                    <!-- 结束时间 -->
+                    <div class="form-group">
+                        <label for="endTimeInfo" class="title">End Time:</label>
+                        <span id="endTimeInfo">2023-12-31 23:59</span>
+                    </div>
+
+                    <!-- Bulletin Board 链接 -->
+                    <div class="form-group">
+                        <label for="bulletinLink" class="title">Bulletin Board:</label>
+                        <a href="#">Click to view Bulletin Board</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <form action="" id="voteform">
                         <div class="form-group">
                             <h3>1. Do you like eating apples?</h3>
                             <div>
@@ -62,7 +94,31 @@
     </footer>
 
     <script src="js/jquery-3.7.0.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
     <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            $("#sortable").sortable();
+            $("#sortable").disableSelection();
+        });
+
+        function submitVote() {
+            let sortedAnimals = $("#sortable").sortable("toArray", {
+                attribute: "data-value",
+            });
+
+            console.log(sortedAnimals); // 输出排序后的结果
+            // 这里，你可以将排序后的结果发送到服务器
+        }
+
+        document
+            .getElementById("voteform")
+            .addEventListener("submit", function (event) {
+                event.preventDefault();
+                // 在这里你可以添加实际的表单提交代码
+                $("#successModal").modal("show");
+            });
+    </script>
     <script>
         $(function () {
             $("#navtab").load("navbar.html");

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+    <title>Election</title>
+</head>
+
+<body>
+    <div id="content">
+        <div id="navtab"></div>
+
+        <div class="container" style="margin-top: 5rem;">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <h2>Election Information</h2>
+
+                    <!-- 组织者 -->
+                    <div class="form-group">
+                        <label for="organizer" class="title">Organizer:</label>
+                        <span id="organizer">Organizer Name</span>
+                    </div>
+
+                    <!-- 开始时间 -->
+                    <div class="form-group">
+                        <label for="startTimeInfo" class="title">Start Time:</label>
+                        <span id="startTimeInfo">2023-01-01 00:00</span>
+                    </div>
+
+                    <!-- 结束时间 -->
+                    <div class="form-group">
+                        <label for="endTimeInfo" class="title">End Time:</label>
+                        <span id="endTimeInfo">2023-12-31 23:59</span>
+                    </div>
+
+                    <!-- Bulletin Board 链接 -->
+                    <div class="form-group">
+                        <label for="bulletinLink" class="title">Bulletin Board:</label>
+                        <a href="#" id="bulletinLink">Click to view Bulletin Board</a>
+                    </div>
+
+                    <!-- 投票和nullify按钮 -->
+                    <div>
+                        <a href="vote.html" class="btn btn-default btn-primary">Vote</a>&nbsp;&nbsp;
+                        <a href="nullification.html" class="btn btn-default btn-danger">Nullify</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <footer id="footer">
+        <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-check"></span>
+    </footer>
+
+    <script src="js/jquery-3.7.0.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
+</body>
+
+</html>

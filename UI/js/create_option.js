@@ -178,3 +178,15 @@ function updateQuestionIndices(pollContainer) {
     }
   }
 }
+
+document
+  .getElementById("Election")
+  .addEventListener("submit", function (event) {
+    event.preventDefault();
+    // 在这里你可以添加实际的表单提交代码
+    $("#successModal").modal("show"); // Show the success message modal
+  });
+
+$("#successModal").on("hidden.bs.modal", function () {
+  window.location.href = "profile.html"; // 导航到 profile.html 页面
+});
