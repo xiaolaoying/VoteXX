@@ -43,26 +43,8 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// 在内存中存储用户数据（在生产环境中，请使用数据库）
-// const users = [];
 
 // 注册用户
-// app.post('/register', async (req, res) => {
-//     const { username, password } = req.body;
-
-//     const user = users.find(u => u.username === username);
-
-//     if (user) {
-//         return res.status(400).json({ message: 'User already exists' });
-//     }
-
-//     // 密码哈希
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     users.push({ username, password: hashedPassword });
-
-//     res.json({ message: 'User registered successfully' });
-// });
-
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
 
@@ -82,20 +64,6 @@ app.post('/register', async (req, res) => {
 
 
 // 用户登录
-// app.post('/login', async (req, res) => {
-//     const { username, password } = req.body;
-
-//     const user = users.find(u => u.username === username);
-
-//     if (!user || !(await bcrypt.compare(password, user.password))) {
-//         return res.status(400).json({ message: 'Invalid username or password' });
-//     }
-
-//     // 设置session
-//     req.session.user = { username: user.username };
-//     res.json({ message: 'Login successful', user: req.session.user });
-// });
-
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 

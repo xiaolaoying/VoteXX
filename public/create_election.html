@@ -22,7 +22,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="inner-content vertical-center">
-                            <button class="btn btn-primary btn-larger btn-3d" form="Commit">Commit and Create</button>
+                            <button class="btn btn-primary btn-larger btn-3d" form="Election">Commit and Create</button>
                         </div>
                     </div>
                 </div>
@@ -48,13 +48,14 @@
                         </div><br>
                         <!-- 问题 -->
                         <div class="form-group">
-                            <label for="option" class="title">Questions:</label>
-                            <div id="pollContainer"></div>
-                            <button type="button" class="btn btn-primary" onclick="addQuestionField()">Add
-                                Question</button>
+                            <label for="option" class="title">Question:</label>
+                            <div id="pollContainer">
+                                <input type="text" class="form-control" id="questionInput"
+                                    placeholder="Enter your question here">
+                            </div>
                         </div><br>
                         <!-- 额外选项 -->
-                        <div class="form-group">
+                        <!-- <div class="form-group">
 
                             <label style="margin-bottom: 0;" class="title">Extra options:</label>
 
@@ -82,7 +83,7 @@
                                 </label>
                             </div>
 
-                        </div><br>
+                        </div><br> -->
                         <!-- 联系邮箱 -->
                         <div class="form-group">
                             <label for="email" class="title">Help Email Address:</label>
@@ -139,7 +140,21 @@
     <script src="js/create_option.js"></script>
     <script>
         $(function () {
-            $("#navtab").load("navbar.html");
+            $("#navtab").load("navbar.html", function () {
+                $.get('/checkLoginStatus', function (data) {
+                    if (data.loggedIn) {
+                        // 用户已登录，调整前端显示
+                        document.getElementById("loginButton").style.display = "none";
+                        document.getElementById("userDropdown").style.display = "inline";
+                        // $("#loginModal").modal("hide");
+                        document.getElementById("usernameDisplay").innerText = data.user.username;
+                    } else {
+                        // 用户未登录，调整前端显示
+                        document.getElementById("loginButton").style.display = "inline";
+                        document.getElementById("userDropdown").style.display = "none";
+                    }
+                });
+            });
         });
     </script>
 </body>
