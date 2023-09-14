@@ -67,8 +67,8 @@
           // 用户已登录，调整前端显示
           document.getElementById("loginButton").style.display = "none";
           document.getElementById("userDropdown").style.display = "inline";
-          // 可以在此处显示用户的名字或其他信息，例如：
-          // document.getElementById("usernameDisplay").innerText = data.user.username;
+          // $("#loginModal").modal("hide");
+          document.getElementById("usernameDisplay").innerText = data.user.username;
         } else {
           // 用户未登录，调整前端显示
           document.getElementById("loginButton").style.display = "inline";

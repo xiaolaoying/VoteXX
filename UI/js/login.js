@@ -4,7 +4,7 @@ function logout() {
 }
 
 $(document).ready(function () {
-  
+
   $(document).ready(function () {
     $("#loginActionBtn").on("click", function () {
       var userID = $("#userID").val();
@@ -26,6 +26,7 @@ $(document).ready(function () {
             document.getElementById("loginButton").style.display = "none";
             document.getElementById("userDropdown").style.display = "inline";
             $("#loginModal").modal("hide");
+            document.getElementById("usernameDisplay").innerText = userID;
           },
           error: function (xhr, status, error) {
             alert(xhr.responseJSON.message || "Login failed! Wrong ID or password!");
@@ -67,12 +68,6 @@ $(document).ready(function () {
         success: function (response) {
           // 关闭窗口
           $("#registerModal").modal("hide");
-
-          // 隐藏登录按钮
-          document.getElementById("loginButton").style.display = "none";
-
-          // 显示用户名
-          document.getElementById("userDropdown").style.display = "inline";
 
           // 显示成功消息
           alert("Registration success!");
