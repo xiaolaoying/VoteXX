@@ -17,7 +17,7 @@ app.use(session({
     saveUninitialized: false
 }));
 
-app.use(express.static('UI'));
+app.use(express.static('public'));
 
 app.get('/checkLoginStatus', (req, res) => {
     if (req.session.user) {
