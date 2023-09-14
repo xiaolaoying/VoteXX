@@ -43,6 +43,17 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+const electionSchema = new mongoose.Schema({
+    title: { type: String, required: true, unique: true },
+    description: String,
+    question: { type: String, required: true },
+    email: { type: String, required: true },
+    startTime: { type: Date, required: true },
+    endTime: { type: Date, required: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }  // 可以用来关联创建选举的用户
+});
+
+const Election = mongoose.model('Election', electionSchema);
 
 // 注册用户
 app.post('/register', async (req, res) => {
@@ -81,6 +92,38 @@ app.post('/login', async (req, res) => {
 app.post('/logout', (req, res) => {
     req.session.destroy();
     res.json({ message: 'Logout successful' });
+});
+
+app.post('/createElection', async (req, res) => {
+    const { title, description, questionInput, email, startTime, endTime } = req.body;
+
+    // 检查是否存在相同的选举标题 (可根据需要修改或删除此检查)
+    const existingElection = await Election.findOne({ title });
+
+    if (existingElection) {
+        return res.status(400).json({ message: 'Election with this title already exists' });
+    }
+    
+    console.log(title);
+    console.log(description);
+    console.log(questionInput);
+    console.log(email);
+    console.log(startTime);
+    console.log(endTime);
+
+    // const election = new Election({
+    //     title,
+    //     description,
+    //     question,
+    //     email,
+    //     startTime: new Date(startTime),  // 确保startTime和endTime是Date对象
+    //     endTime: new Date(endTime),
+    //     createdBy: req.session.user._id
+    // });
+
+    // await election.save();
+
+    res.json({ success: true });
 });
 
 // 启动服务器
