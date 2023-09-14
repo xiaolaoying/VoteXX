@@ -4,23 +4,39 @@ function logout() {
 }
 
 $(document).ready(function () {
-  $("#loginActionBtn").on("click", function () {
-    var userID = $("#userID").val();
-    var userPassword = $("#userPassword").val();
+  
+  $(document).ready(function () {
+    $("#loginActionBtn").on("click", function () {
+      var userID = $("#userID").val();
+      var userPassword = $("#userPassword").val();
 
-    if (userID === "123" && userPassword === "123") {
-      // 隐藏登录按钮
-      document.getElementById("loginButton").style.display = "none";
-
-      // 显示用户名
-      document.getElementById("userDropdown").style.display = "inline";
-
-      // 关闭模态框
-      $("#loginModal").modal("hide");
-    } else {
-      alert("Login failed! Wrong ID or password!");
-    }
+      // 检查用户ID和密码是否输入
+      if (userID && userPassword) {
+        // 发送AJAX请求到后端登录端点
+        $.ajax({
+          url: '/login',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            username: userID,
+            password: userPassword
+          }),
+          success: function (response) {
+            // 登录成功的处理
+            document.getElementById("loginButton").style.display = "none";
+            document.getElementById("userDropdown").style.display = "inline";
+            $("#loginModal").modal("hide");
+          },
+          error: function (xhr, status, error) {
+            alert(xhr.responseJSON.message || "Login failed! Wrong ID or password!");
+          }
+        });
+      } else {
+        alert("Please enter both username and password.");
+      }
+    });
   });
+
 
   // 显示注册页面
   $("#showRegisterModal").on("click", function (e) {
@@ -35,26 +51,39 @@ $(document).ready(function () {
     }, 500);
   });
 
-  // 注册
   $("#registerBtn").on("click", function () {
-    // ID
     var registeredID = $("#registerUsername").val();
+    var registeredPassword = $("#registerPassword").val();
 
-    // 验证有效
-    if (registeredID) {
-      // 关闭窗口
-      $("#registerModal").modal("hide");
+    if (registeredID && registeredPassword) {
+      $.ajax({
+        url: '/register',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          username: registeredID,
+          password: registeredPassword
+        }),
+        success: function (response) {
+          // 关闭窗口
+          $("#registerModal").modal("hide");
 
-      // 隐藏登录按钮
-      document.getElementById("loginButton").style.display = "none";
+          // 隐藏登录按钮
+          document.getElementById("loginButton").style.display = "none";
 
-      // 显示用户名
-      document.getElementById("userDropdown").style.display = "inline";
+          // 显示用户名
+          document.getElementById("userDropdown").style.display = "inline";
 
-      // Display a success message
-      alert("Registration success!");
+          // 显示成功消息
+          alert("Registration success!");
+        },
+        error: function (xhr, status, error) {
+          alert(xhr.responseJSON.message || "Registration failed!");
+        }
+      });
     } else {
-      alert("Please enter a valid username.");
+      alert("Please enter a valid username and password.");
     }
   });
+
 });

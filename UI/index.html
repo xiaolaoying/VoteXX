@@ -16,8 +16,9 @@
       <div class="row">
         <div class="text-center col-md-8 col-md-push-2">
           <h1>Welcome to VoteXX
-            <p>VoteXX is a joint effort by xx network and an international team of academics to create a massively scalable, end-to-end
-            voter verifiable, coercion-resistant and remote election system.</p>
+            <p>VoteXX is a joint effort by xx network and an international team of academics to create a massively
+              scalable, end-to-end
+              voter verifiable, coercion-resistant and remote election system.</p>
           </h1>
           <a class="btn btn-primary btn-lg btn-3d" href="vote_example.html" role="button">Demo Election</a>
         </div>
@@ -32,20 +33,22 @@
         <div class="col-md-4 feature-bg text-center">
           <span class="glyphicon glyphicon-lock large-icon"></span>
           <h2>Privacy</h2>
-          <p>Under our encryption protocol, the privacy of each voter's ballot is guaranteed, and no one can get the voting
-          information of a certain voter.</p>
+          <p>Under our encryption protocol, the privacy of each voter's ballot is guaranteed, and no one can get the
+            voting
+            information of a certain voter.</p>
         </div>
         <div class="col-md-4 feature-bg text-center">
           <span class="glyphicon glyphicon-globe large-icon"></span>
           <h2>Remote Voting</h2>
-          <p>Our voting system achieves Internet-based remote voting while ensuring security. Anyone can easily do this through
-          VoteXX.</p>
+          <p>Our voting system achieves Internet-based remote voting while ensuring security. Anyone can easily do this
+            through
+            VoteXX.</p>
         </div>
         <div class="col-md-4 feature-bg text-center">
           <span class="glyphicon glyphicon-check large-icon"></span>
           <h2>Authenticity</h2>
           <p>Our approach allows each voter, or their trusted agents, to cancel their vote in a way that is unstoppable,
-          irrevocable, and forever unattributable to the voter.</p>
+            irrevocable, and forever unattributable to the voter.</p>
         </div>
       </div>
     </div><br>
@@ -57,6 +60,23 @@
     $(function () {
       $("#navtab").load("navbar.html");
     });
+
+    $(document).ready(function () {
+      $.get('/checkLoginStatus', function (data) {
+        if (data.loggedIn) {
+          // 用户已登录，调整前端显示
+          document.getElementById("loginButton").style.display = "none";
+          document.getElementById("userDropdown").style.display = "inline";
+          // 可以在此处显示用户的名字或其他信息，例如：
+          // document.getElementById("usernameDisplay").innerText = data.user.username;
+        } else {
+          // 用户未登录，调整前端显示
+          document.getElementById("loginButton").style.display = "inline";
+          document.getElementById("userDropdown").style.display = "none";
+        }
+      });
+    });
+
   </script>
 </body>
 
