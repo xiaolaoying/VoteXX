@@ -3,6 +3,15 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const path = require('path');
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost:27017/VoteXX_db', { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+        console.log('Connected to MongoDB');
+    })
+    .catch(err => {
+        console.error('Error connecting to MongoDB', err);
+    });
 
 const app = express();
 const PORT = 3000;
@@ -27,37 +36,75 @@ app.get('/checkLoginStatus', (req, res) => {
     }
 });
 
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+});
+
+const User = mongoose.model('User', userSchema);
+
 // 在内存中存储用户数据（在生产环境中，请使用数据库）
-const users = []; 
+// const users = [];
 
 // 注册用户
+// app.post('/register', async (req, res) => {
+//     const { username, password } = req.body;
+
+//     const user = users.find(u => u.username === username);
+
+//     if (user) {
+//         return res.status(400).json({ message: 'User already exists' });
+//     }
+
+//     // 密码哈希
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     users.push({ username, password: hashedPassword });
+
+//     res.json({ message: 'User registered successfully' });
+// });
+
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
 
-    const user = users.find(u => u.username === username);
+    const existingUser = await User.findOne({ username });
 
-    if (user) {
+    if (existingUser) {
         return res.status(400).json({ message: 'User already exists' });
     }
 
-    // 密码哈希
     const hashedPassword = await bcrypt.hash(password, 10);
-    users.push({ username, password: hashedPassword });
+    const user = new User({ username, password: hashedPassword });
+
+    await user.save();
 
     res.json({ message: 'User registered successfully' });
 });
 
+
 // 用户登录
+// app.post('/login', async (req, res) => {
+//     const { username, password } = req.body;
+
+//     const user = users.find(u => u.username === username);
+
+//     if (!user || !(await bcrypt.compare(password, user.password))) {
+//         return res.status(400).json({ message: 'Invalid username or password' });
+//     }
+
+//     // 设置session
+//     req.session.user = { username: user.username };
+//     res.json({ message: 'Login successful', user: req.session.user });
+// });
+
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
-    const user = users.find(u => u.username === username);
+    const user = await User.findOne({ username });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(400).json({ message: 'Invalid username or password' });
     }
 
-    // 设置session
     req.session.user = { username: user.username };
     res.json({ message: 'Login successful', user: req.session.user });
 });
