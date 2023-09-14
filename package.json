@@ -1,24 +1,9 @@
 {
-  "name": "votexx",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/xiaolaoying/VoteXX.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/xiaolaoying/VoteXX/issues"
-  },
-  "homepage": "https://github.com/xiaolaoying/VoteXX#readme",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "crypto-js": "^4.1.1",
     "elliptic": "^6.5.4",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "express-session": "^1.17.3"
   }
 }
