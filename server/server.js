@@ -84,7 +84,9 @@ app.post('/login', async (req, res) => {
         return res.status(400).json({ message: 'Invalid username or password' });
     }
 
-    req.session.user = { username: user.username };
+    // 将用户的 _id 和 username 存储在会话中
+    req.session.user = { _id: user._id, username: user.username };
+
     res.json({ message: 'Login successful', user: req.session.user });
 });
 
@@ -103,25 +105,18 @@ app.post('/createElection', async (req, res) => {
     if (existingElection) {
         return res.status(400).json({ message: 'Election with this title already exists' });
     }
-    
-    console.log(title);
-    console.log(description);
-    console.log(questionInput);
-    console.log(email);
-    console.log(startTime);
-    console.log(endTime);
 
-    // const election = new Election({
-    //     title,
-    //     description,
-    //     question,
-    //     email,
-    //     startTime: new Date(startTime),  // 确保startTime和endTime是Date对象
-    //     endTime: new Date(endTime),
-    //     createdBy: req.session.user._id
-    // });
+    const election = new Election({
+        title,
+        description,
+        question: questionInput,
+        email,
+        startTime: new Date(startTime),  // 确保startTime和endTime是Date对象
+        endTime: new Date(endTime),
+        createdBy: req.session.user._id
+    });
 
-    // await election.save();
+    await election.save();
 
     res.json({ success: true });
 });
