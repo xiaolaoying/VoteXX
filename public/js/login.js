@@ -1,6 +1,19 @@
+// 使用 Fetch API 发送 POST 请求实现登出
 function logout() {
-  document.getElementById("loginButton").style.display = "inline-block";
-  document.getElementById("userDropdown").style.display = "none";
+  fetch('/logout', {
+      method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.message) {
+          console.log(data.message);  // "Logout successful"
+          document.getElementById("loginButton").style.display = "inline-block";
+          document.getElementById("userDropdown").style.display = "none";
+      }
+  })
+  .catch(error => {
+      console.error('Error during logout:', error);
+  });
 }
 
 $(document).ready(function () {

@@ -58,22 +58,20 @@
   <script src="BootStrap/js/bootstrap.min.js"></script>
   <script>
     $(function () {
-      $("#navtab").load("navbar.html");
-    });
-
-    $(document).ready(function () {
-      $.get('/checkLoginStatus', function (data) {
-        if (data.loggedIn) {
-          // 用户已登录，调整前端显示
-          document.getElementById("loginButton").style.display = "none";
-          document.getElementById("userDropdown").style.display = "inline";
-          // $("#loginModal").modal("hide");
-          document.getElementById("usernameDisplay").innerText = data.user.username;
-        } else {
-          // 用户未登录，调整前端显示
-          document.getElementById("loginButton").style.display = "inline";
-          document.getElementById("userDropdown").style.display = "none";
-        }
+      $("#navtab").load("navbar.html", function () {
+        $.get('/checkLoginStatus', function (data) {
+          if (data.loggedIn) {
+            // 用户已登录，调整前端显示
+            document.getElementById("loginButton").style.display = "none";
+            document.getElementById("userDropdown").style.display = "inline";
+            // $("#loginModal").modal("hide");
+            document.getElementById("usernameDisplay").innerText = data.user.username;
+          } else {
+            // 用户未登录，调整前端显示
+            document.getElementById("loginButton").style.display = "inline";
+            document.getElementById("userDropdown").style.display = "none";
+          }
+        });
       });
     });
 
