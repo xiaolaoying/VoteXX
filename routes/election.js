@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Election = require('../models/Election');
+const User = require('../models/User');
 const path = require('path');
 
 router.post('/createElection', async (req, res) => {
@@ -36,10 +37,19 @@ router.get('/vote/:uuid', async (req, res) => {
         return res.status(404).send('Election not found');
     }
 
-    // 根据你的前端框架/库，渲染投票页面
-    // res.render('votePage', { election });
+    const user = await User.findOne({ _id: election.createdBy });
+    const organizerName = user.username;
+    const bulletinLink = "#";
 
-    res.sendFile(path.join(__dirname, '../public/election.html'));
+    const data = {
+        organizerName,
+        startTime: election.startTime,
+        endTime: election.endTime,
+        bulletinLink
+    };
+
+    // 根据你的前端框架/库，渲染投票页面
+    res.render('election', data);
 });
 
 module.exports = router;
