@@ -88,16 +88,22 @@
                             <label for="email" class="title">Help Email Address:</label>
                             <input type="email" class="form-control" id="email" name="email">
                         </div><br>
-                        <!-- 起始时间 -->
+                        <!-- 投票起始时间 -->
                         <div class="form-group">
-                            <label for="startTime" class="title">Start Time:</label>
-                            <input type="datetime-local" class="form-control" id="startTime" name="startTime"
+                            <label for="voteStartTime" class="title">Vote Start Time:</label>
+                            <input type="datetime-local" class="form-control" id="voteStartTime" name="voteStartTime"
                                 min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
                         </div><br>
-                        <!-- 结束时间 -->
+                        <!-- 投票结束时间 -->
                         <div class="form-group">
-                            <label for="endTime" class="title">End Time:</label>
-                            <input type="datetime-local" class="form-control" id="endTime" name="endTime"
+                            <label for="voteEndTime" class="title">Vote End Time:</label>
+                            <input type="datetime-local" class="form-control" id="voteEndTime" name="voteEndTime"
+                                min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
+                        </div><br>
+                        <!-- nullification结束时间 -->
+                        <div class="form-group">
+                            <label for="nulEndTime" class="title">Nullification End Time:</label>
+                            <input type="datetime-local" class="form-control" id="nulEndTime" name="nulEndTime"
                                 min="2023-01-01T00:00:00" max="2033-12-31T23:59:59" required>
                         </div>
                     </form>

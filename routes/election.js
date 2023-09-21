@@ -5,7 +5,7 @@ const User = require('../models/User');
 const path = require('path');
 
 router.post('/createElection', async (req, res) => {
-    const { title, description, questionInput, email, startTime, endTime } = req.body;
+    const { title, description, questionInput, email, voteStartTime, voteEndTime, nulEndTime } = req.body;
 
     // 检查是否存在相同的选举标题 (可根据需要修改或删除此检查)
     const existingElection = await Election.findOne({ title });
@@ -19,8 +19,9 @@ router.post('/createElection', async (req, res) => {
         description,
         question: questionInput,
         email,
-        startTime: new Date(startTime),  // 确保startTime和endTime是Date对象
-        endTime: new Date(endTime),
+        voteStartTime: new Date(voteStartTime),  // 确保startTime和endTime是Date对象
+        voteEndTime: new Date(voteEndTime),
+        nulEndTime: new Date(nulEndTime),
         createdBy: req.session.user._id
     });
 
@@ -43,8 +44,9 @@ router.get('/vote/:uuid', async (req, res) => {
 
     const data = {
         organizerName,
-        startTime: election.startTime,
-        endTime: election.endTime,
+        voteStartTime: election.voteStartTime,
+        voteEndTime: election.voteEndTime,
+        nulEndTime: election.nulEndTime,
         bulletinLink
     };
 
