@@ -37,25 +37,25 @@
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
                     <h2>Election Information</h2>
-        
+
                     <!-- 组织者 -->
                     <div class="form-group">
                         <label for="organizer" class="title">Organizer:</label>
                         <span id="organizer">Organizer Name</span>
                     </div>
-        
+
                     <!-- 开始时间 -->
                     <div class="form-group">
                         <label for="startTimeInfo" class="title">Start Time:</label>
                         <span id="startTimeInfo">2023-01-01 00:00</span>
                     </div>
-        
+
                     <!-- 结束时间 -->
                     <div class="form-group">
                         <label for="endTimeInfo" class="title">End Time:</label>
                         <span id="endTimeInfo">2023-12-31 23:59</span>
                     </div>
-        
+
                     <!-- Bulletin Board 链接 -->
                     <div class="form-group">
                         <label for="bulletinLink" class="title">Bulletin Board:</label>
@@ -64,7 +64,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="container">
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
@@ -84,7 +84,7 @@
                 </div>
             </div>
         </div>
-        </div>
+    </div>
 
     <footer id="footer">
         <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
@@ -120,7 +120,21 @@
     </script>
     <script>
         $(function () {
-            $("#navtab").load("navbar.html");
+            $("#navtab").load("navbar.html", function () {
+                $.get('/checkLoginStatus', function (data) {
+                    if (data.loggedIn) {
+                        // 用户已登录，调整前端显示
+                        document.getElementById("loginButton").style.display = "none";
+                        document.getElementById("userDropdown").style.display = "inline";
+                        // $("#loginModal").modal("hide");
+                        document.getElementById("usernameDisplay").innerText = data.user.username;
+                    } else {
+                        // 用户未登录，调整前端显示
+                        document.getElementById("loginButton").style.display = "inline";
+                        document.getElementById("userDropdown").style.display = "none";
+                    }
+                });
+            });
         });
     </script>
 </body>

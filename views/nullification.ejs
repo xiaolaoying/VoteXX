@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/style.css">
-    <title>vote</title>
+    <title>Nullification</title>
 </head>
 
 <body>
@@ -18,21 +18,23 @@
                 <div class="row equal-height">
                     <div class="col-md-8" style="color: white;">
                         <h1>
-                            Make Your Vote
-                            <p>Please make your vote according to the objective situation and personal
-                                preference (make sure it is your personal wish)
+                            Nullification
+                            <p>If you or your representative is under duress, or just want to cancel a previous vote,
+                                you can use the screct key to nullify the vote.
                             </p>
                         </h1>
 
                     </div>
                     <div class="col-md-4">
                         <div class="inner-content vertical-center">
-                            <button class="btn btn-primary btn-larger btn-3d" form="voteform">Confirm Vote</button>
+                            <button form="Nullification" class="btn btn-danger btn-larger btn-3d"
+                                id="nullifyBtn">Nullify</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div><br>
+
         <div class="container">
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
@@ -83,24 +85,38 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
-                    <form action="" id="voteform">
+                    <form action="#" id="Nullification">
                         <div class="form-group">
                             <h3>
                                 <%= question %>
                             </h3>
-                            <div>
-                                <label class="radio-inline">
-                                    <input type="radio" name="question1" value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="question1" value="No"> No
-                                </label>
-                            </div>
-                        </div><br>
+                            <label for="secretKey" class="title">Enter Secret Key:</label>
+                            <input type="text" class="form-control" id="secretKey" placeholder="Enter secret key">
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <label class="modal-title">Message</label>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="modalMessage">
+                        <!-- 这里是模态框的消息内容，使用js -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <footer id="footer">
@@ -109,32 +125,10 @@
         <span class="glyphicon glyphicon-check"></span>
     </footer>
 
+
     <script src="js/jquery-3.7.0.js"></script>
-    <script src="js/jquery-ui.min.js"></script>
     <script src="BootStrap/js/bootstrap.min.js"></script>
-    <script>
-        $(function () {
-            $("#sortable").sortable();
-            $("#sortable").disableSelection();
-        });
-
-        function submitVote() {
-            let sortedAnimals = $("#sortable").sortable("toArray", {
-                attribute: "data-value",
-            });
-
-            console.log(sortedAnimals); // 输出排序后的结果
-            // 这里，你可以将排序后的结果发送到服务器
-        }
-
-        document
-            .getElementById("voteform")
-            .addEventListener("submit", function (event) {
-                event.preventDefault();
-                // 在这里你可以添加实际的表单提交代码
-                $("#successModal").modal("show");
-            });
-    </script>
+    <script src="js/nullification.js"></script>
     <script>
         $(function () {
             $("#navtab").load("navbar.html", function () {

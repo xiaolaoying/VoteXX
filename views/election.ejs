@@ -22,25 +22,33 @@
                     <!-- 组织者 -->
                     <div class="form-group">
                         <label for="organizer" class="title">Organizer:</label>
-                        <span id="organizer"><%= organizerName %></span>
+                        <span id="organizer">
+                            <%= organizerName %>
+                        </span>
                     </div>
 
                     <!-- 投票开始时间 -->
                     <div class="form-group">
                         <label for="voteStartTimeInfo" class="title">Vote Start Time:</label>
-                        <span id="voteStartTimeInfo"><%= voteStartTime %></span>
+                        <span id="voteStartTimeInfo">
+                            <%= voteStartTime %>
+                        </span>
                     </div>
 
                     <!-- 投票结束时间 -->
                     <div class="form-group">
                         <label for="voteEndTimeInfo" class="title">Vote End Time:</label>
-                        <span id="voteEndTimeInfo"><%= voteEndTime %></span>
+                        <span id="voteEndTimeInfo">
+                            <%= voteEndTime %>
+                        </span>
                     </div>
 
                     <!-- nullification结束时间 -->
                     <div class="form-group">
                         <label for="nulEndTimeInfo" class="title">Nullification End Time:</label>
-                        <span id="nulEndTimeInfo"><%= nulEndTime %></span>
+                        <span id="nulEndTimeInfo">
+                            <%= nulEndTime %>
+                        </span>
                     </div>
 
                     <!-- Bulletin Board 链接 -->
@@ -70,7 +78,21 @@
     <script src="BootStrap/js/bootstrap.min.js"></script>
     <script>
         $(function () {
-            $("#navtab").load("navbar.html");
+            $("#navtab").load("navbar.html", function () {
+                $.get('/checkLoginStatus', function (data) {
+                    if (data.loggedIn) {
+                        // 用户已登录，调整前端显示
+                        document.getElementById("loginButton").style.display = "none";
+                        document.getElementById("userDropdown").style.display = "inline";
+                        // $("#loginModal").modal("hide");
+                        document.getElementById("usernameDisplay").innerText = data.user.username;
+                    } else {
+                        // 用户未登录，调整前端显示
+                        document.getElementById("loginButton").style.display = "inline";
+                        document.getElementById("userDropdown").style.display = "none";
+                    }
+                });
+            });
         });
     </script>
 </body>

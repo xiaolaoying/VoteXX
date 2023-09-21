@@ -80,6 +80,31 @@ router.get('/:uuid/vote', async (req, res) => {
     // res.sendFile(path.join(__dirname, '../public', 'vote.html'));
 });
 
+router.get('/:uuid/nullify', async (req, res) => {
+    const { uuid } = req.params;
+    const election = await Election.findOne({ uuid });
+
+    if (!election) {
+        return res.status(404).send('Election not found');
+    }
+
+    const user = await User.findOne({ _id: election.createdBy });
+    const organizerName = user.username;
+    const bulletinLink = "#";
+
+    const data = {
+        organizerName,
+        voteStartTime: election.voteStartTime,
+        voteEndTime: election.voteEndTime,
+        nulEndTime: election.nulEndTime,
+        bulletinLink,
+        question: election.question,
+    };
+
+    // 根据你的前端框架/库，渲染投票页面
+    res.render('nullification', data);
+});
+
 router.post('/:uuid/vote', async (req, res) => {
     const { uuid } = req.params;
     const { selection } = req.body;
