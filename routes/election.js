@@ -129,5 +129,27 @@ router.post('/:uuid/vote', async (req, res) => {
     // res.json({ message: 'Vote recorded successfully' });
 });
 
+router.post('/:uuid/nullify', async (req, res) => {
+    // console.log("vote");
+    const { uuid } = req.params;
+
+    // 检查用户是否已经作废过选票
+    const election = await Election.findOne({ uuid });
+    if (!election) {
+        return res.status(404).json({ message: 'Election not found' });
+    }
+
+    const userVote = election.nullification.find(nul => String(nul.user) === String(req.session.user._id));
+    if (userVote) {
+        return res.status(400).json({ message: 'You have already nullified in this election.' });
+    }
+
+    // 如果用户没有投票，添加投票
+    election.nullification.push({ user: req.session.user._id });
+    await election.save();
+
+    res.json({ success: true });
+});
+
 
 module.exports = router;

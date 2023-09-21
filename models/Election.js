@@ -16,7 +16,12 @@ const electionSchema = new mongoose.Schema({
             user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
             selection: String // 或其他你需要的数据类型，如Number
         }
-    ]    
+    ],
+    nullification: [
+        {
+            user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        }
+    ]
 });
 
 module.exports = mongoose.model('Election', electionSchema);
