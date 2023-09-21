@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+    <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+    <title>Vote</title>
+</head>
+
+<body>
+    <div id="content">
+        <div id="navtab"></div>
+        <div class="jumbotron">
+            <div class="container">
+                <div class="row equal-height">
+                    <div class="col-md-8" style="color: white;">
+                        <h1>
+                            Make Your Vote
+                            <p>Please make your vote according to the objective situation and personal
+                                preference (make sure it is your personal wish)
+                            </p>
+                        </h1>
+
+                    </div>
+                    <div class="col-md-4">
+                        <div class="inner-content vertical-center">
+                            <button class="btn btn-primary btn-larger btn-3d" form="voteform" type="submit">Confirm
+                                Vote</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><br>
+
+        <!-- Election信息 -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <h2>Election Information</h2>
+
+                    <!-- 组织者 -->
+                    <div class="form-group">
+                        <label for="organizer" class="title">Organizer:</label>
+                        <span id="organizer">Organizer Name</span>
+                    </div>
+
+                    <!-- 开始时间 -->
+                    <div class="form-group">
+                        <label for="startTimeInfo" class="title">Start Time:</label>
+                        <span id="startTimeInfo">2023-01-01 00:00</span>
+                    </div>
+
+                    <!-- 结束时间 -->
+                    <div class="form-group">
+                        <label for="endTimeInfo" class="title">End Time:</label>
+                        <span id="endTimeInfo">2023-12-31 23:59</span>
+                    </div>
+
+                    <!-- Bulletin Board 链接 -->
+                    <div class="form-group">
+                        <label for="bulletinLink" class="title">Bulletin Board:</label>
+                        <a href="#" id="bulletinLink">Click to view Bulletin Board</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <form action="" id="voteform">
+
+                        <!-- 问题1 -->
+                        <div class="form-group">
+                            <h3>1. Your favorite color?</h3>
+                            <div>
+                                <label class="radio-inline">
+                                    <input type="radio" name="question1" value="Red"> Red
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="question1" value="Green"> Green
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="question1" value="Blue"> Blue
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 问题2 -->
+                        <div class="form-group">
+                            <h3>2. Your favorite fruit?</h3>
+                            <select class="form-control" name="question2">
+                                <option value="Apple">Apple</option>
+                                <option value="Banana">Banana</option>
+                                <option value="Cherry">Cherry</option>
+                            </select>
+                        </div>
+
+                        <!-- 问题3 -->
+                        <div class="form-group">
+                            <h3>3. Which sports do you like?</h3>
+                            <div>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" value="Football" name="question3[]"> Football
+                                </label>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" value="Basketball" name="question3[]"> Basketball
+                                </label>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" value="Tennis" name="question3[]"> Tennis
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 问题4 -->
+                        <div class="form-group">
+                            <h3>4. Sort the animals by your preference:</h3>
+                            <ul id="sortable" class="list-group">
+                                <li class="list-group-item" data-value="Dog">Dog</li>
+                                <li class="list-group-item" data-value="Cat">Cat</li>
+                                <li class="list-group-item" data-value="Elephant">Elephant</li>
+                                <li class="list-group-item" data-value="Tiger">Tiger</li>
+                            </ul>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息 -->
+        <div id="successModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <label class="modal-title">Message</label>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Vote success!</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <footer id="footer">
+        <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-check"></span>
+    </footer>
+
+    <script src="js/jquery-3.7.0.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script src="js/vote.js"></script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html");
+        });
+    </script>
+</body>
+
+</html>
