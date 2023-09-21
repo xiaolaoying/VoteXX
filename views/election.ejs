@@ -51,16 +51,13 @@
                         </span>
                     </div>
 
-                    <!-- Bulletin Board 链接 -->
+                    <!-- Verify 链接 -->
                     <div class="form-group">
-                        <label for="bulletinLink" class="title">Bulletin Board:</label>
-                        <a href="<%= bulletinLink %>" id="bulletinLink">Click to view Bulletin Board</a>
+                        <a id="verifyLink">Click to verify the election</a>
                     </div>
 
                     <!-- 投票和nullify按钮 -->
                     <div>
-                        <!-- <a href="./vote" class="btn btn-default btn-primary btn-3d">Vote</a>&nbsp;&nbsp;
-                        <a href="./nullification" class="btn btn-default btn-danger btn-3d">Nullify</a> -->
                         <a class="btn btn-default btn-primary btn-3d" id="voteBtn">Vote</a>&nbsp;&nbsp;
                         <a class="btn btn-default btn-danger btn-3d" id="nullifyBtn">Nullify</a>
                     </div>
@@ -103,6 +100,11 @@
 
         document.getElementById('nullifyBtn').addEventListener("click", function () {
             window.location.href = window.location.pathname + "/nullify";
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const currentURL = window.location.href;
+            document.getElementById("verifyLink").href = `${currentURL}/verify`;
         });
 
     </script>

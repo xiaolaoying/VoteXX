@@ -40,14 +40,12 @@ router.get('/:uuid', async (req, res) => {
 
     const user = await User.findOne({ _id: election.createdBy });
     const organizerName = user.username;
-    const bulletinLink = "#";
 
     const data = {
         organizerName,
         voteStartTime: election.voteStartTime,
         voteEndTime: election.voteEndTime,
         nulEndTime: election.nulEndTime,
-        bulletinLink
     };
 
     // 根据你的前端框架/库，渲染投票页面
@@ -64,20 +62,17 @@ router.get('/:uuid/vote', async (req, res) => {
 
     const user = await User.findOne({ _id: election.createdBy });
     const organizerName = user.username;
-    const bulletinLink = "#";
 
     const data = {
         organizerName,
         voteStartTime: election.voteStartTime,
         voteEndTime: election.voteEndTime,
         nulEndTime: election.nulEndTime,
-        bulletinLink,
         question: election.question,
     };
 
     // 根据你的前端框架/库，渲染投票页面
     res.render('vote', data);
-    // res.sendFile(path.join(__dirname, '../public', 'vote.html'));
 });
 
 router.get('/:uuid/nullify', async (req, res) => {
@@ -90,14 +85,12 @@ router.get('/:uuid/nullify', async (req, res) => {
 
     const user = await User.findOne({ _id: election.createdBy });
     const organizerName = user.username;
-    const bulletinLink = "#";
 
     const data = {
         organizerName,
         voteStartTime: election.voteStartTime,
         voteEndTime: election.voteEndTime,
         nulEndTime: election.nulEndTime,
-        bulletinLink,
         question: election.question,
     };
 
@@ -106,7 +99,6 @@ router.get('/:uuid/nullify', async (req, res) => {
 });
 
 router.post('/:uuid/vote', async (req, res) => {
-    // console.log("vote");
     const { uuid } = req.params;
     const selection = req.body.question;
 
@@ -126,11 +118,9 @@ router.post('/:uuid/vote', async (req, res) => {
     await election.save();
 
     res.json({ success: true });
-    // res.json({ message: 'Vote recorded successfully' });
 });
 
 router.post('/:uuid/nullify', async (req, res) => {
-    // console.log("vote");
     const { uuid } = req.params;
 
     // 检查用户是否已经作废过选票
