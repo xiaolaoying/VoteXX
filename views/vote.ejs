@@ -90,10 +90,10 @@
                             </h3>
                             <div>
                                 <label class="radio-inline">
-                                    <input type="radio" name="question1" value="Yes"> Yes
+                                    <input type="radio" name="question" value="Yes"> Yes
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="question1" value="No"> No
+                                    <input type="radio" name="question" value="No"> No
                                 </label>
                             </div>
                         </div><br>
@@ -127,13 +127,41 @@
             // 这里，你可以将排序后的结果发送到服务器
         }
 
-        document
-            .getElementById("voteform")
-            .addEventListener("submit", function (event) {
-                event.preventDefault();
-                // 在这里你可以添加实际的表单提交代码
-                $("#successModal").modal("show");
+        document.getElementById("voteform").addEventListener("submit", function (event) {
+            event.preventDefault();
+            // 在这里你可以添加实际的表单提交代码
+
+            // 1. 提取表单数据
+            const formData = new FormData(event.target);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
             });
+            // console.log(data);
+
+            // 2. 使用 fetch API 发送数据
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        $("#successModal").modal("show");
+                    } else {
+                        alert("Error: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('There was an error submitting the form:', error);
+                    alert('There was an error submitting the form.');
+                });
+
+            // $("#successModal").modal("show");
+        });
     </script>
     <script>
         $(function () {

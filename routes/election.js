@@ -106,15 +106,16 @@ router.get('/:uuid/nullify', async (req, res) => {
 });
 
 router.post('/:uuid/vote', async (req, res) => {
+    // console.log("vote");
     const { uuid } = req.params;
-    const { selection } = req.body;
+    const selection = req.body.question;
 
     // 检查用户是否已经为这一选举投票
     const election = await Election.findOne({ uuid });
     if (!election) {
         return res.status(404).json({ message: 'Election not found' });
     }
-    
+
     const userVote = election.votes.find(vote => String(vote.user) === String(req.session.user._id));
     if (userVote) {
         return res.status(400).json({ message: 'You have already voted for this election.' });
@@ -124,7 +125,8 @@ router.post('/:uuid/vote', async (req, res) => {
     election.votes.push({ user: req.session.user._id, selection });
     await election.save();
 
-    res.json({ message: 'Vote recorded successfully' });
+    res.json({ success: true });
+    // res.json({ message: 'Vote recorded successfully' });
 });
 
 
