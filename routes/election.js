@@ -25,11 +25,16 @@ router.post('/createElection', async (req, res) => {
         nulEndTime: new Date(nulEndTime),
         createdBy: req.session.user._id,
     });
+    election.result.state = 0;
 
     await election.save();
 
-    const job = schedule.scheduleJob(election.nulEndTime, async function () {
-        Election.tallyVotes(election.uuid);
+    schedule.scheduleJob(election.voteEndTime, async function () {
+        Election.provisionalTally(election.uuid);
+    });
+
+    schedule.scheduleJob(election.nulEndTime, async function () {
+        Election.finalTally(election.uuid);
     });
 
     res.json({ success: true });

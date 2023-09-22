@@ -29,7 +29,7 @@
 
                     <!-- 问题 -->
                     <div class="form-group">
-                        <label for="question" class="title">Organizer:</label>
+                        <label for="question" class="title">Question:</label>
                         <span id="question">
                             <%= question %>
                         </span>
@@ -77,12 +77,42 @@
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
                     <h2>Tally Information</h2>
-                    <% if ( result.computed !== true) { %>
-                        <p>No results available.</p>
+                    <% if ( result.state === 0) { %>
+                        <p>Still in the voting phase.</p>
+                    <% } else if ( result.state === 1 ) { %>
+                        <p>Provisional tally result:</p>
+                        <table border="1">
+                            <!-- 表格的第一行 -->
+                            <tr>
+                                <td>Yes</td>
+                                <td><%= result.voteCounts['Yes'] %></td>
+                            </tr>
+                            <!-- 表格的第二行 -->
+                            <tr>
+                                <td>No</td>
+                                <td><%= result.voteCounts['No'] %></td>
+                            </tr>
+                        </table>
                     <% } else { %>
-                        <!-- 在这里显示 result 的内容 -->
-                        <p>Show tally result.</p>
-                    <% } %>    
+                        <p>Final tally result:</p>
+                        <table border="1">
+                            <!-- 表格的第一行 -->
+                            <tr>
+                                <td>Yes</td>
+                                <td><%= result.voteCounts['Yes'] %></td>
+                            </tr>
+                            <!-- 表格的第二行 -->
+                            <tr>
+                                <td>No</td>
+                                <td><%= result.voteCounts['No'] %></td>
+                            </tr>
+                            <!-- 表格的第三行 -->
+                            <tr>
+                                <td>Nullification</td>
+                                <td><%= result.nullifiedVotes %></td>
+                            </tr>
+                        </table>
+                    <% } %>
                 </div>
             </div>    
         </div>
