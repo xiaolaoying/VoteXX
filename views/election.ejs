@@ -27,6 +27,14 @@
                         </span>
                     </div>
 
+                    <!-- 问题 -->
+                    <div class="form-group">
+                        <label for="question" class="title">Organizer:</label>
+                        <span id="question">
+                            <%= question %>
+                        </span>
+                    </div>
+
                     <!-- 投票开始时间 -->
                     <div class="form-group">
                         <label for="voteStartTimeInfo" class="title">Vote Start Time:</label>
@@ -64,6 +72,21 @@
                 </div>
             </div>
         </div>
+
+        <div class="container" style="margin-top: 5rem;">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <h2>Tally Information</h2>
+                    <% if ( result.computed !== true) { %>
+                        <p>No results available.</p>
+                    <% } else { %>
+                        <!-- 在这里显示 result 的内容 -->
+                        <p>Show tally result.</p>
+                    <% } %>    
+                </div>
+            </div>    
+        </div>
+       
     </div>
 
 

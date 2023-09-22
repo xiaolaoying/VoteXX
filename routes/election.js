@@ -3,6 +3,7 @@ const router = express.Router();
 const Election = require('../models/Election');
 const User = require('../models/User');
 const path = require('path');
+const schedule = require('node-schedule');
 
 router.post('/createElection', async (req, res) => {
     const { title, description, questionInput, email, voteStartTime, voteEndTime, nulEndTime } = req.body;
@@ -22,10 +23,14 @@ router.post('/createElection', async (req, res) => {
         voteStartTime: new Date(voteStartTime),  // 确保startTime和endTime是Date对象
         voteEndTime: new Date(voteEndTime),
         nulEndTime: new Date(nulEndTime),
-        createdBy: req.session.user._id
+        createdBy: req.session.user._id,
     });
 
     await election.save();
+
+    const job = schedule.scheduleJob(election.nulEndTime, async function () {
+        Election.tallyVotes(election.uuid);
+    });
 
     res.json({ success: true });
 });
@@ -46,6 +51,8 @@ router.get('/:uuid', async (req, res) => {
         voteStartTime: election.voteStartTime,
         voteEndTime: election.voteEndTime,
         nulEndTime: election.nulEndTime,
+        question: election.question,
+        result: election.result,
     };
 
     // 根据你的前端框架/库，渲染投票页面
