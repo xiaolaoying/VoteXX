@@ -63,7 +63,7 @@
                         <a href="https://eprint.iacr.org/2022/1212" class="btn btn-primary btn-3d">Preprint Research
                             Paper</a>
                     </div>
-                    <h1>Team</h1>
+                    <h1>VoteXX Team</h1>
                     <ul class="p">
                         <li><a href="https://chaum.com/">David Chaum</a>, <a href="https://carback.us/rick">Richard
                                 Carback</a>, and <a href="https://www.linkedin.com/in/myaksetig/">Mario Yaksetig</a>
@@ -77,10 +77,20 @@
                         </li>
                         <li><a href="https://homes.esat.kuleuven.be/~preneel/">Bart Preneel</a> (<a
                                 href="https://kuleuven.be/">Katholieke Universiteit</a>, Leuven, Belgium)</li>
-                        <li>Zeyuan Yin and Bingsheng Zhang (Zhejiang University, China)</li>
+                        <li><a href="https://person.zju.edu.cn/bingsheng/">Bingsheng Zhang</a> (<a
+                                href="https://www.zju.edu.cn/">Zhejiang University</a>, China)</li>
+                    </ul>
+                    <h1>Development Team</h1>
+                    <ul class="p">
+                        <li>Zeyuan Yin (<a href="https://www.zju.edu.cn/">Zhejiang University</a>, China)</li>
+                        <li>Xinting Ji (<a href="https://www.zju.edu.cn/">Zhejiang University</a>, China)</li>
+                        <li>Lekun Peng (<a href="https://www.zju.edu.cn/">Zhejiang University</a>, China)</li>
+                        <li>Leiyuan Tian (<a href="https://www.zju.edu.cn/">Zhejiang University</a>, China)</li>
+                        <li>Xiaoyuan Zhang (<a href="https://www.zju.edu.cn/">Zhejiang University</a>, China)</li>
+                        <li>Xun Zhang (<a href="https://www.zju.edu.cn/">Zhejiang University</a>, China)</li>
                     </ul>
                     <div id="TeamPhoto" class="carousel slide center-block" style="max-width: 600px;">
-                        <!-- 轮播（Carousel）指标 -->
+                        <!-- Carousel indicator-->
                         <ol class="carousel-indicators">
                             <li data-target="#TeamPhoto" data-slide-to="0" class="active"></li>
                             <li data-target="#TeamPhoto" data-slide-to="1"></li>
@@ -88,7 +98,7 @@
                             <li data-target="#TeamPhoto" data-slide-to="3"></li>
                             <li data-target="#TeamPhoto" data-slide-to="4"></li>
                         </ol>
-                        <!-- 轮播（Carousel）项目 -->
+                        <!-- Carousel item -->
                         <div class="carousel-inner">
                             <div class="item active">
                                 <img src="./img/team_1.jpg" alt="First slide">
@@ -117,7 +127,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 轮播（Carousel）导航 -->
+                        <!-- Carousel navigation -->
                         <a class="left carousel-control" href="#TeamPhoto" role="button" data-slide="prev">
                             <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
                             <span class="sr-only">Previous</span>
@@ -164,7 +174,20 @@
     <script src="BootStrap/js/bootstrap.min.js"></script>
     <script>
         $(function () {
-            $("#navtab").load("navbar.html");
+            $("#navtab").load("navbar.html", function () {
+                $.get('/checkLoginStatus', function (data) {
+                    if (data.loggedIn) {
+                        // The user has logged in, adjust the front-end display.
+                        document.getElementById("loginButton").style.display = "none";
+                        document.getElementById("userDropdown").style.display = "inline";
+                        document.getElementById("usernameDisplay").innerText = data.user.username;
+                    } else {
+                        // The user has not logged in, adjust the front-end display.
+                        document.getElementById("loginButton").style.display = "inline";
+                        document.getElementById("userDropdown").style.display = "none";
+                    }
+                });
+            });
         });
     </script>
 </body>

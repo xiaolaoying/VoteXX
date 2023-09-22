@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+    <title>Election</title>
+</head>
+
+<body>
+    <div id="content">
+        <div id="navtab"></div>
+
+        <div class="container" style="margin-top: 5rem;">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <h2>Election Information</h2>
+
+                    <!-- Organizer -->
+                    <div class="form-group">
+                        <label for="organizer" class="title">Organizer:</label>
+                        <span id="organizer">
+                            <%= organizerName %>
+                        </span>
+                    </div>
+
+                    <!-- Question -->
+                    <div class="form-group">
+                        <label for="question" class="title">Question:</label>
+                        <span id="question">
+                            <%= question %>
+                        </span>
+                    </div>
+
+                    <!-- Vote Start Time -->
+                    <div class="form-group">
+                        <label for="voteStartTimeInfo" class="title">Vote Start Time:</label>
+                        <span id="voteStartTimeInfo">
+                            <%= voteStartTime %>
+                        </span>
+                    </div>
+
+                    <!-- Vote End Time -->
+                    <div class="form-group">
+                        <label for="voteEndTimeInfo" class="title">Vote End Time:</label>
+                        <span id="voteEndTimeInfo">
+                            <%= voteEndTime %>
+                        </span>
+                    </div>
+
+                    <!-- Nullification End Time -->
+                    <div class="form-group">
+                        <label for="nulEndTimeInfo" class="title">Nullification End Time:</label>
+                        <span id="nulEndTimeInfo">
+                            <%= nulEndTime %>
+                        </span>
+                    </div>
+
+                    <!-- Verification link -->
+                    <div class="form-group">
+                        <a id="verifyLink">Click to verify the election</a>
+                    </div>
+
+                    <!-- Vote & Nullify button -->
+                    <div>
+                        <a class="btn btn-default btn-primary btn-3d" id="voteBtn">Vote</a>&nbsp;&nbsp;
+                        <a class="btn btn-default btn-danger btn-3d" id="nullifyBtn">Nullify</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container" style="margin-top: 5rem;">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <h2>Tally Information</h2>
+                    <% if ( result.state === 0) { %>
+                        <p>Still in the voting phase.</p>
+                    <% } else if ( result.state === 1 ) { %>
+                        <p>Provisional tally result:</p>
+                        <table border="1">
+                            <!-- First line -->
+                            <tr>
+                                <td>Yes</td>
+                                <td><%= result.voteCounts['Yes'] %></td>
+                            </tr>
+                            <!-- Second line -->
+                            <tr>
+                                <td>No</td>
+                                <td><%= result.voteCounts['No'] %></td>
+                            </tr>
+                        </table>
+                    <% } else { %>
+                        <p>Final tally result:</p>
+                        <table border="1">
+                            <!-- First line -->
+                            <tr>
+                                <td>Yes</td>
+                                <td><%= result.voteCounts['Yes'] %></td>
+                            </tr>
+                            <!-- Second line -->
+                            <tr>
+                                <td>No</td>
+                                <td><%= result.voteCounts['No'] %></td>
+                            </tr>
+                            <!-- Third line -->
+                            <tr>
+                                <td>Nullification</td>
+                                <td><%= result.nullifiedVotes %></td>
+                            </tr>
+                        </table>
+                    <% } %>
+                </div>
+            </div>    
+        </div>
+       
+    </div>
+
+
+    <footer id="footer">
+        <span class="glyphicon glyphicon-lock"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-globe"></span>&nbsp;&nbsp;
+        <span class="glyphicon glyphicon-check"></span>
+    </footer>
+
+    <script src="js/jquery-3.7.0.js"></script>
+    <script src="BootStrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            $("#navtab").load("navbar.html", function () {
+                $.get('/checkLoginStatus', function (data) {
+                    if (data.loggedIn) {
+                        // The user has logged in, adjust the front-end display.
+                        document.getElementById("loginButton").style.display = "none";
+                        document.getElementById("userDropdown").style.display = "inline";
+                        document.getElementById("usernameDisplay").innerText = data.user.username;
+                    } else {
+                        // The user has not logged in, adjust the front-end display.
+                        document.getElementById("loginButton").style.display = "inline";
+                        document.getElementById("userDropdown").style.display = "none";
+                    }
+                });
+            });
+        });
+
+        document.getElementById('voteBtn').addEventListener("click", function () {
+            window.location.href = window.location.pathname + "/vote";
+        });
+
+        document.getElementById('nullifyBtn').addEventListener("click", function () {
+            window.location.href = window.location.pathname + "/nullify";
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const currentURL = window.location.href;
+            document.getElementById("verifyLink").href = `${currentURL}/verify`;
+        });
+
+    </script>
+</body>
+
+</html>

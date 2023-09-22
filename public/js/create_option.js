@@ -182,14 +182,14 @@ function updateQuestionIndices(pollContainer) {
 document.getElementById("Election").addEventListener("submit", function (event) {
   event.preventDefault();
 
-  // 1. 提取表单数据
+  // 1. Extract form data
   const formData = new FormData(event.target);
   const data = {};
   formData.forEach((value, key) => {
     data[key] = value;
   });
 
-  // 2. 使用 fetch API 发送数据
+  // 2. Use fetch API to send data
   fetch('/createElection', {
     method: 'POST',
     headers: {
@@ -212,5 +212,5 @@ document.getElementById("Election").addEventListener("submit", function (event) 
 });
 
 $("#successModal").on("hidden.bs.modal", function () {
-  window.location.href = "profile.html"; // 导航到 profile.html 页面
+  window.location.href = "profile"; // Navigate to the profile page
 });

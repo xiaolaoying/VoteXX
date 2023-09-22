@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const userRoutes = require('./routes/user');
 const electionRoutes = require('./routes/election');
@@ -16,6 +17,9 @@ mongoose.connect('mongodb://localhost:27017/VoteXX_db', { useNewUrlParser: true,
 
 const app = express();
 const PORT = 3000;
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));  // 假设你的EJS模板都放在'views'目录下
 
 // 使用body-parser来解析JSON请求
 app.use(bodyParser.json());

@@ -27,8 +27,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="inner-content vertical-center">
-                            <button form="Nullification" class="btn btn-danger btn-larger btn-3d"
-                                id="nullifyBtn">Nullify</button>
+                            <button class="btn btn-danger btn-larger btn-3d" id="nullifyBtn">Nullify</button>
                         </div>
                     </div>
                 </div>
@@ -40,28 +39,36 @@
                 <div class="col-md-10 col-md-push-1 container-form">
                     <h2>Election Information</h2>
 
-                    <!-- 组织者 -->
+                    <!-- Organizer -->
                     <div class="form-group">
                         <label for="organizer" class="title">Organizer:</label>
-                        <span id="organizer">Organizer Name</span>
+                        <span id="organizer">
+                            <%= organizerName %>
+                        </span>
                     </div>
 
-                    <!-- 开始时间 -->
+                    <!-- Vote Start Time -->
                     <div class="form-group">
-                        <label for="startTimeInfo" class="title">Start Time:</label>
-                        <span id="startTimeInfo">2023-01-01 00:00</span>
+                        <label for="voteStartTimeInfo" class="title">Vote Start Time:</label>
+                        <span id="voteStartTimeInfo">
+                            <%= voteStartTime %>
+                        </span>
                     </div>
 
-                    <!-- 结束时间 -->
+                    <!-- Vote End Time -->
                     <div class="form-group">
-                        <label for="endTimeInfo" class="title">End Time:</label>
-                        <span id="endTimeInfo">2023-12-31 23:59</span>
+                        <label for="voteEndTimeInfo" class="title">Vote End Time:</label>
+                        <span id="voteEndTimeInfo">
+                            <%= voteEndTime %>
+                        </span>
                     </div>
 
-                    <!-- Bulletin Board 链接 -->
+                    <!-- Nullification End Time -->
                     <div class="form-group">
-                        <label for="bulletinLink" class="title">Bulletin Board:</label>
-                        <a href="#" id="bulletinLink">Click to view Bulletin Board</a>
+                        <label for="nulEndTimeInfo" class="title">Nullification End Time:</label>
+                        <span id="nulEndTimeInfo">
+                            <%= nulEndTime %>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -72,6 +79,9 @@
                 <div class="col-md-10 col-md-push-1 container-form">
                     <form action="#" id="Nullification">
                         <div class="form-group">
+                            <h3>
+                                <%= question %>
+                            </h3>
                             <label for="secretKey" class="title">Enter Secret Key:</label>
                             <input type="text" class="form-control" id="secretKey" placeholder="Enter secret key">
                         </div>
@@ -90,7 +100,7 @@
                         </button>
                     </div>
                     <div class="modal-body" id="modalMessage">
-                        <!-- 这里是模态框的消息内容，使用js -->
+                        <!-- Here is the message content for the modal dialog, using JS  -->
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -113,7 +123,20 @@
     <script src="js/nullification.js"></script>
     <script>
         $(function () {
-            $("#navtab").load("navbar.html");
+            $("#navtab").load("navbar.html", function () {
+                $.get('/checkLoginStatus', function (data) {
+                    if (data.loggedIn) {
+                        // The user has logged in, adjust the front-end display.
+                        document.getElementById("loginButton").style.display = "none";
+                        document.getElementById("userDropdown").style.display = "inline";
+                        document.getElementById("usernameDisplay").innerText = data.user.username;
+                    } else {
+                        // The user has not logged in, adjust the front-end display.
+                        document.getElementById("loginButton").style.display = "inline";
+                        document.getElementById("userDropdown").style.display = "none";
+                    }
+                });
+            });
         });
     </script>
 </body>
