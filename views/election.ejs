@@ -19,7 +19,7 @@
                 <div class="col-md-10 col-md-push-1 container-form">
                     <h2>Election Information</h2>
 
-                    <!-- 组织者 -->
+                    <!-- Organizer -->
                     <div class="form-group">
                         <label for="organizer" class="title">Organizer:</label>
                         <span id="organizer">
@@ -27,7 +27,7 @@
                         </span>
                     </div>
 
-                    <!-- 问题 -->
+                    <!-- Question -->
                     <div class="form-group">
                         <label for="question" class="title">Question:</label>
                         <span id="question">
@@ -35,7 +35,7 @@
                         </span>
                     </div>
 
-                    <!-- 投票开始时间 -->
+                    <!-- Vote Start Time -->
                     <div class="form-group">
                         <label for="voteStartTimeInfo" class="title">Vote Start Time:</label>
                         <span id="voteStartTimeInfo">
@@ -43,7 +43,7 @@
                         </span>
                     </div>
 
-                    <!-- 投票结束时间 -->
+                    <!-- Vote End Time -->
                     <div class="form-group">
                         <label for="voteEndTimeInfo" class="title">Vote End Time:</label>
                         <span id="voteEndTimeInfo">
@@ -51,7 +51,7 @@
                         </span>
                     </div>
 
-                    <!-- nullification结束时间 -->
+                    <!-- Nullification End Time -->
                     <div class="form-group">
                         <label for="nulEndTimeInfo" class="title">Nullification End Time:</label>
                         <span id="nulEndTimeInfo">
@@ -59,12 +59,12 @@
                         </span>
                     </div>
 
-                    <!-- Verify 链接 -->
+                    <!-- Verification link -->
                     <div class="form-group">
                         <a id="verifyLink">Click to verify the election</a>
                     </div>
 
-                    <!-- 投票和nullify按钮 -->
+                    <!-- Vote & Nullify button -->
                     <div>
                         <a class="btn btn-default btn-primary btn-3d" id="voteBtn">Vote</a>&nbsp;&nbsp;
                         <a class="btn btn-default btn-danger btn-3d" id="nullifyBtn">Nullify</a>
@@ -82,12 +82,12 @@
                     <% } else if ( result.state === 1 ) { %>
                         <p>Provisional tally result:</p>
                         <table border="1">
-                            <!-- 表格的第一行 -->
+                            <!-- First line -->
                             <tr>
                                 <td>Yes</td>
                                 <td><%= result.voteCounts['Yes'] %></td>
                             </tr>
-                            <!-- 表格的第二行 -->
+                            <!-- Second line -->
                             <tr>
                                 <td>No</td>
                                 <td><%= result.voteCounts['No'] %></td>
@@ -96,17 +96,17 @@
                     <% } else { %>
                         <p>Final tally result:</p>
                         <table border="1">
-                            <!-- 表格的第一行 -->
+                            <!-- First line -->
                             <tr>
                                 <td>Yes</td>
                                 <td><%= result.voteCounts['Yes'] %></td>
                             </tr>
-                            <!-- 表格的第二行 -->
+                            <!-- Second line -->
                             <tr>
                                 <td>No</td>
                                 <td><%= result.voteCounts['No'] %></td>
                             </tr>
-                            <!-- 表格的第三行 -->
+                            <!-- Third line -->
                             <tr>
                                 <td>Nullification</td>
                                 <td><%= result.nullifiedVotes %></td>
@@ -133,13 +133,12 @@
             $("#navtab").load("navbar.html", function () {
                 $.get('/checkLoginStatus', function (data) {
                     if (data.loggedIn) {
-                        // 用户已登录，调整前端显示
+                        // The user has logged in, adjust the front-end display.
                         document.getElementById("loginButton").style.display = "none";
                         document.getElementById("userDropdown").style.display = "inline";
-                        // $("#loginModal").modal("hide");
                         document.getElementById("usernameDisplay").innerText = data.user.username;
                     } else {
-                        // 用户未登录，调整前端显示
+                        // The user has not logged in, adjust the front-end display.
                         document.getElementById("loginButton").style.display = "inline";
                         document.getElementById("userDropdown").style.display = "none";
                     }

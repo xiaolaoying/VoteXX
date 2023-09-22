@@ -38,7 +38,7 @@
                 <div class="col-md-10 col-md-push-1 container-form">
                     <h2>Election Information</h2>
 
-                    <!-- 组织者 -->
+                    <!-- Organizer -->
                     <div class="form-group">
                         <label for="organizer" class="title">Organizer:</label>
                         <span id="organizer">
@@ -46,7 +46,7 @@
                         </span>
                     </div>
 
-                    <!-- 投票开始时间 -->
+                    <!-- Vote Start Time -->
                     <div class="form-group">
                         <label for="voteStartTimeInfo" class="title">Vote Start Time:</label>
                         <span id="voteStartTimeInfo">
@@ -54,7 +54,7 @@
                         </span>
                     </div>
 
-                    <!-- 投票结束时间 -->
+                    <!-- Vote End Time -->
                     <div class="form-group">
                         <label for="voteEndTimeInfo" class="title">Vote End Time:</label>
                         <span id="voteEndTimeInfo">
@@ -62,7 +62,7 @@
                         </span>
                     </div>
 
-                    <!-- nullification结束时间 -->
+                    <!-- Nullification End Time -->
                     <div class="form-group">
                         <label for="nulEndTimeInfo" class="title">Nullification End Time:</label>
                         <span id="nulEndTimeInfo">
@@ -96,7 +96,7 @@
             </div>
         </div>
 
-        <!-- 消息 -->
+        <!-- Success modal -->
         <div id="successModal" class="modal fade" role="dialog">
             <div class="modal-dialog">
 
@@ -144,17 +144,15 @@
 
         document.getElementById("voteform").addEventListener("submit", function (event) {
             event.preventDefault();
-            // 在这里你可以添加实际的表单提交代码
 
-            // 1. 提取表单数据
+            // 1. Extract form data
             const formData = new FormData(event.target);
             const data = {};
             formData.forEach((value, key) => {
                 data[key] = value;
             });
-            // console.log(data);
 
-            // 2. 使用 fetch API 发送数据
+            // 2. Use fetch API to send data
             fetch(window.location.href, {
                 method: 'POST',
                 headers: {
@@ -182,13 +180,12 @@
             $("#navtab").load("navbar.html", function () {
                 $.get('/checkLoginStatus', function (data) {
                     if (data.loggedIn) {
-                        // 用户已登录，调整前端显示
+                        // The user has logged in, adjust the front-end display.
                         document.getElementById("loginButton").style.display = "none";
                         document.getElementById("userDropdown").style.display = "inline";
-                        // $("#loginModal").modal("hide");
                         document.getElementById("usernameDisplay").innerText = data.user.username;
                     } else {
-                        // 用户未登录，调整前端显示
+                        // The user has not logged in, adjust the front-end display.
                         document.getElementById("loginButton").style.display = "inline";
                         document.getElementById("userDropdown").style.display = "none";
                     }

@@ -30,7 +30,6 @@ const electionSchema = new mongoose.Schema({
 });
 
 electionSchema.statics.provisionalTally = async function(uuid) {
-    console.log('provisionalTally');
     const Election = mongoose.model('Election');  // 导入 Election 模型
 
     // 从数据库中找到相应的选举
@@ -66,7 +65,6 @@ electionSchema.statics.provisionalTally = async function(uuid) {
 }
 
 electionSchema.statics.finalTally = async function(uuid) {
-    console.log('finalTally');
     const Election = mongoose.model('Election');  // 导入 Election 模型
 
     // 从数据库中找到相应的选举

@@ -21,7 +21,7 @@
 
                     <div class="row">
                         <div class="col-md-8">
-                            <h3 class="mt-4">Administration</h3>
+                            <h3 class="mt-4">Created elections:</h3>
                         </div>
                         <div class="col-md-4">
                             <a href="create_election.html" class="btn btn-primary pull-right btn-3d">Create Election</a>
@@ -54,13 +54,12 @@
             $("#navtab").load("navbar.html", function () {
                 $.get('/checkLoginStatus', function (data) {
                     if (data.loggedIn) {
-                        // 用户已登录，调整前端显示
+                        // The user has logged in, adjust the front-end display.
                         document.getElementById("loginButton").style.display = "none";
                         document.getElementById("userDropdown").style.display = "inline";
-                        // $("#loginModal").modal("hide");
                         document.getElementById("usernameDisplay").innerText = data.user.username;
                     } else {
-                        // 用户未登录，调整前端显示
+                        // The user has not logged in, adjust the front-end display.
                         document.getElementById("loginButton").style.display = "inline";
                         document.getElementById("userDropdown").style.display = "none";
                     }

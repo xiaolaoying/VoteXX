@@ -15,7 +15,7 @@ $(document).ready(function () {
           $("#modalMessage").text("Nullification success!");
           $("#myModal").modal("show");
           $("#myModal").on("hidden.bs.modal", function () {
-            window.location.href = "profile.html"; // 导航到profile.html
+            window.location.href = "profile"; // 导航到profile.html
           });
         } else {
           alert("Error: " + data.message);
