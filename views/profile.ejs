@@ -27,10 +27,13 @@
                             <a href="create_election.html" class="btn btn-primary pull-right btn-3d">Create Election</a>
                         </div>
                     </div>
+
                     <ul id="Administration">
-                        <li><a href="#" draggable="false">Election 1</a></li>
-                        <li><a href="#" draggable="false">Election 2</a></li>
+                        <% elections.forEach(function(election) { %>
+                            <li><a href="<%= election.uuid %>" draggable="false"><%= election.title %></a></li>
+                        <% }); %>
                     </ul>
+
                 </div>
             </div>
         </div>

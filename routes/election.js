@@ -8,6 +8,15 @@ const schedule = require('node-schedule');
 router.post('/createElection', async (req, res) => {
     const { title, description, questionInput, email, voteStartTime, voteEndTime, nulEndTime } = req.body;
 
+    const start = new Date(voteStartTime);
+    const end = new Date(voteEndTime);
+    const nulEnd = new Date(nulEndTime);
+
+    // 时间验证
+    if (start >= end || end >= nulEnd) {
+        return res.status(400).json({ message: 'Invalid time settings. Make sure voteStartTime < voteEndTime < nullificationEndTime' });
+    }
+
     // 检查是否存在相同的选举标题 (可根据需要修改或删除此检查)
     const existingElection = await Election.findOne({ title });
 
@@ -24,8 +33,8 @@ router.post('/createElection', async (req, res) => {
         voteEndTime: new Date(voteEndTime),
         nulEndTime: new Date(nulEndTime),
         createdBy: req.session.user._id,
+        result: { state: 0 }
     });
-    election.result.state = 0;
 
     await election.save();
 
@@ -120,6 +129,14 @@ router.post('/:uuid/vote', async (req, res) => {
         return res.status(404).json({ message: 'Election not found' });
     }
 
+    // 获取当前时间
+    const now = new Date();
+
+    // 判断当前时间是否在voteStartTime和voteEndTime之间
+    if (now < election.voteStartTime || now > election.voteEndTime) {
+        return res.status(400).json({ message: 'It is not the voting time for this election.' });
+    }
+
     const userVote = election.votes.find(vote => String(vote.user) === String(req.session.user._id));
     if (userVote) {
         return res.status(400).json({ message: 'You have already voted for this election.' });
@@ -139,6 +156,14 @@ router.post('/:uuid/nullify', async (req, res) => {
     const election = await Election.findOne({ uuid });
     if (!election) {
         return res.status(404).json({ message: 'Election not found' });
+    }
+
+    // 获取当前时间
+    const now = new Date();
+
+    // 判断当前时间是否在voteEndTime和nulEndTime之间
+    if (now < election.voteEndTime || now > election.nulEndTime) {
+        return res.status(400).json({ message: 'It is not the nullification time for this election.' });
     }
 
     const userVote = election.nullification.find(nul => String(nul.user) === String(req.session.user._id));

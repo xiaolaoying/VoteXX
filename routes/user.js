@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Election = require('../models/Election');
 const bcrypt = require('bcrypt');
 
 router.get('/checkLoginStatus', (req, res) => {
@@ -29,7 +30,6 @@ router.post('/register', async (req, res) => {
     res.json({ message: 'User registered successfully' });
 });
 
-
 // 用户登录
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -51,5 +51,19 @@ router.post('/logout', (req, res) => {
     req.session.destroy();
     res.json({ message: 'Logout successful' });
 });
+
+router.get('/profile', async (req, res) => {
+    // 确认用户已登录
+    if (!req.session.user) {
+        return res.status(400).json({ message: 'You are not logged in.' });
+    }
+    
+    // 使用当前登录用户的ID查找选举
+    const elections = await Election.find({ createdBy: req.session.user._id });
+    
+    // 传递找到的选举给前端模板
+    res.render('profile', { elections });
+});
+
 
 module.exports = router;
