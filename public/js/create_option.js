@@ -1,31 +1,31 @@
-// 添加一个新的问题到投票容器中
+// Add a new question to the poll container
 function addQuestionField() {
   const pollContainer = document.getElementById("pollContainer");
 
-  // 获取当前的问题数量，以设置新问题的序号
+  // Get the current number of questions to set the new question's index
   const questionNumber =
     pollContainer.getElementsByClassName("questionDiv").length + 1;
 
-  // 创建新问题的容器
+  // Create a new container for the question
   const questionDiv = document.createElement("div");
   questionDiv.className = "questionDiv";
 
-  // 创建并设置问题的序号标签
+  // Create and set the label for the question index
   const questionLabel = document.createElement("span");
   questionLabel.textContent = questionNumber + ". ";
   questionDiv.appendChild(questionLabel);
 
-  // 使用Bootstrap的网格系统创建一个行容器
+  // Create a row container using Bootstrap's grid system
   const rowDiv = document.createElement("div");
   rowDiv.className = "row input-spacing";
   questionDiv.appendChild(rowDiv);
 
-  // 创建一个列容器来放置问题类型选择框
+  // Create a column container to hold the question type dropdown
   const questionTypeCol = document.createElement("div");
   questionTypeCol.className = "col-md-3";
   rowDiv.appendChild(questionTypeCol);
 
-  // 创建问题类型选择下拉框
+  // Create a dropdown for question types
   const questionTypeSelect = document.createElement("select");
   questionTypeSelect.className = "form-control";
   const types = ["Single Choice", "Multiple Choice", "Ranking", "Yes-No"];
@@ -37,24 +37,24 @@ function addQuestionField() {
   });
   questionTypeCol.appendChild(questionTypeSelect);
 
-  // 创建一个列容器来放置问题输入框
+  // Create a column container to hold the question input box
   const questionInputCol = document.createElement("div");
   questionInputCol.className = "col-md-9";
   rowDiv.appendChild(questionInputCol);
 
-  // 创建问题输入框组
+  // Create an input group for the question
   const questionInputGroup = document.createElement("div");
   questionInputGroup.className = "input-group input-spacing";
   questionInputCol.appendChild(questionInputGroup);
 
-  // 创建并设置问题输入框
+  // Create and set the question input box
   const questionInput = document.createElement("input");
   questionInput.type = "text";
   questionInput.className = "form-control";
   questionInput.placeholder = "Enter question";
   questionInputGroup.appendChild(questionInput);
 
-  // 创建删除问题的按钮
+  // Create the button to delete the question
   const deleteButtonSpan = document.createElement("span");
   deleteButtonSpan.className = "input-group-btn";
   questionInputGroup.appendChild(deleteButtonSpan);
@@ -64,84 +64,84 @@ function addQuestionField() {
   deleteQuestionButton.textContent = "Delete Question";
   deleteQuestionButton.onclick = function () {
     pollContainer.removeChild(questionDiv);
-    updateQuestionIndices(pollContainer); // 更新其他问题的序号
+    updateQuestionIndices(pollContainer); // Update indices for other questions
   };
   deleteButtonSpan.appendChild(deleteQuestionButton);
 
-  // 创建选项列表容器
+  // Create the option list container
   const optionList = document.createElement("div");
   questionDiv.appendChild(optionList);
 
-  // 创建添加选项的按钮
+  // Create the button to add options
   const addOptionButton = document.createElement("button");
   addOptionButton.type = "button";
   addOptionButton.className = "btn btn-secondary input-spacing";
   addOptionButton.textContent = "Add Option";
   addOptionButton.onclick = function () {
-    addOptionField(optionList); // 添加新选项到列表
+    addOptionField(optionList); // Add a new option to the list
   };
   questionDiv.appendChild(addOptionButton);
 
-  // 监听questionTypeSelect的改变事件
+  // Listen for changes on questionTypeSelect
   questionTypeSelect.addEventListener("change", function () {
-    // 根据选择的类型来决定是否显示添加选项按钮
+    // Decide whether to show or hide the Add Option button based on the selected type
     if (questionTypeSelect.value === "Yes-No") {
-      addOptionButton.style.display = "none"; // 隐藏按钮
+      addOptionButton.style.display = "none"; // Hide the button
     } else {
-      addOptionButton.style.display = "block"; // 显示按钮
+      addOptionButton.style.display = "block"; // Show the button
     }
   });
 
-  // 初始设置，以确保在创建问题时按钮处于正确的状态
+  // Initial setup to make sure the button is in the correct state when the question is created
   if (questionTypeSelect.value === "Yes-No") {
     addOptionButton.style.display = "none";
   } else {
     addOptionButton.style.display = "block";
   }
 
-  // 将问题容器添加到主容器中
+  // Add the question container to the main container
   pollContainer.appendChild(questionDiv);
 }
 
-// 添加新选项到指定的选项列表中
+// Add a new option to the specified option list
 function addOptionField(optionList) {
   const optionDiv = document.createElement("div");
   optionDiv.className = "input-group input-spacing";
 
-  // 创建序号span
+  // Create index span
   const indexSpan = document.createElement("span");
-  indexSpan.className = "input-group-addon"; // Bootstrap 3 使用 input-group-addon
+  indexSpan.className = "input-group-addon"; // Bootstrap 3 uses input-group-addon
   optionDiv.appendChild(indexSpan);
 
-  // 创建选项输入框
+  // Create the option input field
   const optionInput = document.createElement("input");
   optionInput.type = "text";
   optionInput.className = "form-control";
   optionInput.placeholder = "Enter option";
   optionDiv.appendChild(optionInput);
 
-  // 创建删除选项按钮的容器
+  // Create a container for the delete option button
   const deleteButtonSpan = document.createElement("span");
-  deleteButtonSpan.className = "input-group-btn"; // Bootstrap 3 使用 input-group-btn
+  deleteButtonSpan.className = "input-group-btn"; // Bootstrap 3 uses input-group-btn
   optionDiv.appendChild(deleteButtonSpan);
 
-  // 创建删除选项按钮
+  // Create the delete option button
   const deleteButton = document.createElement("button");
   deleteButton.className = "btn btn-danger";
   deleteButton.textContent = "Delete";
   deleteButton.onclick = function () {
     optionList.removeChild(optionDiv);
-    updateOptionIndices(optionList);
+    updateOptionIndices(optionList); // Update the indices of the options
   };
-  deleteButtonSpan.appendChild(deleteButton); // 将按钮添加到其容器中
+  deleteButtonSpan.appendChild(deleteButton); // Add the button to its container
 
   optionList.appendChild(optionDiv);
 
-  // 更新选项序号
+  // Update the option indices
   updateOptionIndices(optionList);
 }
 
-//更新选项序号
+// Update the indices of the options
 function updateOptionIndices(optionList) {
   const questionDiv = optionList.parentElement;
   const pollContainer = document.getElementById("pollContainer");
@@ -162,17 +162,17 @@ function updateOptionIndices(optionList) {
   }
 }
 
-//更新问题序号
+// Update the indices of the questions
 function updateQuestionIndices(pollContainer) {
   const questions = pollContainer.getElementsByClassName("questionDiv");
   for (let i = 0; i < questions.length; i++) {
-    // 更新问题的序号
+    // Update the index of the question
     const questionLabel = questions[i].getElementsByTagName("span")[0];
     questionLabel.textContent = i + 1 + ". ";
 
-    // 更新该问题下的所有选项的序号
+    // Update the indices of all options under this question
     const optionList = questions[i].lastElementChild.previousElementSibling;
-    // 根据当前的 DOM 结构，optionList 应该是 questionDiv 的最后一个子元素的前一个子元素
+    // Based on the current DOM structure, optionList should be the element just before the last child of questionDiv
     if (optionList) {
       updateOptionIndices(optionList);
     }

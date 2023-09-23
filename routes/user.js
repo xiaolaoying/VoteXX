@@ -12,7 +12,7 @@ router.get('/checkLoginStatus', (req, res) => {
     }
 });
 
-// 注册用户
+// Register
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
 
@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
     res.json({ message: 'User registered successfully' });
 });
 
-// 用户登录
+// Login
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
@@ -40,28 +40,28 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ message: 'Invalid username or password' });
     }
 
-    // 将用户的 _id 和 username 存储在会话中
+    // Store the user's _id and username in the session
     req.session.user = { _id: user._id, username: user.username };
 
     res.json({ message: 'Login successful', user: req.session.user });
 });
 
-// 用户登出
+// Logout
 router.post('/logout', (req, res) => {
     req.session.destroy();
     res.json({ message: 'Logout successful' });
 });
 
 router.get('/profile', async (req, res) => {
-    // 确认用户已登录
+    // Confirm that the user is logged in
     if (!req.session.user) {
         return res.status(400).json({ message: 'You are not logged in.' });
     }
     
-    // 使用当前登录用户的ID查找选举
+    // Find the elections created by the currently user
     const elections = await Election.find({ createdBy: req.session.user._id });
     
-    // 传递找到的选举给前端模板
+    // Pass the found elections to the frontend template
     res.render('profile', { elections });
 });
 

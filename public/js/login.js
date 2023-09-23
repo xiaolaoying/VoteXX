@@ -1,4 +1,4 @@
-// 使用 Fetch API 发送 POST 请求实现登出
+// Use the Fetch API to send a POST request to log out
 function logout() {
   fetch('/logout', {
       method: 'POST'
@@ -23,9 +23,9 @@ $(document).ready(function () {
       var userID = $("#userID").val();
       var userPassword = $("#userPassword").val();
 
-      // 检查用户ID和密码是否输入
+      // Check if the user ID and password are entered
       if (userID && userPassword) {
-        // 发送AJAX请求到后端登录端点
+        // Send an AJAX request to the backend login endpoint
         $.ajax({
           url: '/login',
           type: 'POST',
@@ -35,7 +35,7 @@ $(document).ready(function () {
             password: userPassword
           }),
           success: function (response) {
-            // 登录成功的处理
+            // Handling for successful login
             document.getElementById("loginButton").style.display = "none";
             document.getElementById("userDropdown").style.display = "inline";
             $("#loginModal").modal("hide");
@@ -52,7 +52,7 @@ $(document).ready(function () {
   });
 
 
-  // 显示注册页面
+  // Show the registration modal
   $("#showRegisterModal").on("click", function (e) {
     e.preventDefault();
 
@@ -79,10 +79,10 @@ $(document).ready(function () {
           password: registeredPassword
         }),
         success: function (response) {
-          // 关闭窗口
+          // Close the window
           $("#registerModal").modal("hide");
 
-          // 显示成功消息
+          // Display a success message
           alert("Registration success!");
         },
         error: function (xhr, status, error) {

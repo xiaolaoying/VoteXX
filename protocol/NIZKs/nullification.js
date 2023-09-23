@@ -541,7 +541,7 @@ NullificationNIZK.prototype.SecondMove = function(firstMoveData, ch, witness) {
 }
 
 /**
- * 计算commitment和response
+ * Compute commitment and response
  * @param {Witness} witness 
  * @returns {Proof}
  */
@@ -665,7 +665,7 @@ NullificationNIZK.prototype.condition2 = function(proof, cx) {
 }
 
 /**
- * 计算求乘f_{j,i_j}
+ * Compute production of f_{j,i_j}
  * @param {number} position 
  * @param {[BN]} z 
  * @param {BN} x 
@@ -791,7 +791,7 @@ NullificationNIZK.prototype.condition5 = function(proof, cx) {
 }
 
 /**
- * 验证
+ * Verify
  * @param {Proof} proof 
  * @returns {Boolean}
  */

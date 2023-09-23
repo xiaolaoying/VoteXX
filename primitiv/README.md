@@ -5,7 +5,7 @@ npm install
 node primitiv/example.js
 ```
 
-# 数字签名
+# Signature
 ```javascript
 const keyPair = ec.genKeyPair();
 const privateKey = ec.keyFromPrivate(keyPair.getPrivate());
@@ -19,7 +19,7 @@ console.log('Signature:', signature.toDER('hex'));
 console.log('Is Valid Signature?', isValid);
 ```
 
-# SHA256哈希用法
+# SHA256 hash
 ```javascript
 var SHA256 = require('crypto-js/sha256');
 var message = 'hello world';
@@ -27,40 +27,38 @@ var hash = SHA256(message);
 console.log(hash.toString());
 ```
 
-# Elgamal加密用法
+# Elgamal Encryption
 
-1. 导入模块
+1. Import the modules
 
 ```javascript
-// 导入加密模块
+// Import the encryption module
 var {LiftedElgamalEnc} = require('../primitiv/encryption/ElgamalEncryption');
 var ec = require('../primitiv/ec/ec');
 var BN = require('bn.js');
 ```
 
-2. 生成密钥
+2. Generate keypair
 
 ```javascript
-// 获取密钥
+// Generate the key pair
 var key = ec.genKeyPair();
 var pubKey = key.getPublic();
 var privKey = key.getPrivate();
 ```
 
-3. 调用加密
+3. Invoke encryption
 
 ```javascript
 var cipher = LiftedElgamalEnc.encrypt(pubKey, msg, ec.curve, ec);
 var plaintext = LiftedElgamalEnc.decrypt(privKey, cipher[0], ec.curve);
 ```
 
-如果这里使用不带随机数的接口，返回的结果是\[密文， 随机数\]，否则直接返回密文。返回随机数时解密需要使用`cipher[0]`进行解密。
+If the interface used here does not include a random number, the result returned is [ciphertext, random number]; otherwise, it directly returns the ciphertext. When a random number is returned, decryption needs to use cipher[0] for decryption.
 
 # NullificationNIZK
 
-其实就是example里面的东西
-
-1. 导入模块
+1. Import the modules
 
 ```javascript
 var ec = require('../primitiv/ec/ec');
@@ -69,7 +67,7 @@ var BN = require('bn.js');
 var {Statement, Witness, NullificationNIZK} = require('../protocol/NIZKs/nullification');
 ```
 
-2. 生成随机初始数据
+2. Generate random initialization data
 
 ```javascript
 var listSizeLog = 7;
@@ -102,7 +100,7 @@ for (let i = 0; i < listSize; i++) {
 }
 ```
 
-3. prove和verify
+3. Prove and verify
 
 ```javascript
 var st = new Statement(keyPair.getPublic(), pks, cts);
