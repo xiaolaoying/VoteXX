@@ -1,8 +1,8 @@
 $(document).ready(function () {
   $("#nullifyBtn").on("click", function () {
-    var secretKey = $("#secretKey").val(); // 获取secretKey输入字段的值
+    var secretKey = $("#secretKey").val(); // Retrieve the value of the 'secretKey' input field
 
-    // 使用 fetch API 发送数据
+    // Use the Fetch API to send data
     fetch(window.location.href, {
       method: 'POST',
       headers: {
@@ -15,7 +15,7 @@ $(document).ready(function () {
           $("#modalMessage").text("Nullification success!");
           $("#myModal").modal("show");
           $("#myModal").on("hidden.bs.modal", function () {
-            window.location.href = "profile"; // 导航到profile.html
+            window.location.href = "profile"; // Navigate to profile
           });
         } else {
           alert("Error: " + data.message);
