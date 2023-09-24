@@ -122,6 +122,19 @@ router.get('/:uuid/nullify', async (req, res) => {
     res.render('nullification', data);
 });
 
+router.post('/:uuid/register', async (req, res) => {
+    const { publicKey1, publicKey2 } = req.body;
+
+    if (!global.elections[req.params.uuid].BB.pks) {
+        global.elections[req.params.uuid].BB.pks = [{ publicKey1, publicKey2 }];
+    } else {
+        global.elections[req.params.uuid].BB.pks.push({ publicKey1, publicKey2 });
+    }
+
+    // Send a success response
+    res.json({ success: true });
+});
+
 router.post('/:uuid/vote', async (req, res) => {
     const { uuid } = req.params;
     const selection = req.body.question;
