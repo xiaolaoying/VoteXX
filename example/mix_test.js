@@ -6,7 +6,7 @@
 function Party(id, ec, generatorH) {
   this.ec = ec;
   this.id = id;
-  this.generatorH = generatorH;
+  this.generatorH = generatorH; // Pedersen commitment key
   this.dkg = null;
   this.distributeDecryptor = null;
   this.pet = null;

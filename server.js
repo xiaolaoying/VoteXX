@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const mongoose = require('mongoose');
 const path = require('path');
-const initTrustee = require('./services/TrusteeService');
 
 const userRoutes = require('./routes/user');
 const electionRoutes = require('./routes/election');
@@ -11,17 +10,12 @@ const electionRoutes = require('./routes/election');
 mongoose.connect('mongodb://localhost:27017/VoteXX_db', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(async () => {
         console.log('Connected to MongoDB');
-        // Initialize trustees
-        try {
-            await initTrustee();
-            console.log("Trustees have been initialized and saved to the database.");
-        } catch (err) {
-            console.error("Error initializing trustees:", err);
-        }
     })
     .catch(err => {
         console.error('Error connecting to MongoDB', err);
     });
+
+global.elections = {};
 
 const app = express();
 const PORT = 3000;

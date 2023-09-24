@@ -4,6 +4,7 @@ const Election = require('../models/Election');
 const User = require('../models/User');
 const path = require('path');
 const schedule = require('node-schedule');
+const setup = require('../services/TrusteeService');
 
 router.post('/createElection', async (req, res) => {
     const { title, description, questionInput, email, voteStartTime, voteEndTime, nulEndTime } = req.body;
@@ -37,6 +38,8 @@ router.post('/createElection', async (req, res) => {
     });
 
     await election.save();
+
+    setup(election.uuid);
 
     schedule.scheduleJob(election.voteEndTime, async function () {
         Election.provisionalTally(election.uuid);

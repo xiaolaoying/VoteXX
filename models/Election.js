@@ -11,8 +11,6 @@ const electionSchema = new mongoose.Schema({
     voteEndTime: { type: Date, required: true },
     nulEndTime: { type: Date, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },  // can be used to associate the user who created the election
-    ppk: [ { yi: Object, proof: Object } ],
-    publicKey: Object,
     votes: [
         {
             user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
