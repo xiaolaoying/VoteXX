@@ -1,7 +1,7 @@
 var ec = require('../primitiv/ec/ec');
-var {LiftedElgamalEnc} = require('../primitiv/encryption/ElgamalEncryption');
+var { LiftedElgamalEnc } = require('../primitiv/encryption/ElgamalEncryption');
 var BN = require('bn.js');
-var {Statement, Witness, NullificationNIZK} = require('../protocol/NIZKs/nullification');
+var { Statement, Witness, NullificationNIZK } = require('../protocol/NIZKs/nullification');
 
 var listSizeLog = 7;
 var listSize = Math.pow(2, listSizeLog);

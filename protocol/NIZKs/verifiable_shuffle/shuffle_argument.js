@@ -2,14 +2,14 @@
 const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
-const {KeyPair, Ciphertext} = require('../../../primitiv/encryption/ElgamalEncryption.js');
-const {PublicKey, Commitment} = require('../../../primitiv/commitment/pedersen_commitment.js');
+const { KeyPair, Ciphertext } = require('../../../primitiv/encryption/ElgamalEncryption.js');
+const { PublicKey, Commitment } = require('../../../primitiv/Commitment/pedersen_commitment.js');
 
 const computechallenge = require('../../../primitiv/hash/hash_function.js');
-const {BallotBundle, VoteVector} = require('../../../primitiv/ballots/ballot_structure.js');
+const { BallotBundle, VoteVector } = require('../../../primitiv/ballots/ballot_structure.js');
 
-const {MultiExponantiation} = require('./multi_exponantiation_argument.js');
-const {ProductArgument} = require('./product_argument.js');
+const { MultiExponantiation } = require('./multi_exponantiation_argument.js');
+const { ProductArgument } = require('./product_argument.js');
 
 class ShuffleArgument {
     /**
@@ -22,11 +22,11 @@ class ShuffleArgument {
      */
 
     constructor(
-        com_pk, 
-        pk, 
-        ciphertexts, 
-        shuffled_ciphertexts, 
-        permutation, 
+        com_pk,
+        pk,
+        ciphertexts,
+        shuffled_ciphertexts,
+        permutation,
         randomizers
     ) {
         this.order = com_pk.order;
@@ -36,7 +36,7 @@ class ShuffleArgument {
         } catch (error) {
             throw new ValueError("Must reshape ciphertext list to shape m*n. Use functions prepare_ctxts and reshape_m_n.");
         }
-        
+
         if (this.n !== com_pk.n) {
             throw new RuntimeError(`Incorrect length of commitment key length. Input ${com_pk.n} expected ${this.n}`);
         }
@@ -159,8 +159,8 @@ class ShuffleArgument {
             challenge_powers.push(this.challenge1.pow(new BN(i)).mod(this.order));
         }
         let ciphertexts_concat = [];
-        for(let i = 0; i < ciphertexts.length; i++){
-            for(let j = 0; j < ciphertexts[0].length; j++){
+        for (let i = 0; i < ciphertexts.length; i++) {
+            for (let j = 0; j < ciphertexts[0].length; j++) {
                 ciphertexts_concat.push(ciphertexts[i][j]);
             }
         }
@@ -182,11 +182,11 @@ class ShuffleArgument {
     }
 
     verify(
-        com_pk, 
-        pk, 
-        ciphertexts, 
+        com_pk,
+        pk,
+        ciphertexts,
         shuffled_ciphertexts
-    ){
+    ) {
         /* Shuffle Argument
         Example:
             const m = 3;
@@ -260,7 +260,7 @@ class ShuffleArgument {
         }
 
         let commitment_A = commitment_D.map((comm, i) => comm.mul(commitment_neg_challenge3[i]));
-           
+
         let check3 = this.product_argument_proof.verify(com_pk, commitment_A, product);
 
         // Check multi-exponantiation argument
@@ -269,8 +269,8 @@ class ShuffleArgument {
             challenge_powers.push(this.challenge1.pow(new BN(i)).mod(this.order));
         }
         let ciphertexts_concat = [];
-        for(let i = 0; i < ciphertexts.length; i++){
-            for(let j = 0; j < ciphertexts[0].length; j++){
+        for (let i = 0; i < ciphertexts.length; i++) {
+            for (let j = 0; j < ciphertexts[0].length; j++) {
                 ciphertexts_concat.push(ciphertexts[i][j]);
             }
         }
@@ -296,17 +296,17 @@ class ShuffleArgument {
         zeros (with randomization 0) till we reach a length of m * (Math.ceil(len(ctxts) / m))
         */
         const group = new EC('secp256k1');
-    
+
         if (ctxts.length < m) {
             throw new Error("Lengths of ciphertexts expected greater than value m.");
         }
         const n = Math.ceil(ctxts.length / m);
-    
+
         if (ctxts[0] instanceof Ciphertext) {
             const zeros = Array(m * n - ctxts.length).fill(
                 new Ciphertext(group.g.mul(0), group.g.mul(0))
             );
-            for(let i = 0; i < zeros.length; i++){
+            for (let i = 0; i < zeros.length; i++) {
                 ctxts.push(zeros[i]);
             }
         }
@@ -328,7 +328,7 @@ class ShuffleArgument {
                     ))
                 )
             );
-            for(let i = 0; i < zeros.length; i++){
+            for (let i = 0; i < zeros.length; i++) {
                 ctxts.push(zeros[i]);
             }
         }
@@ -345,22 +345,24 @@ class ShuffleArgument {
         if (list.length % m > 0) {
             throw new Error("Length of list must be divisible by m. Run function prepare_ctxts first.");
         }
-    
+
         const result = [];
         for (let i = 0; i < m; i++) {
             result.push(list.slice(i * n, (i + 1) * n));
         }
-    
+
         return result;
     }
 }
 function shuffleArray(array) {
     const newArray = array.slice(); // Create a new array to avoid modifying the original array
     for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
     }
     return newArray;
 }
-module.exports = {ShuffleArgument, 
-                  shuffleArray};
+module.exports = {
+    ShuffleArgument,
+    shuffleArray
+};

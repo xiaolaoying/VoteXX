@@ -65,7 +65,7 @@ class DKGSchnorrNIZKProof {
     const challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.n);
     const leftSide = this.ec.curve.g.mul(response);             //  g^z
     const rightSide = commitment.add(statement.mul(challenge)); //  a * y^e
-    
+
     return leftSide.eq(rightSide);
   }
 
@@ -75,7 +75,7 @@ class DKGSchnorrNIZKProof {
 //  define DKG Class
 class DKG {
 
-  constructor(n, seq, ec) {  
+  constructor(n, seq, ec) {
     this.n = n;     //  n: the number of verifiers
     this.seq = seq; //  seq: the sequence of the party
     this.ec = ec;   //  ec: the elliptic curve used in the DKG

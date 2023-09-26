@@ -11,10 +11,10 @@ const { type } = require('os');
  * @returns	{BN} randomNumber 
  */
 function generateRandomNumber(ec) {
-  const byteLength = Math.ceil(ec.curve.p.byteLength());
-  const randomBytes = crypto.randomBytes(byteLength);
-  const randomNumber = new BN(randomBytes);
-  return randomNumber.mod(ec.curve.n);
+	const byteLength = Math.ceil(ec.curve.p.byteLength());
+	const randomBytes = crypto.randomBytes(byteLength);
+	const randomNumber = new BN(randomBytes);
+	return randomNumber.mod(ec.curve.n);
 }
 
 //	define DecStatement Struct
@@ -31,7 +31,7 @@ function DecStatement(alpha, deccomponentCi, publicKeyYi) {
 }
 
 //	deep copy function
-DecStatement.prototype.copy = function() {
+DecStatement.prototype.copy = function () {
 	return new DecStatement(this.alpha, this.deccomponentCi, this.publicKeyYi);
 }
 
@@ -50,7 +50,7 @@ function DecProof(commitment1, commitment2, response) {
 }
 
 //	deep copy function
-DecProof.prototype.copy = function() {
+DecProof.prototype.copy = function () {
 	return new DecProof(this.commitment1, this.commitment2, this.response);
 }
 
@@ -61,24 +61,24 @@ class DecSchnorrNIZKProof {
 	//	constructor
 	/**
 	 * @param {curve} ec
-	 */ 
-  constructor(ec) {
-    this.ec = ec;
-  }
+	 */
+	constructor(ec) {
+		this.ec = ec;
+	}
 
 	// 	generate proof
-  /**
-   * @param {DecStatement} statement 
-   * @param {BN} witness 
-	 * @returns {DecProof} proof
-	 */
-  generateProof(statement, witness) {
-    const r = generateRandomNumber(this.ec);
-    const alpha = statement.alpha;
-		
+	/**
+	 * @param {DecStatement} statement 
+	 * @param {BN} witness 
+	   * @returns {DecProof} proof
+	   */
+	generateProof(statement, witness) {
+		const r = generateRandomNumber(this.ec);
+		const alpha = statement.alpha;
+
 		const commitment1 = this.ec.curve.g.mul(r);  	//  a1 <- g^r
 		const commitment2 = alpha.mul(r);							//	a2 <- alpha^r
-		
+
 		const statementStr_alpha = alpha.encode("hex", true);
 		const statementStr_ci = statement.deccomponentCi.encode("hex", true);
 		const statementStr_yi = statement.publicKeyYi.encode("hex", true);
@@ -88,20 +88,20 @@ class DecSchnorrNIZKProof {
 		const commitmentStr2 = commitment2.encode("hex", true);
 		const commitmentStr = commitmentStr1 + commitmentStr2;
 
-    const challengeStr = SHA256(statementStr + commitmentStr).toString();
-    const challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.n);  //  e <- hash( alpha || ci || yi || a1 || a2 )
-    const response = (r.add((challenge.mul(witness)).mod(this.ec.curve.n))).mod(this.ec.curve.n); //  z <- r + e*x
+		const challengeStr = SHA256(statementStr + commitmentStr).toString();
+		const challenge = (new BN(challengeStr, 16)).mod(this.ec.curve.n);  //  e <- hash( alpha || ci || yi || a1 || a2 )
+		const response = (r.add((challenge.mul(witness)).mod(this.ec.curve.n))).mod(this.ec.curve.n); //  z <- r + e*x
 
-    return new DecProof(commitment1, commitment2, response);
-  }
+		return new DecProof(commitment1, commitment2, response);
+	}
 
 	//	verify proof
-  /**
-   * @param {DecProof} proof 
-   * @param {DecStatement} statement 
-	 * @returns {Boolean} isVerified
-   */
-  verifyProof(statement, proof) {
+	/**
+	 * @param {DecProof} proof 
+	 * @param {DecStatement} statement 
+	   * @returns {Boolean} isVerified
+	 */
+	verifyProof(statement, proof) {
 		const commitment1 = proof.commitment1;	// a1 <- g^r
 		const commitment2 = proof.commitment2;	// a2 <- alpha^r
 		const response = proof.response;				// z <- r + e*x
@@ -126,7 +126,7 @@ class DecSchnorrNIZKProof {
 		const rightSide2 = commitment2.add(deccomponentCi.mul(challenge)); //  a2 * ci^e
 
 		return leftSide1.eq(rightSide1) && leftSide2.eq(rightSide2);
-  }
+	}
 
 }
 
@@ -143,7 +143,7 @@ class DistributeDecryptor {
 		this.ec = ec;
 		this.privateKeyXi = privateKeyXi;
 		this.publicKeyYi = publicKeyYi;
-	}   
+	}
 
 	//	generate dec-component & proof
 	/**
@@ -159,7 +159,7 @@ class DistributeDecryptor {
 		const proof = decSchnorrNIZKProof.generateProof(statement, this.privateKeyXi);
 
 		// broadcast statement & proof
-		return {statement, proof};
+		return { statement, proof };
 	}
 
 	//	verify dec-component & proof
@@ -167,7 +167,7 @@ class DistributeDecryptor {
 	 * @param {DecStatement} statement
 	 * @param {DecProof} proof
 	 * @returns {Boolean} isVerified
-	 */ 
+	 */
 	verifyProof(statement, proof) {
 		const decSchnorrNIZKProof = new DecSchnorrNIZKProof(this.ec);
 		const isVerified = decSchnorrNIZKProof.verifyProof(statement, proof);
@@ -184,20 +184,20 @@ class DistributeDecryptor {
 		const c1Xi = alpha.mul(this.privateKeyXi);
 		return c1Xi;
 	}
-	
+
 	//	decrypt
 	/**
 	 * @param {ElgamalCiphertext} ciphertext
 	 * @param {[point]} c1List
 	 * @returns {point} plaintext
-	 */ 
+	 */
 	decrypt(ciphertext, c1List) {
 		const c2 = ciphertext.c2;
 		const c1Sum = c1List.reduce((sum, c1) => sum.add(c1), this.ec.curve.g.mul(new BN(0)));
 		const plaintext = c2.add(c1Sum.neg());
 		return plaintext;
 	}
-	
+
 }
 
 //  define PETStatement Struct
@@ -213,7 +213,7 @@ function PETStatement(commitmentC, ciphertextOrigin, ciphertextNew) {
 }
 
 //	define copy function
-PETStatement.prototype.copy = function() {
+PETStatement.prototype.copy = function () {
 	return new PETStatement(this.commitmentC, this.ciphertextOrigin, this.ciphertextNew);
 }
 
@@ -228,7 +228,7 @@ function PETWitness(z, r) {
 }
 
 //	define copy function
-PETWitness.prototype.copy = function() {
+PETWitness.prototype.copy = function () {
 	return new PETWitness(this.z, this.r);
 }
 
@@ -239,7 +239,7 @@ PETWitness.prototype.copy = function() {
  * @param {point} commitment2
  * @param {point} commitment3
  * @param {BN} response
- */ 
+ */
 function PETProof(commitment1, commitment2, commitment3, response1, response2) {
 	this.commitment1 = commitment1;	//	a1 <- g^z' * h^r'
 	this.commitment2 = commitment2;	//  a2 <- alpha^z'
@@ -249,13 +249,13 @@ function PETProof(commitment1, commitment2, commitment3, response1, response2) {
 }
 
 //	deep copy function
-PETProof.prototype.copy = function() {
+PETProof.prototype.copy = function () {
 	return new PETProof(this.commitment1, this.commitment2, this.commitment3, this.response1, this.response2);
 }
 
 //	define PET Schnorr NIZK Proof Class
 class PETSchnorrNIZKProof {
-	
+
 	//	constructor
 	/**
 	 * @param {curve} ec
@@ -364,7 +364,7 @@ class PET {
 	/**
 	 * @returns {point} commitment
 	 */
-	generateCommitment() {		
+	generateCommitment() {
 		const r = generateRandomNumber(this.ec);
 		const z = generateRandomNumber(this.ec);
 		const commitment = this.ec.curve.g.mul(z).add(this.generatorH.mul(r));	//	C <- g^z * h^r
@@ -378,7 +378,7 @@ class PET {
 	/**
 	 * @param {ElgamalCiphertext} ciphertext
 	 * @returns {ElgamalCiphertext} newCiphertext
-	 */ 
+	 */
 	raiseToExponent(ciphertext) {	//	(alpha, beta) -> (alpha^z, beta^z)		
 		const alpha = ciphertext.c1;
 		const beta = ciphertext.c2;
@@ -395,14 +395,14 @@ class PET {
 	 * @param {ElgamalCiphertext} ciphertextOrigin
 	 * @param {ElgamalCiphertext} ciphertextNew
 	 * @returns {PETProof} proof
-	 */ 
+	 */
 	generateProof(commitment, ciphertextOrigin, ciphertextNew) {
 		const statement = new PETStatement(commitment, ciphertextOrigin, ciphertextNew);
 		const petSchnorrNIZKProof = new PETSchnorrNIZKProof(this.ec, this.generatorH);
 		const proof = petSchnorrNIZKProof.generateProof(statement, this.witness);
 
 		// broadcast proof
-		return {statement, proof};
+		return { statement, proof };
 	}
 
 	// verify proof
@@ -410,7 +410,7 @@ class PET {
 	 * @param {PETStatement} statement
 	 * @param {PETProof} proof
 	 * @returns {Boolean} isVerified
-	 */ 
+	 */
 	verifyProof(statement, proof) {
 		const petSchnorrNIZKProof = new PETSchnorrNIZKProof(this.ec, this.generatorH);
 		const isVerified = petSchnorrNIZKProof.verifyProof(statement, proof);
@@ -438,12 +438,12 @@ class PET {
 
 	// 	distributed decryption
 	//	one round of communication
-	
+
 	//	detect if the diffCipher is zero
 	/**
 	 * @param {ElgamalCiphertext} ciphertext
 	 * @returns {Boolean} isZero
-	 */	
+	 */
 	detect(plaintext) {
 		return plaintext.eq(this.ec.curve.g.mul(new BN(0)));
 	}
@@ -457,7 +457,7 @@ class PET {
  * @param {ElgamalCiphertext} ciphertext2
  * @returns {ElgamalCiphertext} newCiphertext
  */
-function ciphertextDiff(ciphertext1, ciphertext2){
+function ciphertextDiff(ciphertext1, ciphertext2) {
 	const alpha1 = ciphertext1.c1;
 	const beta1 = ciphertext1.c2;
 	const alpha2 = ciphertext2.c1;
@@ -474,7 +474,7 @@ function ciphertextDiff(ciphertext1, ciphertext2){
  * @param {[point]} list
  * @param {Number} n
  */
-function permute(list, n){
+function permute(list, n) {
 	for (let i = 0; i < n; i++) {
 		const j = Math.floor(Math.random() * (n - i)) + i;
 		[list[i], list[j]] = [list[j], list[i]];
@@ -490,8 +490,8 @@ function permute(list, n){
  * @param {ElgamalCiphertext} ciphertext
  * @param {curve} ec
  * @param {point} pubKey
- */ 
-function reEncryption(ciphertext, ec, pubKey){
+ */
+function reEncryption(ciphertext, ec, pubKey) {
 	const randomness = generateRandomNumber(ec);
 	const alpha = ciphertext.c1;
 	const beta = ciphertext.c2;
@@ -509,9 +509,9 @@ function reEncryption(ciphertext, ec, pubKey){
  * @param {Number} n	//	column
  * @param {curve} ec
  * @param {point} pubKey
- */ 
-function mixTable(table, m, n, ec, pubKey){
-	
+ */
+function mixTable(table, m, n, ec, pubKey) {
+
 	//	generate a shuffle list
 	var list = [];
 	for (let i = 0; i < m; i++) {
@@ -542,10 +542,10 @@ function mixTable(table, m, n, ec, pubKey){
  * @returns {Number} 0 or 1
  * @returns {-1} error
  */
-function check01(ec, plaintext){
-	if ( plaintext.eq(ec.curve.g.mul(new BN(1))) ) return 1;
-	else if ( plaintext.eq(ec.curve.g.mul(new BN(0))) ) return 0;
-	else return -1; 
+function check01(ec, plaintext) {
+	if (plaintext.eq(ec.curve.g.mul(new BN(1)))) return 1;
+	else if (plaintext.eq(ec.curve.g.mul(new BN(0)))) return 0;
+	else return -1;
 }
 
 // 	for Mix & Match Test
@@ -554,7 +554,7 @@ function check01(ec, plaintext){
  * @param {curve} ec
  * @returns {[[point]]} table 
  */
-function GenerateOrTruthTable(ec){
+function GenerateOrTruthTable(ec) {
 	return [
 		[ec.curve.g.mul(new BN(0)), ec.curve.g.mul(new BN(0)), ec.curve.g.mul(new BN(0))],
 		[ec.curve.g.mul(new BN(0)), ec.curve.g.mul(new BN(1)), ec.curve.g.mul(new BN(1))],
@@ -573,7 +573,7 @@ function GenerateOrTruthTable(ec){
  * @param {curve} ec
  * @returns {[[ElgamalCiphertext]]} encTable 
  */
-function EncryptionTable(table, m, n, pubKey, ec){
+function EncryptionTable(table, m, n, pubKey, ec) {
 	var encTable = [];
 	for (let i = 0; i < m; i++) {
 		encTable[i] = [];
@@ -593,7 +593,7 @@ function EncryptionTable(table, m, n, pubKey, ec){
  * @param {curve} ec
  * @returns {[[point]]} result
  */
-function NumberToPlaintextTable(table, m, n, ec){
+function NumberToPlaintextTable(table, m, n, ec) {
 	var result = [];
 	for (let i = 0; i < m; i++) {
 		result[i] = [];
@@ -613,7 +613,7 @@ function NumberToPlaintextTable(table, m, n, ec){
  * @param {curve} ec
  * @returns {[[Number]]} result
  */
-function PlaintextToNumberTable(table, m, n, ec){
+function PlaintextToNumberTable(table, m, n, ec) {
 	var result = [];
 	for (let i = 0; i < m; i++) {
 		result[i] = [];
@@ -625,8 +625,8 @@ function PlaintextToNumberTable(table, m, n, ec){
 }
 
 module.exports = {
-  DistributeDecryptor,
-  PET,
+	DistributeDecryptor,
+	PET,
 	GenerateOrTruthTable,
 	EncryptionTable,
 	mixTable,

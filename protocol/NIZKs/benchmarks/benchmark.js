@@ -1,11 +1,11 @@
 var ec = require('../../../primitiv/ec/ec');
-var {LiftedElgamalEnc} = require('../../../primitiv/encryption/ElgamalEncryption');
+var { LiftedElgamalEnc } = require('../../../primitiv/encryption/ElgamalEncryption');
 var BN = require('bn.js');
-var {Statement, Witness, NullificationNIZK} = require('../nullification');
+var { Statement, Witness, NullificationNIZK } = require('../nullification');
 
 
 function benchmark_NullifyBatchNIZK() {
-    
+
     var listSizeLog_max = 10; // max of listSizeLog/bitSize, i.e., if there are 2^20 ballots, set listSizeLog_max = 20
     var trials_num = 1;
 

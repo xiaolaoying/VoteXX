@@ -16,7 +16,7 @@ MapToBinary.ZERO = new BN(0);
  * @param {Number} bitSize 
  * @returns {[Number]}
  */
-MapToBinary.toBinary = function(value, bitSize = 32) {   // bitSize = listSizeLog
+MapToBinary.toBinary = function (value, bitSize = 32) {   // bitSize = listSizeLog
     var bits = [];
     for (let i = 0; i < bitSize; i++) {
         bits.push(value & 1);
@@ -25,9 +25,9 @@ MapToBinary.toBinary = function(value, bitSize = 32) {   // bitSize = listSizeLo
     return bits;
 }
 
-MapToBinary.test = function() {
-    toBinaryisOk = (this.toBinary(14).toString() == 
-                [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].toString());
+MapToBinary.test = function () {
+    toBinaryisOk = (this.toBinary(14).toString() ==
+        [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].toString());
     console.log(toBinaryisOk);
 }
 
@@ -82,7 +82,7 @@ function Commitment(c, I, B, A, c_d, Ds, m) {
  * @param {EC} ec 
  * @returns 
  */
-Commitment.prototype.toBytes = function(ec) {
+Commitment.prototype.toBytes = function (ec) {
     return [
         ec.serializedPoint(this.c),
         ec.vecOfPointsToBytes(this.I),
@@ -100,7 +100,7 @@ Commitment.prototype.toBytes = function(ec) {
  * @param {EC} ec 
  * @returns {Commitment}
  */
-Commitment.fromBytes = function(bytes, ec) {
+Commitment.fromBytes = function (bytes, ec) {
     var c = ec.deserializedPoint(bytes[0]);
     var I = ec.vecOfPointsFromBytes(bytes[1]);
     var B = ec.vecOfPointsFromBytes(bytes[2]);
@@ -190,7 +190,7 @@ function Statement(h, pks, cts) {
  * @param {EC} ec 
  * @returns 
  */
-Statement.prototype.toBytes = function(ec) {
+Statement.prototype.toBytes = function (ec) {
     var hBytes = ec.serializedPoint(this.h);
     var pksBytes = ec.vecOfPointsToBytes(this.pks);
     var ctsBytes = ElgamalCiphertext.vecToBytes(this.cts, ec);
@@ -206,7 +206,7 @@ Statement.prototype.toBytes = function(ec) {
  * @param {EC} ec 
  * @returns {Statement}
  */
-Statement.fromBytes = function(st, ec) {
+Statement.fromBytes = function (st, ec) {
     var h = ec.deserializedPoint(st[0]);
     var pks = ec.vecOfPointsFromBytes(st[1]);
     var cts = ElgamalCiphertext.vecFromBytes(st[2], ec);
@@ -214,7 +214,7 @@ Statement.fromBytes = function(st, ec) {
     return new Statement(h, pks, cts);
 }
 
-Statement.testSerialization = function() {
+Statement.testSerialization = function () {
     var ec = require('../../primitiv/ec/ec');
 
     var pks = [];
@@ -228,7 +228,7 @@ Statement.testSerialization = function() {
     }
 
     var st = new Statement(ec.randomPoint(), pks, cts);
-    
+
     var bytes = st.toBytes(ec);
     var st2 = Statement.fromBytes(bytes, ec);
 
@@ -262,14 +262,14 @@ function NullificationNIZK(ec, st) {
     this.listSizeLog = Math.log2(this.listSize);
     this.st = st;
     this.polys = null;
-    
+
     /**
      * pedersen commitment  Com(m,r) = g^m·ck^r
      * @param {BN} m 
      * @param {BN} r
      * @returns {Point}
      */
-    this.commit = function(m, r) {
+    this.commit = function (m, r) {
         return this.ec.curve.g.mul(m).add(this.st.h.mul(r));
     }
 
@@ -279,23 +279,23 @@ function NullificationNIZK(ec, st) {
      * @param {CommitmentParams} params 
      * @returns {[[BN]]}
      */
-    this.getPolys = function(w, params) {
+    this.getPolys = function (w, params) {
         var polys = [];
         var betas = params.ai;
         var listSize = this.listSize;
         var listSizeLog = this.listSizeLog;
         // console.log(betas);
-        for(let i = 0; i < listSize; i++){
+        for (let i = 0; i < listSize; i++) {
             polys.push([new BN(1)]);
             var positionBits = MapToBinary.toBinary(i, this.listSizeLog);
 
-            for(let j = 0; j < listSizeLog; j++){
+            for (let j = 0; j < listSizeLog; j++) {
                 polys[polys.length - 1] = Polynomial.multiply(
-                        polys[polys.length - 1],
-                        positionBits[j] == 0 ?
-                        [betas[j].neg(), new BN(1).sub(w.indexBits[j])]:
+                    polys[polys.length - 1],
+                    positionBits[j] == 0 ?
+                        [betas[j].neg(), new BN(1).sub(w.indexBits[j])] :
                         [betas[j], w.indexBits[j]],
-                        this.modulus
+                    this.modulus
                 );
             }
         }
@@ -310,11 +310,11 @@ function NullificationNIZK(ec, st) {
      * @param {Point} c
      * @return {[Point]}
      */
-    this.get_c_d = function(w, params, c) {
+    this.get_c_d = function (w, params, c) {
         var ci = [];
 
         var c_1 = c.mul((new BN(-1)).mod(this.modulus));
-        
+
         var listSize = this.listSize;
         var listSizeLog = this.listSizeLog;
         for (let i = 0; i < listSize; i++) {
@@ -342,7 +342,7 @@ function NullificationNIZK(ec, st) {
      * @param {CommitmentParams} params 
      * @param {BN} cy 
      */
-    this.get_Ds = function(w, params, cy) {
+    this.get_Ds = function (w, params, cy) {
         var polys = this.getPolys(w, params);
 
         var listSize = this.listSize;
@@ -352,14 +352,14 @@ function NullificationNIZK(ec, st) {
         for (let l = 0; l < listSizeLog; l++) {
             var pl_batched = new BN(0);
             for (let j = 0; j < listSize; j++) {
-                pl_batched = pl_batched.add((polys[j][l]).mul(cy.toRed(this.red).redPow(new BN(j)).fromRed())).mod(this.modulus); 
+                pl_batched = pl_batched.add((polys[j][l]).mul(cy.toRed(this.red).redPow(new BN(j)).fromRed())).mod(this.modulus);
             }
             Ds.push(LiftedElgamalEnc.encryptWithRandomness(this.st.h, params.Rk[l], pl_batched, this.ec.curve));
         }
         return Ds;
     }
 
-    this.getCommitmentParams = function() {
+    this.getCommitmentParams = function () {
         var params = new CommitmentParams();
         params.t = this.ec.randomBN();
         params.s_p = this.ec.randomBN();
@@ -383,7 +383,7 @@ function NullificationNIZK(ec, st) {
         return params
     }
 
-    this.getCommitment = function(params, witness, cy) {
+    this.getCommitment = function (params, witness, cy) {
         var c = this.commit(witness.secKey, params.t);
         var c_d = this.get_c_d(witness, params, c);
         var I = []; var B = []; var A = [];
@@ -401,7 +401,7 @@ function NullificationNIZK(ec, st) {
         return new Commitment(c, I, B, A, c_d, Ds, m);
     }
 
-    this.getChallengeY = function() {
+    this.getChallengeY = function () {
         var bytes = this.st.toBytes(this.ec);
 
         return new BN(SHA256(bytes.toString()).toString(), 16).mod(this.modulus);
@@ -411,7 +411,7 @@ function NullificationNIZK(ec, st) {
      * 
      * @param {Commitment} comm 
      */
-    this.getChallengeX = function(comm) {
+    this.getChallengeX = function (comm) {
         var stBytes = this.st.toBytes(this.ec);
         var commBytes = comm.toBytes(this.ec);
         return new BN(SHA256(stBytes.concat(commBytes).toString()).toString(), 16).mod(this.modulus);
@@ -424,7 +424,7 @@ function NullificationNIZK(ec, st) {
      * @param {ChallengeFull} ch 
      * @returns {BN}
      */
-    this.getR = function(rs, Rk, ch) {
+    this.getR = function (rs, Rk, ch) {
         var x_logN = ch.x.toRed(this.red).redPow(new BN(this.listSizeLog)).fromRed();
 
         var listSize = this.listSize;
@@ -450,7 +450,7 @@ function NullificationNIZK(ec, st) {
      * @param {ChallengeFull} ch
      * @return {BN} 
      */
-    this.get_z_d = function(params, ch) {
+    this.get_z_d = function (params, ch) {
         var listSizeLog = this.listSizeLog;
         var x_logN = ch.x.toRed(this.red).redPow(new BN(listSizeLog)).fromRed();
         var term1 = params.t.neg().mul(x_logN).umod(this.modulus);
@@ -470,7 +470,7 @@ function NullificationNIZK(ec, st) {
      * @param {ChallengeFull} c
      * @returns {Response} 
      */
-    this.getResponse = function(witness, params, c) {
+    this.getResponse = function (witness, params, c) {
         var listSizeLog = this.listSizeLog;
         var f = [];
         var z_a = [];
@@ -490,7 +490,7 @@ function NullificationNIZK(ec, st) {
     }
 }
 
-NullificationNIZK.commitTest = function() {
+NullificationNIZK.commitTest = function () {
     var ec = require('../../primitiv/ec/ec');
     var st = new Statement(ec.randomPoint(), [], []);
     var nizk = new NullificationNIZK(ec, st);
@@ -519,7 +519,7 @@ NullificationNIZK.commitTest = function() {
  * @param {Witness} witness 
  * @returns {FirstMoveData}
  */
-NullificationNIZK.prototype.FirstMove = function(witness) {
+NullificationNIZK.prototype.FirstMove = function (witness) {
     var cy = this.getChallengeY();
     var params = this.getCommitmentParams();
 
@@ -533,7 +533,7 @@ NullificationNIZK.prototype.FirstMove = function(witness) {
  * @param {Witness} witness 
  * @returns {Proof}
  */
-NullificationNIZK.prototype.SecondMove = function(firstMoveData, ch, witness) {
+NullificationNIZK.prototype.SecondMove = function (firstMoveData, ch, witness) {
     var ch_full = new ChallengeFull(firstMoveData.y, ch.x);
     var resp = this.getResponse(witness, firstMoveData.params, ch_full);
 
@@ -545,7 +545,7 @@ NullificationNIZK.prototype.SecondMove = function(firstMoveData, ch, witness) {
  * @param {Witness} witness 
  * @returns {Proof}
  */
-NullificationNIZK.prototype.prove = function(witness) {
+NullificationNIZK.prototype.prove = function (witness) {
     var cy = this.getChallengeY();
     var params = this.getCommitmentParams();
     var comm = this.getCommitment(params, witness, cy);
@@ -561,7 +561,7 @@ NullificationNIZK.prototype.prove = function(witness) {
  * @param {Challenge} ch
  * @returns {Proof} 
  */
-NullificationNIZK.prototype.simulate = function(ch) {
+NullificationNIZK.prototype.simulate = function (ch) {
     var listSizeLog = this.listSizeLog;
     var challenge = new ChallengeFull(this.getChallengeY(), ch.x);
 
@@ -569,7 +569,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
     proof.challenge = challenge;
     proof.response = new Response();
     proof.commitment = new Commitment();
-    
+
     proof.response.f = [];
     proof.response.z_a = [];
     proof.response.z_b = [];
@@ -609,7 +609,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
     );
 
     proof.commitment.m = this.ec.curve.g.mul(proof.response.v_1).add(this.st.h.mul(proof.response.v_2)).add
-    (proof.commitment.c.mul(challenge.x.neg().umod(this.modulus)));
+        (proof.commitment.c.mul(challenge.x.neg().umod(this.modulus)));
 
     proof.commitment.c_d = [];
     proof.commitment.c_d.push(this.ec.curve.g.mul(new BN(0)));
@@ -617,7 +617,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
         proof.commitment.c_d.push(this.ec.randomPoint());
     }
     proof.commitment.c_d[0] = this.condition3_left(proof, challenge.x).add
-    (this.condition3_right(proof, challenge.x).mul(new BN(-1).mod(this.modulus)));
+        (this.condition3_right(proof, challenge.x).mul(new BN(-1).mod(this.modulus)));
 
     return proof;
 }
@@ -628,7 +628,7 @@ NullificationNIZK.prototype.simulate = function(ch) {
  * @param {BN} cx 
  * @returns {Boolean}
  */
-NullificationNIZK.prototype.condition1 = function(proof, cx) {
+NullificationNIZK.prototype.condition1 = function (proof, cx) {
     var I = proof.commitment.I;
     var A = proof.commitment.A;
     var f = proof.response.f;
@@ -649,7 +649,7 @@ NullificationNIZK.prototype.condition1 = function(proof, cx) {
  * @param {BN} cx 
  * @returns {Boolean}
  */
-NullificationNIZK.prototype.condition2 = function(proof, cx) {
+NullificationNIZK.prototype.condition2 = function (proof, cx) {
     var I = proof.commitment.I;
     var B = proof.commitment.B;
     var f = proof.response.f;
@@ -670,18 +670,18 @@ NullificationNIZK.prototype.condition2 = function(proof, cx) {
  * @param {[BN]} z 
  * @param {BN} x 
  */
-NullificationNIZK.prototype.mulZ = function(position, z, x) {
+NullificationNIZK.prototype.mulZ = function (position, z, x) {
     var res = new BN(1);
     var positionBits = MapToBinary.toBinary(position, this.listSizeLog);
 
     var listSizeLog = this.listSizeLog;
     for (let i = 0; i < listSizeLog; i++) {
-        res = res.mul(positionBits[i] == 0? (x.sub(z[i]).mod(this.modulus)) : z[i]).mod(this.modulus);
+        res = res.mul(positionBits[i] == 0 ? (x.sub(z[i]).mod(this.modulus)) : z[i]).mod(this.modulus);
     }
     return res;
 }
 
-NullificationNIZK.prototype.condition3_left = function(proof, cx) {
+NullificationNIZK.prototype.condition3_left = function (proof, cx) {
     var listSize = this.listSize;
     var listSizeLog = this.listSizeLog;
     var f = proof.response.f;
@@ -706,7 +706,7 @@ NullificationNIZK.prototype.condition3_left = function(proof, cx) {
     return term1.add(term2);
 }
 
-NullificationNIZK.prototype.condition3_right = function(proof) {
+NullificationNIZK.prototype.condition3_right = function (proof) {
     return this.commit(new BN(0), proof.response.z_d);
 }
 
@@ -716,7 +716,7 @@ NullificationNIZK.prototype.condition3_right = function(proof) {
  * @param {BN} cx 
  * @returns {Boolean}
  */
-NullificationNIZK.prototype.condition3 = function(proof, cx) {
+NullificationNIZK.prototype.condition3 = function (proof, cx) {
     return this.condition3_left(proof, cx).eq(this.condition3_right(proof));
 }
 
@@ -727,13 +727,13 @@ NullificationNIZK.prototype.condition3 = function(proof, cx) {
  * @param {BN} cy 
  * @returns {ElgamalCiphertext}
  */
-NullificationNIZK.prototype.condition4_left = function(proof, cx, cy) {
+NullificationNIZK.prototype.condition4_left = function (proof, cx, cy) {
     var listSize = this.listSize;
     var listSizeLog = this.listSizeLog;
     var C = this.st.cts;
     var f = proof.response.f;
     var D = proof.commitment.Ds;
-    
+
     var x_logN = cx.toRed(this.red).redPow(new BN(listSizeLog)).fromRed();
     var product1 = ElgamalCiphertext.identity(this.ec);
 
@@ -753,7 +753,7 @@ NullificationNIZK.prototype.condition4_left = function(proof, cx, cy) {
             D[i].mul(cx.toRed(this.red).redPow(new BN(i)).fromRed())
         );
     }
-    
+
     return product1.add(product2);
 }
 
@@ -762,7 +762,7 @@ NullificationNIZK.prototype.condition4_left = function(proof, cx, cy) {
  * @param {Proof} proof 
  * @returns {ElgamalCiphertext}
  */
-NullificationNIZK.prototype.condition4_right = function(proof) {
+NullificationNIZK.prototype.condition4_right = function (proof) {
     return LiftedElgamalEnc.encryptWithRandomness(this.st.h, proof.response.R, new BN(0), this.ec.curve);
 }
 
@@ -783,7 +783,7 @@ NullificationNIZK.prototype.condition4 = function (proof, cx, cy) {
  * @param {BN} cx 
  * @returns {Boolean}
  */
-NullificationNIZK.prototype.condition5 = function(proof, cx) {
+NullificationNIZK.prototype.condition5 = function (proof, cx) {
     var left = this.ec.curve.g.mul(proof.response.v_1).add(this.st.h.mul(proof.response.v_2));
     var right = proof.commitment.m.add(proof.commitment.c.mul(cx));
 
@@ -795,7 +795,7 @@ NullificationNIZK.prototype.condition5 = function(proof, cx) {
  * @param {Proof} proof 
  * @returns {Boolean}
  */
-NullificationNIZK.prototype.verify = function(proof) {
+NullificationNIZK.prototype.verify = function (proof) {
     // var cx_simulated = proof.challenge.x;
     // var cy_simulated = proof.challenge.y;
 
@@ -806,14 +806,14 @@ NullificationNIZK.prototype.verify = function(proof) {
     var cx = this.getChallengeX(proof.commitment);
     var cy = this.getChallengeY();
 
-    return (this.condition1(proof, cx) && this.condition2(proof, cx) && this.condition3(proof, cx) && 
-            this.condition4(proof, cx, cy) && this.condition5(proof, cx));
+    return (this.condition1(proof, cx) && this.condition2(proof, cx) && this.condition3(proof, cx) &&
+        this.condition4(proof, cx, cy) && this.condition5(proof, cx));
 }
-NullificationNIZK.test = function() {
+NullificationNIZK.test = function () {
     var ec = require('../../primitiv/ec/ec');
     var keyPair = ec.genKeyPair();
 
-    var pks = []; 
+    var pks = [];
     var cts = [];
     var randomness = [];
     var secKey;
@@ -831,7 +831,7 @@ NullificationNIZK.test = function() {
 
     // E_0, ..., E_N-1  r_0, ..., r_N-1
     for (let i = 0; i < Math.pow(2, indexBitSize); i++) {
-        var ct = LiftedElgamalEnc.encrypt(keyPair.getPublic(), (i == index)? MapToBinary.ONE : MapToBinary.ZERO, ec.curve, ec);
+        var ct = LiftedElgamalEnc.encrypt(keyPair.getPublic(), (i == index) ? MapToBinary.ONE : MapToBinary.ZERO, ec.curve, ec);
         cts.push(ct[0]);
         randomness.push(ct[1]);
     }

@@ -173,10 +173,6 @@
             var privateKey2 = keyPair2.getPrivate().toString(16);
             var publicKey2 = keyPair2.getPublic().encode('hex');
 
-            // Show the private keys to the user
-            console.log('Your first secret key is:', privateKey1);
-            console.log('Your second secret key is:', privateKey2);
-
             // Send the public keys to the server
             fetch(window.location.href + '/register', {
                 method: 'POST',
