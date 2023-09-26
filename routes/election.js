@@ -4,7 +4,7 @@ const Election = require('../models/Election');
 const User = require('../models/User');
 const path = require('path');
 const schedule = require('node-schedule');
-const setup = require('../services/TrusteeService');
+const { setup, provisionalTally } = require('../services/TrusteeService');
 const { DKG } = require('../protocol/DKG/dkg');
 const PublicKey = require('../primitiv/encryption/ElgamalEncryption').PublicKey;
 const EC = require('elliptic').ec;
@@ -47,7 +47,7 @@ router.post('/createElection', async (req, res) => {
     setup(election.uuid);
 
     schedule.scheduleJob(election.voteEndTime, async function () {
-        Election.provisionalTally(election.uuid);
+        provisionalTally(election.uuid);
     });
 
     schedule.scheduleJob(election.nulEndTime, async function () {

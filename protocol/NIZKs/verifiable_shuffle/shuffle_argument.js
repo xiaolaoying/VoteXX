@@ -38,6 +38,8 @@ class ShuffleArgument {
         }
 
         if (this.n !== com_pk.n) {
+            // console.log(this.n);
+            // console.log(com_pk.n);
             throw new RuntimeError(`Incorrect length of commitment key length. Input ${com_pk.n} expected ${this.n}`);
         }
 
