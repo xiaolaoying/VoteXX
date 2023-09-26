@@ -182,6 +182,9 @@
                 .then(data => {
                     if (data.success) {
                         $("#successModal").modal("show");
+                        // $("#successModal").on("hidden.bs.modal", function () {
+                        //     window.location.href = "profile"; // Navigate to profile
+                        // });
                     } else {
                         alert("Error: " + data.message);
                     }

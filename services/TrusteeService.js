@@ -9,7 +9,7 @@ function Party(id, ec, generatorH) {
 
 const { DKG, generateRandomNumber } = require('../protocol/DKG/dkg');
 const EC = require('elliptic').ec;
-const ec = new EC('secp256k1');
+const ec = require('../primitiv/ec/ec');
 const curve = new EC('secp256k1');
 const generatorH = curve.g.mul(generateRandomNumber(curve)); // Pedersen commitment key
 const { ShuffleArgument, shuffleArray } = require('../protocol/NIZKs/verifiable_shuffle/shuffle_argument.js');
@@ -18,8 +18,10 @@ const enc_PublicKey = require('../primitiv/encryption/ElgamalEncryption').Public
 const { DistributeDecryptor, PET, GenerateOrTruthTable, EncryptionTable,
     NumberToPlaintextTable, PlaintextToNumberTable, mixTable, ciphertextDiff,
 } = require('../protocol/MIX_AND_MATCH/mix_and_match');
-const { ElgamalEnc } = require('../primitiv/encryption/ElgamalEncryption');
+const { ElgamalEnc, LiftedElgamalEnc } = require('../primitiv/encryption/ElgamalEncryption');
 const BN = require('bn.js');
+var { Statement, Witness, NullificationNIZK } = require('../protocol/NIZKs/nullification');
+const { rand } = require('elliptic');
 
 var N = 2; // Number of trustees
 
@@ -155,7 +157,7 @@ function provisionalTally(uuid) {
     //         }
     //     }
     // }
-    
+
     global.elections[uuid].BB.yesVotes = yesVotes;
     global.elections[uuid].BB.noVotes = noVotes;
     // console.log('yesVotes: ', global.elections[uuid].BB.yesVotes);
@@ -163,4 +165,103 @@ function provisionalTally(uuid) {
 
 }
 
-module.exports = { setup, provisionalTally };
+function nullify(sk, uuid) {
+    let election_pk = DKG.getPublic(global.elections[uuid].BB.yiList);
+
+    var pk = ec.curve.g.mul(sk);
+
+    // form flag list
+    var flagListYes = [];
+    var flagListNo = [];
+    var nullifyYes = false;
+    var nullifyNo = false;
+    var yesVotes = global.elections[uuid].BB.yesVotes;
+    var noVotes = global.elections[uuid].BB.noVotes;
+    var index = undefined;
+
+    // pad yesVotes to the power of 2
+    var listSizeLogYes = Math.ceil(Math.log2(yesVotes.length));
+    var listSizeYes = Math.pow(2, listSizeLogYes);
+    for (let i = yesVotes.length; i < listSizeYes; i++) {
+        yesVotes.push(ec.genKeyPair().getPublic());
+    }
+
+    // pad noVotes to the power of 2
+    var listSizeLogNo = Math.ceil(Math.log2(noVotes.length));
+    var listSizeNo = Math.pow(2, listSizeLogNo);
+    for (let i = noVotes.length; i < listSizeNo; i++) {
+        noVotes.push(ec.genKeyPair().getPublic());
+    }
+
+    // iterate yesVotes to form the flag list
+    randomnessesYes = [];
+    for (let i = 0; i < yesVotes.length; i++) {
+        if (yesVotes[i].eq(pk)) {
+            flagListYes.push(1);
+            nullifyYes = true;
+            index = i;
+        } else {
+            flagListYes.push(0);
+        }
+    }
+
+    // iterate noVotes to form the flag list
+    randomnessesNo = [];
+    for (let i = 0; i < noVotes.length; i++) {
+        if (noVotes[i].eq(pk)) {
+            flagListNo.push(1);
+            nullifyNo = true;
+            index = i;
+        } else {
+            flagListNo.push(0);
+        }
+    }
+
+    if (nullifyYes) {
+        flagListYes = flagListYes.map(item => {
+            [ctxt, randomness] = LiftedElgamalEnc.encrypt(election_pk, item, ec.curve, ec);
+            randomnessesYes.push(randomness);
+            return ctxt;
+        });
+        var st = new Statement(election_pk, yesVotes, flagListYes);
+        var witness = new Witness(index, listSizeLogYes, randomnessesYes, sk);
+        var nizk = new NullificationNIZK(ec, st);
+        var proof = nizk.prove(witness);
+        if (!global.elections[uuid].BB.nullifyYesTable) {
+            global.elections[uuid].BB.nullifyYesTable = [flagListYes];
+        } else {
+            global.elections[uuid].BB.nullifyYesTable.push(flagListYes);
+        }
+        if (!global.elections[uuid].BB.nullifyYesProof) {
+            global.elections[uuid].BB.nullifyYesProof = [proof];
+        } else {
+            global.elections[uuid].BB.nullifyYesProof.push(proof);
+        }
+    }
+
+    if (nullifyNo) {
+        flagListNo = flagListNo.map(item => {
+            [ctxt, randomness] = LiftedElgamalEnc.encrypt(election_pk, item, ec.curve, ec);
+            randomnessesNo.push(randomness);
+            return ctxt;
+        });
+        var st = new Statement(election_pk, noVotes, flagListNo);
+        var witness = new Witness(index, listSizeLogNo, randomnessesNo, sk);
+        var nizk = new NullificationNIZK(ec, st);
+        var proof = nizk.prove(witness);
+        if (!global.elections[uuid].BB.nullifyNoTable) {
+            global.elections[uuid].BB.nullifyNoTable = [flagListNo];
+        } else {
+            global.elections[uuid].BB.nullifyNoTable.push(flagListNo);
+        }
+        if (!global.elections[uuid].BB.nullifyNoProof) {
+            global.elections[uuid].BB.nullifyNoProof = [proof];
+        } else {
+            global.elections[uuid].BB.nullifyNoProof.push(proof);
+        }
+    }
+
+
+}
+
+module.exports = { setup, provisionalTally, nullify };

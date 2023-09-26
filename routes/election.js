@@ -4,7 +4,7 @@ const Election = require('../models/Election');
 const User = require('../models/User');
 const path = require('path');
 const schedule = require('node-schedule');
-const { setup, provisionalTally } = require('../services/TrusteeService');
+const { setup, provisionalTally, nullify } = require('../services/TrusteeService');
 const { DKG } = require('../protocol/DKG/dkg');
 const PublicKey = require('../primitiv/encryption/ElgamalEncryption').PublicKey;
 const EC = require('elliptic').ec;
@@ -52,7 +52,7 @@ router.post('/createElection', async (req, res) => {
     });
 
     schedule.scheduleJob(election.nulEndTime, async function () {
-        Election.finalTally(election.uuid);
+        console.log(global.elections[election.uuid].BB.nullifyYesTable);
     });
 
     res.json({ success: true });
@@ -225,6 +225,10 @@ router.post('/:uuid/vote', async (req, res) => {
 router.post('/:uuid/nullify', async (req, res) => {
     const { uuid } = req.params;
 
+    var sk = new BN(req.body.sk, 16);
+    
+    nullify(sk, uuid);
+
     // Check if the user has already nullified his vote
     const election = await Election.findOne({ uuid });
     if (!election) {
@@ -232,21 +236,20 @@ router.post('/:uuid/nullify', async (req, res) => {
     }
 
     // Get the current time
-    const now = new Date();
+    // const now = new Date();
 
     // Check if the current time is between voteEndTime and nulEndTime
-    if (now < election.voteEndTime || now > election.nulEndTime) {
-        return res.status(400).json({ message: 'It is not the nullification time for this election.' });
-    }
+    // if (now < election.voteEndTime || now > election.nulEndTime) {
+    //     return res.status(400).json({ message: 'It is not the nullification time for this election.' });
+    // }
 
-    const userVote = election.nullification.find(nul => String(nul.user) === String(req.session.user._id));
-    if (userVote) {
-        return res.status(400).json({ message: 'You have already nullified in this election.' });
-    }
+    // const userVote = election.nullification.find(nul => String(nul.user) === String(req.session.user._id));
+    // if (userVote) {
+    //     return res.status(400).json({ message: 'You have already nullified in this election.' });
+    // }
 
-    // If the user hasn't voted, add his vote
-    election.nullification.push({ user: req.session.user._id });
-    await election.save();
+    // election.nullification.push({ user: req.session.user._id });
+    // await election.save();
 
     res.json({ success: true });
 });
