@@ -117,6 +117,9 @@ class DKG {
     return y;
   }
 
+  static getPublic(yiList) {
+    return yiList.reduce((acc, yi) => acc.add(yi));
+  }
 
 }
 

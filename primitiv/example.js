@@ -1,5 +1,5 @@
 // Import the encryption module
-var {LiftedElgamalEnc} = require('./encryption/ElgamalEncryption');
+var { LiftedElgamalEnc } = require('./encryption/ElgamalEncryption');
 var ec = require('./ec/ec');
 var BN = require('bn.js');
 var SHA256 = require('crypto-js/sha256');
