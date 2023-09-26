@@ -10,6 +10,7 @@ const PublicKey = require('../primitiv/encryption/ElgamalEncryption').PublicKey;
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 const BN = require('bn.js');
+const { ElgamalEnc } = require('../primitiv/encryption/ElgamalEncryption');
 
 router.post('/createElection', async (req, res) => {
     const { title, description, questionInput, email, voteStartTime, voteEndTime, nulEndTime } = req.body;
@@ -134,6 +135,8 @@ router.post('/:uuid/register', async (req, res) => {
     publicKey1 = ec.curve.decodePoint(publicKey1, 'hex');
     publicKey2 = ec.curve.decodePoint(publicKey2, 'hex');
 
+    // console.log(publicKey1);
+
     var enc_pk1 = pk.encrypt(publicKey1);
     var enc_pk2 = pk.encrypt(publicKey2);
 
@@ -143,16 +146,33 @@ router.post('/:uuid/register', async (req, res) => {
         global.elections[req.params.uuid].BB.pks.push({ enc_pk1, enc_pk2 });
     }
 
+    // let privKey = new BN(0);
+    // for (let i = 0; i < 2; i++) {
+    //     privKey = privKey.add(new BN(global.elections[uuid].trustees[i].dkg.xi));
+    //     // global.elections[uuid].trustees[i].distributeDecryptor = new DistributeDecryptor(ec, global.elections[uuid].trustees[i].dkg.xi, global.elections[uuid].trustees[i].dkg.yi);
+    // }
+
+    // const plain_pk1 = ElgamalEnc.decrypt(privKey, enc_pk1, ec);
+    // console.log(plain_pk1);
+    // console.log(publicKey1);
+
+    // const plain_pks = global.elections[uuid].BB.pks.map(item => ({ pk1: ElgamalEnc.decrypt(privKey, item.enc_pk1, ec), pk2: ElgamalEnc.decrypt(privKey, item.enc_pk2, ec) }));
+    // console.log(plain_pks[0].pk1);
+
     // Send a success response
     res.json({ success: true });
 });
 
 router.post('/:uuid/vote', async (req, res) => {
     const { uuid } = req.params;
-    var sk = new BN(req.body.sk);
+    var sk = new BN(req.body.sk, 16);
     var pk = ec.curve.g.mul(sk);
     const sign_privateKey = ec.keyFromPrivate(sk);
     const signature = sign_privateKey.sign(uuid);
+
+    // for debug
+    // const sign_publicKey = ec.keyFromPublic(pk);
+    // console.log(sign_publicKey.verify(uuid, signature))
 
     const election_pk = new PublicKey(ec, DKG.getPublic(global.elections[uuid].BB.yiList));
     var enc_pk = election_pk.encrypt(pk);
@@ -162,6 +182,17 @@ router.post('/:uuid/vote', async (req, res) => {
     } else {
         global.elections[req.params.uuid].BB.votes.push({ enc_pk, signature });
     }
+
+    // let privKey = new BN(0);
+    // for (let i = 0; i < 2; i++) {
+    //     privKey = privKey.add(new BN(global.elections[uuid].trustees[i].dkg.xi));
+    //     // global.elections[uuid].trustees[i].distributeDecryptor = new DistributeDecryptor(ec, global.elections[uuid].trustees[i].dkg.xi, global.elections[uuid].trustees[i].dkg.yi);
+    // }
+    // console.log('privKey: ', privKey);
+
+    // const plain_pk = ElgamalEnc.decrypt(privKey, enc_pk, ec);
+    // const sign_publicKey = ec.keyFromPublic(plain_pk);
+    // console.log(sign_publicKey.verify(uuid, signature))
 
     // const selection = req.body.question;
 
