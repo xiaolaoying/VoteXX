@@ -4,7 +4,7 @@ const Election = require('../models/Election');
 const User = require('../models/User');
 const path = require('path');
 const schedule = require('node-schedule');
-const { setup, provisionalTally, nullify } = require('../services/TrusteeService');
+const { setup, provisionalTally, nullify, finalTally } = require('../services/TrusteeService');
 const { DKG } = require('../protocol/DKG/dkg');
 const PublicKey = require('../primitiv/encryption/ElgamalEncryption').PublicKey;
 const EC = require('elliptic').ec;
@@ -52,7 +52,7 @@ router.post('/createElection', async (req, res) => {
     });
 
     schedule.scheduleJob(election.nulEndTime, async function () {
-        console.log(global.elections[election.uuid].BB.nullifyYesTable);
+        finalTally(election.uuid);
     });
 
     res.json({ success: true });
@@ -75,7 +75,7 @@ router.get('/:uuid', async (req, res) => {
         voteEndTime: election.voteEndTime,
         nulEndTime: election.nulEndTime,
         question: election.question,
-        result: election.result,
+        result: global.elections[uuid].BB.result,
     };
 
     // Render the voting page based on your frontend framework/library
@@ -167,6 +167,12 @@ router.post('/:uuid/vote', async (req, res) => {
     const { uuid } = req.params;
     var sk = new BN(req.body.sk, 16);
     var pk = ec.curve.g.mul(sk);
+    if (global.elections[uuid].BB.used_pks.includes(pk)) {
+        return res.status(400).json({ message: 'This key has been used.' });
+    } else {
+        global.elections[uuid].BB.used_pks.push(pk);
+    }
+
     const sign_privateKey = ec.keyFromPrivate(sk);
     const signature = sign_privateKey.sign(uuid);
 
@@ -226,7 +232,7 @@ router.post('/:uuid/nullify', async (req, res) => {
     const { uuid } = req.params;
 
     var sk = new BN(req.body.sk, 16);
-    
+
     nullify(sk, uuid);
 
     // Check if the user has already nullified his vote

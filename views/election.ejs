@@ -79,7 +79,7 @@
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
                     <h2>Tally Information</h2>
-                    <% if ( result.state===0) { %>
+                    <% if ( result.state===0 ) { %>
                         <p>Still in the voting phase.</p>
                         <% } else if ( result.state===1 ) { %>
                             <p>Provisional tally result:</p>
@@ -88,14 +88,14 @@
                                 <tr>
                                     <td>Yes</td>
                                     <td>
-                                        <%= result.voteCounts['Yes'] %>
+                                        <%= result.nr_yes %>
                                     </td>
                                 </tr>
                                 <!-- Second line -->
                                 <tr>
                                     <td>No</td>
                                     <td>
-                                        <%= result.voteCounts['No'] %>
+                                        <%= result.nr_no %>
                                     </td>
                                 </tr>
                             </table>
@@ -104,23 +104,35 @@
                                 <table border="1">
                                     <!-- First line -->
                                     <tr>
-                                        <td>Yes</td>
-                                        <td>
-                                            <%= result.voteCounts['Yes'] %>
-                                        </td>
+                                        <td> </td>
+                                        <td> provisional tally </td>
+                                        <td> nullified votes </td>
+                                        <td> final result </td>
                                     </tr>
                                     <!-- Second line -->
                                     <tr>
-                                        <td>No</td>
+                                        <td>Yes</td>
                                         <td>
-                                            <%= result.voteCounts['No'] %>
+                                            <%= result.nr_yes %>
+                                        </td>
+                                        <td>
+                                            <%= result.nullified_yes %>
+                                        </td>
+                                        <td>
+                                            <%= result.nr_yes - result.nullified_yes %>
                                         </td>
                                     </tr>
                                     <!-- Third line -->
                                     <tr>
-                                        <td>Nullification</td>
+                                        <td>No</td>
                                         <td>
-                                            <%= result.nullifiedVotes %>
+                                            <%= result.nr_no %>
+                                        </td>
+                                        <td>
+                                            <%= result.nullified_no %>
+                                        </td>
+                                        <td>
+                                            <%= result.nr_no - result.nullified_no %>
                                         </td>
                                     </tr>
                                 </table>

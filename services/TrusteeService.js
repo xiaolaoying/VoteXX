@@ -29,7 +29,7 @@ var N = 2; // Number of trustees
 // var globalValid = true;
 
 function setup(uuid) {
-    var BB = { generatorH, yiList: [], dkgProofList: [], petCommitmentList: [], petStatementList: [], petRaisedCiphertextList: [], petProofList: [], decProofList: [], decStatementList: [], decC1XiList: [] };
+    var BB = { generatorH, yiList: [], dkgProofList: [], result: {} };
     var trustees = [];
     for (let i = 0; i < N; i++) {
         const party = new Party(i, curve, BB.generatorH);
@@ -43,6 +43,8 @@ function setup(uuid) {
     }
 
     global.elections[uuid] = { trustees, BB };
+    global.elections[uuid].BB.result.state = 0; // 0: not tallied, 1: provisional tally, 2: final tally
+    global.elections[uuid].BB.used_pks = [];
 }
 
 function shuffle(ctxts, com_pk, pk, permutation) {
@@ -129,6 +131,8 @@ function provisionalTally(uuid) {
     // form yesVotes and noVotes
     var yesVotes = [];
     var noVotes = [];
+    global.elections[uuid].BB.result.nr_yes = 0;
+    global.elections[uuid].BB.result.nr_no = 0;
     // console.log(global.elections[uuid].BB.shuffled_plain_pks_yes);
     // console.log(global.elections[uuid].BB.shuffled_plain_pks_no);
     for (let i = 0; i < global.elections[uuid].BB.votes.length; i++) {
@@ -137,8 +141,10 @@ function provisionalTally(uuid) {
         for (let j = 0; j < global.elections[uuid].BB.shuffled_plain_pks_yes.length; j++) {
             if (global.elections[uuid].BB.shuffled_plain_pks_yes[j].eq(tmp_pk)) {
                 yesVotes.push(global.elections[uuid].BB.shuffled_plain_pks_no[j]);
+                global.elections[uuid].BB.result.nr_yes++;
             } else if (global.elections[uuid].BB.shuffled_plain_pks_no[j].eq(tmp_pk)) {
                 noVotes.push(global.elections[uuid].BB.shuffled_plain_pks_yes[j]);
+                global.elections[uuid].BB.result.nr_no++;
             }
         }
     }
@@ -162,6 +168,8 @@ function provisionalTally(uuid) {
     global.elections[uuid].BB.noVotes = noVotes;
     // console.log('yesVotes: ', global.elections[uuid].BB.yesVotes);
     // console.log('noVotes: ', global.elections[uuid].BB.noVotes);
+
+    global.elections[uuid].BB.result.state = 1; // 0: not tallied, 1: provisional tally, 2: final tally
 
 }
 
@@ -260,8 +268,214 @@ function nullify(sk, uuid) {
             global.elections[uuid].BB.nullifyNoProof.push(proof);
         }
     }
-
-
 }
 
-module.exports = { setup, provisionalTally, nullify };
+function mix_and_match(table, uuid) {
+    const m = table.length;
+    const n = table[0].length;
+    var encTable = table;
+    var BB = { petCommitmentList: [], petStatementList: [], petRaisedCiphertextList: [], petProofList: [], decProofList: [], decStatementList: [], decC1XiList: [] };
+    var globalValid = true;
+
+    var PartyList = global.elections[uuid].trustees;
+
+    //  generate OR table
+    const ORTableColumns = 3;
+    const ORTableRows = 4;
+
+    //  result output of the OR tables
+    //  total n columns
+    const resultTable = [];
+    for (let j = 0; j < n; j++) {
+
+        //  2 input for each gate, the first input is also the output of the last gate
+        var input = [];
+        input[0] = encTable[0][j];
+
+        //  each column has m-1 OR gates
+        for (let i = 1; i < m; i++) {
+
+            //  generate mixed OR gate
+            var tmpORgate = GenerateOrTruthTable(ec); // plaintext table
+            var encORgate = EncryptionTable(tmpORgate, ORTableRows, ORTableColumns, PartyList[0].dkg.y, ec);  // encrypted table
+            var mixORgate = mixTable(encORgate, ORTableRows, ORTableColumns, ec, PartyList[0].dkg.y);  //  permuted table
+
+            //  onther input
+            input[1] = encTable[i][j];
+
+            //  PET for each [ ct & 4 correlated column elements ]
+            //  each row: 
+            //  input0 ? table[k][0]
+            //  input1 ? table[k][1]
+
+            //  store the matched row
+            var matchedRow = 0;
+
+            //  PET for each row
+            for (let k = 0; k < ORTableRows; k++) {
+
+                //  PET for input0/1
+                var rowMatched = true;
+
+                //  PET for each column
+                for (let col = 0; col < ORTableColumns - 1; col++) {
+
+                    var originCipherDiff = ciphertextDiff(input[col], mixORgate[k][col]);
+                    var colMatched = true;
+
+                    //  each party generate commitment, ciphertext, proof, statement & broadcast
+                    for (let l = 0; l < N; l++) {
+
+                        //  generate commitment
+                        var tmpCommitment = PartyList[l].pet.generateCommitment();
+                        //  broadcast commitment
+                        BB.petCommitmentList[l] = tmpCommitment;
+
+                        //  raise to exponent
+                        var raisedCiphertext = PartyList[l].pet.raiseToExponent(originCipherDiff);
+                        //  broadcast raised-ciphertext
+                        BB.petRaisedCiphertextList[l] = raisedCiphertext;
+
+                        //  generate proof
+                        var tmpstruct = PartyList[l].pet.generateProof(BB.petCommitmentList[l], originCipherDiff, BB.petRaisedCiphertextList[l]);
+                        var tmpStatement = tmpstruct.statement;
+                        var tmpProof = tmpstruct.proof;
+                        //  broadcast proof & statement
+                        BB.petProofList[l] = tmpProof;
+                        BB.petStatementList[l] = tmpStatement;
+
+                    }
+
+                    //  each party verify PET proof
+                    for (let l = 0; l < N; l++) {
+                        for (let p = 0; p < N; p++) {
+                            if (l !== p) {
+                                //  Prover: Pm, Verifier: Pl
+                                var res = PartyList[l].pet.verifyProof(BB.petStatementList[p], BB.petProofList[p]);
+                                if (res === false) {
+                                    globalValid = false;
+                                    console.log('PET ZKP failed for dishonest party ' + p);
+                                }
+                            }
+                        }
+                    }
+                    if (globalValid === false) {
+                        // abort
+                    }
+
+                    //  each party form a new ciphertext & decrypt(generate proof & c1Xi & broadcast)
+                    for (let l = 0; l < N; l++) {
+
+                        var newCiphertext = PartyList[l].pet.formNewCiphertext(BB.petRaisedCiphertextList);
+
+                        //  generate proof
+                        var tmpstruct = PartyList[l].distributeDecryptor.generateProof(newCiphertext);
+                        var tmpStatement = tmpstruct.statement;
+                        var tmpProof = tmpstruct.proof;
+                        //  broadcast proof & statement
+                        BB.decProofList[l] = tmpProof;
+                        BB.decStatementList[l] = tmpStatement;
+
+                        //  generate c1Xi
+                        var c1Xi = PartyList[l].distributeDecryptor.generateC1Xi(newCiphertext);
+                        //  broadcast c1Xi
+                        BB.decC1XiList[l] = c1Xi;
+                    }
+
+                    //  each party verify dec proof
+                    for (let l = 0; l < N; l++) {
+                        for (let p = 0; p < N; p++) {
+                            if (l !== p) {
+                                //  Prover: Pm, Verifier: Pl
+                                var res = PartyList[l].distributeDecryptor.verifyProof(BB.decStatementList[p], BB.decProofList[p]);
+                                if (res === false) {
+                                    globalValid = false;
+                                    console.log('Dec ZKP failed for dishonest party ' + p);
+                                }
+                            }
+                        }
+                    }
+
+                    if (globalValid === false) {
+                        // abort
+                    }
+
+                    //  decrypt & match
+                    for (let l = 0; l < N; l++) {
+                        var newCiphertext = PartyList[l].pet.formNewCiphertext(BB.petRaisedCiphertextList);
+                        var tmpPlaintext = PartyList[l].distributeDecryptor.decrypt(newCiphertext, BB.decC1XiList);
+
+                        //  check if the column is matched
+                        colMatched = colMatched && PartyList[l].pet.detect(tmpPlaintext);
+                    }
+
+                    //  check if the column is matched
+                    //  if any one of the element in this row doesn't match, then break
+                    rowMatched = rowMatched && colMatched;
+                    if (rowMatched === false) {
+                        break;
+                    }
+                }
+
+                //  check if the row is matched
+                //  as long as one row is matched, then break
+                if (rowMatched === true) {
+                    matchedRow = k;
+                    break;
+                }
+            }
+
+            //  output for this OR gate (the input for the next OR gate)
+            input[0] = mixORgate[matchedRow][ORTableColumns - 1];
+        }
+
+        //  output of the last OR gate -> result
+        resultTable.push(input[0]);
+    }
+    return [resultTable, BB];
+}
+
+function finalTally(uuid) {
+    for (let i = 0; i < N; i++) {
+        global.elections[uuid].trustees[i].dkg.DKG_getPublic(global.elections[uuid].BB.yiList);
+        global.elections[uuid].trustees[i].distributeDecryptor = new DistributeDecryptor(ec, global.elections[uuid].trustees[i].dkg.xi, global.elections[uuid].trustees[i].dkg.yi);
+        global.elections[uuid].trustees[i].pet = new PET(ec, global.elections[uuid].trustees[i].generatorH, global.elections[uuid].trustees[i].dkg.xi);
+    }
+
+    if (global.elections[uuid].BB.nullifyYesTable) {
+        [resultTable, aux] = mix_and_match(global.elections[uuid].BB.nullifyYesTable, uuid);
+        global.elections[uuid].BB.mix_output_yes = resultTable;
+        global.elections[uuid].BB.mix_aux_yes = aux;
+    }
+
+    if (global.elections[uuid].BB.nullifyNoTable) {
+        [resultTable, aux] = mix_and_match(global.elections[uuid].BB.nullifyNoTable, uuid);
+        global.elections[uuid].BB.mix_output_no = resultTable;
+        global.elections[uuid].BB.mix_aux_no = aux;
+    }
+
+    let privKey = new BN(0);
+    for (let i = 0; i < N; i++) {
+        privKey = privKey.add(new BN(global.elections[uuid].trustees[i].dkg.xi));
+        // global.elections[uuid].trustees[i].distributeDecryptor = new DistributeDecryptor(ec, global.elections[uuid].trustees[i].dkg.xi, global.elections[uuid].trustees[i].dkg.yi);
+    }
+
+    global.elections[uuid].BB.result.nullified_yes = 0;
+    global.elections[uuid].BB.result.nullified_no = 0;
+    
+    if (global.elections[uuid].BB.mix_output_yes) {
+        nullified_yes_enc = global.elections[uuid].BB.mix_output_yes.reduce((a, b) => a.add(b));
+        nullified_yes = LiftedElgamalEnc.decrypt(privKey, nullified_yes_enc, ec.curve);
+        global.elections[uuid].BB.result.nullified_yes = nullified_yes;
+    }
+
+    if (global.elections[uuid].BB.mix_output_no) {
+        nullified_no_enc = global.elections[uuid].BB.mix_output_no.reduce((a, b) => a.add(b));
+        nullified_no = LiftedElgamalEnc.decrypt(privKey, nullified_no_enc, ec.curve);
+        global.elections[uuid].BB.result.nullified_no = nullified_no;
+    }
+
+    global.elections[uuid].BB.result.state = 2; // 0: not tallied, 1: provisional tally, 2: final tally
+}
+
+module.exports = { setup, provisionalTally, nullify, finalTally };
