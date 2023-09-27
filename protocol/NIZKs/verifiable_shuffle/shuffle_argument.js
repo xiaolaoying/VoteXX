@@ -5,8 +5,8 @@ const BN = require('bn.js');
 const { KeyPair, Ciphertext } = require('../../../primitiv/encryption/ElgamalEncryption.js');
 const { PublicKey, Commitment } = require('../../../primitiv/Commitment/pedersen_commitment.js');
 
-const computechallenge = require('../../../primitiv/hash/hash_function.js');
-const { BallotBundle, VoteVector } = require('../../../primitiv/ballots/ballot_structure.js');
+const computechallenge = require('../../../primitiv/Hash/hash_function.js');
+const { BallotBundle, VoteVector } = require('../../../primitiv/Ballots/ballot_structure.js');
 
 const { MultiExponantiation } = require('./multi_exponantiation_argument.js');
 const { ProductArgument } = require('./product_argument.js');
