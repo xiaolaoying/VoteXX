@@ -12,12 +12,12 @@ function submitVote() {
   // Here, you can send the sorted results to the server
 }
 
-document.getElementById("voteform").addEventListener("submit", function (event) {
-  event.preventDefault();
-  // Here, you can add the actual form submission code
-  $("#successModal").modal("show");
-});
+// document.getElementById("voteform").addEventListener("submit", function (event) {
+//   event.preventDefault();
+//   // Here, you can add the actual form submission code
+//   $("#successModal").modal("show");
+// });
 
-$("#successModal").on("hidden.bs.modal", function () {
-  window.location.href = "profile.html"; // Navigate to profile
-});
+// $("#successModal").on("hidden.bs.modal", function () {
+//   window.location.href = "profile"; // Navigate to profile
+// });

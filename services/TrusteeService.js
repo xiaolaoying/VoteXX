@@ -25,9 +25,6 @@ const { rand } = require('elliptic');
 
 var N = 2; // Number of trustees
 
-// var BB = { yiList: [], dkgProofList: [], petCommitmentList: [], petStatementList: [], petRaisedCiphertextList: [], petProofList: [], decProofList: [], decStatementList: [], decC1XiList: [] };
-// var globalValid = true;
-
 function setup(uuid) {
     var BB = { generatorH, yiList: [], dkgProofList: [], result: {} };
     var trustees = [];
@@ -66,7 +63,6 @@ function shuffle(ctxts, com_pk, pk, permutation) {
     let randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m);
 
     let proof = new ShuffleArgument(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped, permutationReshaped, randomizersReshaped);
-    // console.log("Shuffle Argument(Ciphertext): ", proof.verify(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped));
 
     return [proof, ctxtsReshaped, shuffledCtxts, shuffledCtxtsReshaped];
 }
@@ -86,28 +82,22 @@ function provisionalTally(uuid) {
     let permutation = shuffleArray(Array.from({ length: mn }, (_, i) => i));
     let [proof, ctxtsReshaped, shuffledCtxts, shuffledCtxtsReshaped] = shuffle(preparedCtxts, com_pk, election_pk, permutation);
     global.elections[uuid].BB.shuffledPkYes = { shuffledCtxts, proof, ctxtsReshaped, shuffledCtxtsReshaped };
-    // console.log('shuffledPkYes: ', global.elections[uuid].BB.shuffledPkYes.shuffledCtxts);
 
     [preparedCtxts, n] = ShuffleArgument.prepare_ctxts(pk_no, m, election_pk);
     [proof, ctxtsReshaped, shuffledCtxts, shuffledCtxtsReshaped] = shuffle(preparedCtxts, com_pk, election_pk, permutation);
     global.elections[uuid].BB.shuffledPkNo = { shuffledCtxts, proof, ctxtsReshaped, shuffledCtxtsReshaped };
-    // console.log('shuffledPkNo: ', global.elections[uuid].BB.shuffledPkNo.shuffledCtxts);
 
 
     // decrypt pks
     let privKey = new BN(0);
     for (let i = 0; i < N; i++) {
         privKey = privKey.add(new BN(global.elections[uuid].trustees[i].dkg.xi));
-        // global.elections[uuid].trustees[i].distributeDecryptor = new DistributeDecryptor(ec, global.elections[uuid].trustees[i].dkg.xi, global.elections[uuid].trustees[i].dkg.yi);
     }
-    // console.log('privKey: ', privKey);
 
     const shuffled_pks_yes = global.elections[uuid].BB.shuffledPkYes.shuffledCtxts.map(ctxt => ElgamalEnc.decrypt(privKey, ctxt, ec));
     const shuffled_pks_no = global.elections[uuid].BB.shuffledPkNo.shuffledCtxts.map(ctxt => ElgamalEnc.decrypt(privKey, ctxt, ec));
     global.elections[uuid].BB.shuffled_plain_pks_yes = shuffled_pks_yes;
     global.elections[uuid].BB.shuffled_plain_pks_no = shuffled_pks_no;
-    // console.log('shuffled_plain_pks_yes: ', global.elections[uuid].BB.shuffled_plain_pks_yes);
-    // console.log('shuffled_plain_pks_no: ', global.elections[uuid].BB.shuffled_plain_pks_no);
 
     // decrypt ballots
     let ballot_pks = global.elections[uuid].BB.votes.map(vote => vote.enc_pk);
@@ -116,10 +106,8 @@ function provisionalTally(uuid) {
         let plainPK = ElgamalEnc.decrypt(privKey, ballot_pks[i], ec);
         global.elections[uuid].BB.votes[i].plainPK = plainPK;
     }
-    // console.log('votes: ', global.elections[uuid].BB.votes);
 
     for (let i = 0; i < global.elections[uuid].BB.votes.length; i++) {
-        // console.log('vote ' + i + ': ');
         const publicKey = ec.keyFromPublic(global.elections[uuid].BB.votes[i].plainPK);
         const isValid = publicKey.verify(uuid, global.elections[uuid].BB.votes[i].signature);
         if (!isValid) {
@@ -133,8 +121,6 @@ function provisionalTally(uuid) {
     var noVotes = [];
     global.elections[uuid].BB.result.nr_yes = 0;
     global.elections[uuid].BB.result.nr_no = 0;
-    // console.log(global.elections[uuid].BB.shuffled_plain_pks_yes);
-    // console.log(global.elections[uuid].BB.shuffled_plain_pks_no);
     for (let i = 0; i < global.elections[uuid].BB.votes.length; i++) {
         if (!global.elections[uuid].BB.votes[i]) continue;
         let tmp_pk = global.elections[uuid].BB.votes[i].plainPK;
@@ -148,29 +134,11 @@ function provisionalTally(uuid) {
             }
         }
     }
-    // const plain_pks = global.elections[uuid].BB.pks.map(item => ({ pk1: ElgamalEnc.decrypt(privKey, item.enc_pk1, ec), pk2: ElgamalEnc.decrypt(privKey, item.enc_pk2, ec) }));
-    // for (let i = 0; i < global.elections[uuid].BB.votes.length; i++) {
-    //     if (!global.elections[uuid].BB.votes[i]) continue;
-    //     let tmp_pk = global.elections[uuid].BB.votes[i].plainPK;
-    //     for (let j = 0; j < plain_pks.length; j++) {
-    //         console.log(plain_pks[j].pk1);
-    //         console.log(plain_pks[j].pk2);
-    //         console.log(tmp_pk);
-    //         if (plain_pks[j].pk1.eq(tmp_pk)) {
-    //             yesVotes.push(plain_pks[j].pk2);
-    //         } else if (plain_pks[j].pk2.eq(tmp_pk)) {
-    //             noVotes.push(plain_pks[j].pk1);
-    //         }
-    //     }
-    // }
 
     global.elections[uuid].BB.yesVotes = yesVotes;
     global.elections[uuid].BB.noVotes = noVotes;
-    // console.log('yesVotes: ', global.elections[uuid].BB.yesVotes);
-    // console.log('noVotes: ', global.elections[uuid].BB.noVotes);
 
     global.elections[uuid].BB.result.state = 1; // 0: not tallied, 1: provisional tally, 2: final tally
-
 }
 
 function nullify(sk, uuid) {
@@ -457,7 +425,6 @@ function finalTally(uuid) {
     let privKey = new BN(0);
     for (let i = 0; i < N; i++) {
         privKey = privKey.add(new BN(global.elections[uuid].trustees[i].dkg.xi));
-        // global.elections[uuid].trustees[i].distributeDecryptor = new DistributeDecryptor(ec, global.elections[uuid].trustees[i].dkg.xi, global.elections[uuid].trustees[i].dkg.yi);
     }
 
     global.elections[uuid].BB.result.nullified_yes = 0;

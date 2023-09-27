@@ -1,5 +1,6 @@
 /**
- * Ballots
+ * Note: The ballot struction has nothing to do with the VoteXX protocol.
+ * We imitate VoteAgain's implementation for shuffle argument.
  */
 class BallotBundle {
     /**

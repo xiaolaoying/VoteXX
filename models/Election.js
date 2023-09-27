@@ -11,6 +11,9 @@ const electionSchema = new mongoose.Schema({
     voteEndTime: { type: Date, required: true },
     nulEndTime: { type: Date, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },  // can be used to associate the user who created the election
+    registeredVoters: [
+        { user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } }
+    ],
     votes: [
         {
             user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -29,7 +32,10 @@ const electionSchema = new mongoose.Schema({
     }
 });
 
-electionSchema.statics.provisionalTally = async function(uuid) {
+/**
+ * This function is plaintext provisional tally. Test use only.
+ */
+electionSchema.statics.provisionalTally = async function (uuid) {
     const Election = mongoose.model('Election');  // Import the Election model
 
     // Find the corresponding election from the database
@@ -60,7 +66,10 @@ electionSchema.statics.provisionalTally = async function(uuid) {
     await election.save();
 }
 
-electionSchema.statics.finalTally = async function(uuid) {
+/**
+ * This function is plaintext final tally. Test use only.
+ */
+electionSchema.statics.finalTally = async function (uuid) {
     const Election = mongoose.model('Election');  // Import the Election model
 
     // Find the corresponding election from the database
