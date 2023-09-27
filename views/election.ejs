@@ -62,7 +62,7 @@
 
                     <!-- Verification link -->
                     <div class="form-group">
-                        <a id="verifyLink">Click to verify the election</a>
+                        <a id="verifyLink" target="_blank">Click to verify the election</a>
                     </div>
 
                     <!-- Vote & Nullify button -->
@@ -141,6 +141,26 @@
             </div>
         </div>
 
+        <!-- modal -->
+        <div id="voteRegModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-lg">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <label class="modal-title">Message</label>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
 
@@ -196,7 +216,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Your yes key is: ' + privateKey1 + '\n' + 'Your no key is: ' + privateKey2 + '\n' + 'Registration successful!');
+                        $("#voteRegModal .modal-body").html('Your yes key is: ' + privateKey1 + '<br>'
+                            + 'Your no key is: ' + privateKey2 + '<br>' + 'Registration successful!');
+                        $("#voteRegModal").modal("show");
                     } else {
                         alert("Error: " + data.message);
                     }
