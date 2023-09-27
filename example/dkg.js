@@ -5,7 +5,7 @@ const curve = new EC('secp256k1');
 var N = 2;
 var DKGList = [];
 
-var BB = {yiList: [], proofList: []};
+var BB = { yiList: [], proofList: [] };
 var globalValid = true;
 
 
@@ -18,8 +18,8 @@ for (let i = 0; i < N; i++) {
 
 //  simulate the broadcast of yi&proof
 for (let i = 0; i < N; i++) {
-    BB.yiList.push(DKGList[i].yi);
-    BB.proofList.push(DKGList[i].proof);
+  BB.yiList.push(DKGList[i].yi);
+  BB.proofList.push(DKGList[i].proof);
 }
 
 //  ZKP

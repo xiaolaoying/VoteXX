@@ -3,3 +3,4 @@
 .vscode
 node_modules
 venv
+test.js

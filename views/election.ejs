@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="BootStrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/style.css">
     <title>Election</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
 </head>
 
 <body>
@@ -66,6 +67,7 @@
 
                     <!-- Vote & Nullify button -->
                     <div>
+                        <a class="btn btn-default btn-secondary btn-3d" id="registerBtn">Register</a>&nbsp;&nbsp;
                         <a class="btn btn-default btn-primary btn-3d" id="voteBtn">Vote</a>&nbsp;&nbsp;
                         <a class="btn btn-default btn-danger btn-3d" id="nullifyBtn">Nullify</a>
                     </div>
@@ -77,46 +79,68 @@
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
                     <h2>Tally Information</h2>
-                    <% if ( result.state === 0) { %>
+                    <% if ( result.state===0 ) { %>
                         <p>Still in the voting phase.</p>
-                    <% } else if ( result.state === 1 ) { %>
-                        <p>Provisional tally result:</p>
-                        <table border="1">
-                            <!-- First line -->
-                            <tr>
-                                <td>Yes</td>
-                                <td><%= result.voteCounts['Yes'] %></td>
-                            </tr>
-                            <!-- Second line -->
-                            <tr>
-                                <td>No</td>
-                                <td><%= result.voteCounts['No'] %></td>
-                            </tr>
-                        </table>
-                    <% } else { %>
-                        <p>Final tally result:</p>
-                        <table border="1">
-                            <!-- First line -->
-                            <tr>
-                                <td>Yes</td>
-                                <td><%= result.voteCounts['Yes'] %></td>
-                            </tr>
-                            <!-- Second line -->
-                            <tr>
-                                <td>No</td>
-                                <td><%= result.voteCounts['No'] %></td>
-                            </tr>
-                            <!-- Third line -->
-                            <tr>
-                                <td>Nullification</td>
-                                <td><%= result.nullifiedVotes %></td>
-                            </tr>
-                        </table>
-                    <% } %>
+                        <% } else if ( result.state===1 ) { %>
+                            <p>Provisional tally result:</p>
+                            <table border="1">
+                                <!-- First line -->
+                                <tr>
+                                    <td>Yes</td>
+                                    <td>
+                                        <%= result.nr_yes %>
+                                    </td>
+                                </tr>
+                                <!-- Second line -->
+                                <tr>
+                                    <td>No</td>
+                                    <td>
+                                        <%= result.nr_no %>
+                                    </td>
+                                </tr>
+                            </table>
+                            <% } else { %>
+                                <p>Final tally result:</p>
+                                <table border="1">
+                                    <!-- First line -->
+                                    <tr>
+                                        <td> </td>
+                                        <td> provisional tally </td>
+                                        <td> nullified votes </td>
+                                        <td> final result </td>
+                                    </tr>
+                                    <!-- Second line -->
+                                    <tr>
+                                        <td>Yes</td>
+                                        <td>
+                                            <%= result.nr_yes %>
+                                        </td>
+                                        <td>
+                                            <%= result.nullified_yes %>
+                                        </td>
+                                        <td>
+                                            <%= result.nr_yes - result.nullified_yes %>
+                                        </td>
+                                    </tr>
+                                    <!-- Third line -->
+                                    <tr>
+                                        <td>No</td>
+                                        <td>
+                                            <%= result.nr_no %>
+                                        </td>
+                                        <td>
+                                            <%= result.nullified_no %>
+                                        </td>
+                                        <td>
+                                            <%= result.nr_no - result.nullified_no %>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <% } %>
                 </div>
-            </div>    
+            </div>
         </div>
-       
+
     </div>
 
 
@@ -144,6 +168,43 @@
                     }
                 });
             });
+        });
+
+        document.getElementById('registerBtn').addEventListener("click", function () {
+            var EC = elliptic.ec;
+            var ec = new EC('secp256k1');
+            var BN = elliptic.utils.BN;
+
+            // Generate the first key pair
+            var keyPair1 = ec.genKeyPair();
+            var privateKey1 = keyPair1.getPrivate().toString(16);
+            var publicKey1 = keyPair1.getPublic().encode('hex');
+
+            // Generate the second key pair
+            var keyPair2 = ec.genKeyPair();
+            var privateKey2 = keyPair2.getPrivate().toString(16);
+            var publicKey2 = keyPair2.getPublic().encode('hex');
+
+            // Send the public keys to the server
+            fetch(window.location.href + '/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ publicKey1, publicKey2 }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Your yes key is: ' + privateKey1 + '\n' + 'Your no key is: ' + privateKey2 + '\n' + 'Registration successful!');
+                    } else {
+                        alert("Error: " + data.message);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+
         });
 
         document.getElementById('voteBtn').addEventListener("click", function () {

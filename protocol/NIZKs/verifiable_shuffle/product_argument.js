@@ -1,71 +1,71 @@
 // Import necessary modules
 const computechallenge = require('../../../primitiv/hash/hash_function.js');
-const {PublicKey, Commitment} = require('../../../primitiv/commitment/pedersen_commitment.js');
-const {MultiExponantiation} = require('./multi_exponantiation_argument.js');
+const { PublicKey, Commitment } = require('../../../primitiv/Commitment/pedersen_commitment.js');
+const { MultiExponantiation } = require('./multi_exponantiation_argument.js');
 
 const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
 class ProductArgument {
   constructor(com_pk, commitment, product, A, randomizers) {
-      this.order = com_pk.order;
-      this.m = A.length;
-      this.n = A[0].length;
+    this.order = com_pk.order;
+    this.m = A.length;
+    this.n = A[0].length;
 
-      let product_rows_A = [];
-      for (let i = 0; i < this.n; i++) {
-          let row = A.map(a => new BN(a[i]));
-          let product = row.reduce((a, b) => modular_prod([a, b], this.order));
-          product_rows_A.push(product);
-      }
-      
-      [this.commitment_products, this.randomizer_commitment_products] = com_pk.commit(product_rows_A);
+    let product_rows_A = [];
+    for (let i = 0; i < this.n; i++) {
+      let row = A.map(a => new BN(a[i]));
+      let product = row.reduce((a, b) => modular_prod([a, b], this.order));
+      product_rows_A.push(product);
+    }
 
-      this.hadamard = new HadamardProductArgument(
-          com_pk,
-          commitment,
-          this.commitment_products,
-          A,
-          randomizers,
-          this.randomizer_commitment_products,
-      );
+    [this.commitment_products, this.randomizer_commitment_products] = com_pk.commit(product_rows_A);
 
-      this.single_value = new SingleValueProdArg(
-          com_pk,
-          this.commitment_products,
-          product,
-          product_rows_A,
-          this.randomizer_commitment_products,
-      );
+    this.hadamard = new HadamardProductArgument(
+      com_pk,
+      commitment,
+      this.commitment_products,
+      A,
+      randomizers,
+      this.randomizer_commitment_products,
+    );
+
+    this.single_value = new SingleValueProdArg(
+      com_pk,
+      this.commitment_products,
+      product,
+      product_rows_A,
+      this.randomizer_commitment_products,
+    );
   }
 
   verify(com_pk, commitment, product) {
-  /*
-  Product Argument
-  Example:
-
-      const A_1 = [[new BN(10), new BN(20), new BN(30)],
-                  [new BN(40), new BN(20), new BN(30)],
-                  [new BN(60), new BN(20), new BN(40)]];
-
-      const commits_rands_A_1 = A_1.map(a => com_pk.commit(a));
-      const comm_A_1 = commits_rands_A_1.map(a => a[0]);
-      const random_comm_A_1 = commits_rands_A_1.map(a => a[1]);
-
-      const b_1 = modular_prod(
-      Array.from({ length: 3 }, (_, j) =>
-              modular_prod(
-              Array.from({ length: 3 }, (_, i) => new BN(A_1[i][j])),
-              order
-              )
-          ),
-          order
-      );
-
-      const proof_product = new ProductArgument(com_pk, comm_A_1, b_1, A_1, random_comm_A_1);
-      console.log(proof_product.verify(com_pk, comm_A_1, b_1));
-      >>> true
-  */
+    /*
+    Product Argument
+    Example:
+  
+        const A_1 = [[new BN(10), new BN(20), new BN(30)],
+                    [new BN(40), new BN(20), new BN(30)],
+                    [new BN(60), new BN(20), new BN(40)]];
+  
+        const commits_rands_A_1 = A_1.map(a => com_pk.commit(a));
+        const comm_A_1 = commits_rands_A_1.map(a => a[0]);
+        const random_comm_A_1 = commits_rands_A_1.map(a => a[1]);
+  
+        const b_1 = modular_prod(
+        Array.from({ length: 3 }, (_, j) =>
+                modular_prod(
+                Array.from({ length: 3 }, (_, i) => new BN(A_1[i][j])),
+                order
+                )
+            ),
+            order
+        );
+  
+        const proof_product = new ProductArgument(com_pk, comm_A_1, b_1, A_1, random_comm_A_1);
+        console.log(proof_product.verify(com_pk, comm_A_1, b_1));
+        >>> true
+    */
     let check1 = com_pk.group.curve.validate(this.commitment_products.commitment);
     let check2 = this.hadamard.verify(com_pk, commitment, this.commitment_products);
     let check3 = this.single_value.verify(com_pk, this.commitment_products, product);
@@ -75,10 +75,10 @@ class ProductArgument {
 }
 
 class SingleValueProdArg {
-/**
-  3-move argument of knowledge of committed single values having a particular product. Following Bayer and Groth
-  in 'Efficient Zero-Knowledge Argument for correctness of a shuffle'.
-**/
+  /**
+    3-move argument of knowledge of committed single values having a particular product. Following Bayer and Groth
+    in 'Efficient Zero-Knowledge Argument for correctness of a shuffle'.
+  **/
   constructor(com_pk, commitment, product, committed_values, randomizer) {
 
     this.n = committed_values.length;
@@ -87,13 +87,13 @@ class SingleValueProdArg {
     this.sec_param_l_e = 160;
     this.sec_param_l_s = 80;
     this.bn_two = new BN(2);
-  
+
     // Prepare announcement
     let products = [committed_values[0]];
     for (let i = 1; i < this.n; i++) {
       products.push(((new BN(products[i - 1]))
-                      .mul(new BN(committed_values[i])))
-                      .mod(new BN(this.order)));
+        .mul(new BN(committed_values[i])))
+        .mod(new BN(this.order)));
     }
 
     let commitment_rand_one = com_pk.group.genKeyPair().getPrivate();
@@ -115,9 +115,9 @@ class SingleValueProdArg {
     let value_to_commit_two = [];
     for (let i = 0; i < this.n - 1; i++) {
       value_to_commit_two.push(((new BN(delta_randoms[i]))
-                                .mul(new BN(-1))
-                                .mul(new BN(d_randoms[i + 1])))
-                                .mod(new BN(this.order)));
+        .mul(new BN(-1))
+        .mul(new BN(d_randoms[i + 1])))
+        .mod(new BN(this.order)));
     }
 
     let value_to_commit_three = [];
@@ -125,7 +125,7 @@ class SingleValueProdArg {
       value_to_commit_three.push(
         ((new BN(delta_randoms[i + 1]))
           .sub((new BN(committed_values[i + 1])).mul(new BN(delta_randoms[i])))
-          .sub((new BN(products[i])).mul(new BN(d_randoms[i + 1])))) 
+          .sub((new BN(products[i])).mul(new BN(d_randoms[i + 1]))))
           .mod(new BN(this.order))
       );
     }
@@ -159,26 +159,26 @@ class SingleValueProdArg {
 
     for (let i = 0; i < this.n; i++) {
       let response_committed_value = ((new BN(this.challenge))
-                                      .mul(new BN(committed_values[i]))
-                                      .add(new BN(d_randoms[i])))
-                                      .mod(new BN(this.order));
+        .mul(new BN(committed_values[i]))
+        .add(new BN(d_randoms[i])))
+        .mod(new BN(this.order));
       this.response_committed_values.push(response_committed_value);
 
       let response_product = ((new BN(this.challenge))
-                              .mul(new BN(products[i]))
-                              .add(new BN(delta_randoms[i])))
-                              .mod(new BN(this.order));
+        .mul(new BN(products[i]))
+        .add(new BN(delta_randoms[i])))
+        .mod(new BN(this.order));
       this.response_product.push(response_product);
     }
 
     this.response_randomizer = ((new BN(this.challenge))
-                                .mul(new BN(randomizer))
-                                .add(new BN(commitment_rand_one)))
-                                .mod(new BN(this.order));
+      .mul(new BN(randomizer))
+      .add(new BN(commitment_rand_one)))
+      .mod(new BN(this.order));
     this.response_randomizer_commitments = ((new BN(this.challenge))
-                                             .mul(new BN(commitment_rand_three))
-                                             .add(new BN(commitment_rand_two)))
-                                             .mod(new BN(this.order));
+      .mul(new BN(commitment_rand_three))
+      .add(new BN(commitment_rand_two)))
+      .mod(new BN(this.order));
   }
 
   verify(com_pk, committ, product) {
@@ -208,24 +208,24 @@ class SingleValueProdArg {
     let check3 = com_pk.group.curve.validate(this.announcement_three.commitment);
 
     let check4 = (((committ.pow(this.challenge)).mul(this.announcement_one)).
-                  isEqual(com_pk.commit(this.response_committed_values, this.response_randomizer)[0]));
-    
+      isEqual(com_pk.commit(this.response_committed_values, this.response_randomizer)[0]));
+
     let value_to_commit_check5 = [];
     for (let i = 0; i < this.n - 1; i++) {
       let value = ((new BN(this.challenge))
-                   .mul(new BN(this.response_product[i + 1]))
-                   .sub((new BN(this.response_product[i]))
-                   .mul(new BN(this.response_committed_values[i + 1]))))
-                   .mod(new BN(this.order));
+        .mul(new BN(this.response_product[i + 1]))
+        .sub((new BN(this.response_product[i]))
+          .mul(new BN(this.response_committed_values[i + 1]))))
+        .mod(new BN(this.order));
       value_to_commit_check5.push(value);
     }
     let check5 = (this.announcement_three.pow(this.challenge).mul(this.announcement_two))
-                  .isEqual(com_pk.commit_reduced(value_to_commit_check5, this.n - 1, this.response_randomizer_commitments)[0]);
-  
+      .isEqual(com_pk.commit_reduced(value_to_commit_check5, this.n - 1, this.response_randomizer_commitments)[0]);
+
     let check6 = this.response_committed_values[0].eq(this.response_product[0]);
     let check7 = ((new BN(this.challenge)).mul(new BN(product)).mod(new BN(this.order)))
-                 .eq((new BN(this.response_product[this.response_product.length - 1])).mod(new BN(this.order)));
-  
+      .eq((new BN(this.response_product[this.response_product.length - 1])).mod(new BN(this.order)));
+
     return check1 && check2 && check3 && check4 && check5 && check6 && check7;
   }
 }
@@ -256,10 +256,10 @@ class ZeroArgument {
     B.push(Array.from({ length: this.n }, () => com_pk.group.genKeyPair().getPrivate()));
     random_comm_A.unshift(com_pk.group.genKeyPair().getPrivate());
     random_comm_B.push(com_pk.group.genKeyPair().getPrivate());
-    
+
     [this.announcement_a0, this.rand_a0] = com_pk.commit_reduced(A[0], this.n, random_comm_A[0]);
     [this.announcement_bm, this.rand_bm] = com_pk.commit_reduced(B[B.length - 1], this.n, random_comm_B[random_comm_B.length - 1]);
-  
+
     let diagonals = [];
     for (let k = 0; k < 2 * this.m + 1; k++) {
       let diagonal = new BN(0);
@@ -298,7 +298,7 @@ class ZeroArgument {
     for (let j = 0; j < this.m + 1; j++) {
       let row = [];
       for (let i = 0; i < this.n; i++) {
-        let modifiedValue = 
+        let modifiedValue =
           ((new BN(A[j][i])).mul(((new BN(this.challenge)).pow(new BN(j))).mod(new BN(this.order)))).mod(new BN(this.order));
         row.push(modifiedValue);
       }
@@ -310,7 +310,7 @@ class ZeroArgument {
     );
 
     this.response_randomizer_A = modular_sum(
-      Array.from({length: this.m + 1}, (_, i) =>
+      Array.from({ length: this.m + 1 }, (_, i) =>
         new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(random_comm_A[i])).mod(new BN(this.order))
       ),
       this.order
@@ -327,12 +327,12 @@ class ZeroArgument {
       B_modified.push(row);
     }
 
-    this.response_bs = B_modified.slice(0, this.m + 1).reduce((acc, val) => 
+    this.response_bs = B_modified.slice(0, this.m + 1).reduce((acc, val) =>
       val.map((x, i) => (new BN(acc[i]).add(new BN(x))).mod(new BN(this.order)))
     );
-    
+
     this.response_randomizer_B = modular_sum(
-      Array.from({length: this.m + 1}, (_, i) =>
+      Array.from({ length: this.m + 1 }, (_, i) =>
         new BN(this.challenge).pow(new BN(this.m - i)).mod(new BN(this.order)).mul(new BN(random_comm_B[i])).mod(new BN(this.order))
       ),
       this.order
@@ -340,13 +340,13 @@ class ZeroArgument {
 
     this.response_randomizer_diagonals = modular_sum(
       Array.from({ length: this.m * 2 + 1 }, (_, i) =>
-      new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(commitment_rand_diagonals[i])).mod(new BN(this.order))
+        new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order)).mul(new BN(commitment_rand_diagonals[i])).mod(new BN(this.order))
       ),
       this.order
     );
   }
 
-  verify(com_pk, commitment_A, commitment_B){
+  verify(com_pk, commitment_A, commitment_B) {
     /*
     Verify ZeroArgument proof
     Example:
@@ -400,23 +400,23 @@ class ZeroArgument {
     */
     const check1 = com_pk.group.curve.validate(this.announcement_a0.commitment);
     const check2 = com_pk.group.curve.validate(this.announcement_bm.commitment);
-    const check3 = this.announcement_diagonals.slice(0, this.m * 2 + 1).every((announcement) => 
-                   com_pk.group.curve.validate(announcement.commitment));
+    const check3 = this.announcement_diagonals.slice(0, this.m * 2 + 1).every((announcement) =>
+      com_pk.group.curve.validate(announcement.commitment));
 
-    const check4 = this.announcement_diagonals[this.m + 1].commitment.x == null 
-                   && this.announcement_diagonals[this.m + 1].commitment.y == null;
+    const check4 = this.announcement_diagonals[this.m + 1].commitment.x == null
+      && this.announcement_diagonals[this.m + 1].commitment.y == null;
 
     commitment_A.unshift(this.announcement_a0);
     commitment_B.push(this.announcement_bm);
-    
+
     const exponents_5 = Array.from({ length: this.m + 1 }, (_, i) =>
-        new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order))
+      new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order))
     );
     const check5 =
       MultiExponantiation.comm_weighted_sum(commitment_A, exponents_5).isEqual(
         com_pk.commit_reduced(this.response_as, this.n, this.response_randomizer_A)[0]
       );
-    
+
     const exponents_6 = Array.from({ length: this.m + 1 }, (_, i) =>
       new BN(this.challenge).pow(new BN(this.m - i)).mod(new BN(this.order))
     );
@@ -424,7 +424,7 @@ class ZeroArgument {
       MultiExponantiation.comm_weighted_sum(commitment_B, exponents_6).isEqual(
         com_pk.commit_reduced(this.response_bs, this.n, this.response_randomizer_B)[0]
       );
-    
+
     const exponents_7 = Array.from({ length: this.m * 2 + 1 }, (_, i) =>
       new BN(this.challenge).pow(new BN(i)).mod(new BN(this.order))
     );
@@ -449,7 +449,7 @@ class ZeroArgument {
 
     return check1 && check2 && check3 && check4 && check5 && check6 && check7;
   }
-  
+
   bilinear_map(a, b, bilinear_const, order) {
     /*
     Example:
@@ -480,11 +480,11 @@ class ZeroArgument {
       >>> true
     */
     if (a.length !== b.length) {
-        throw new Error(`Values must be same length. Got ${a.length} and ${b.length}`);
+      throw new Error(`Values must be same length. Got ${a.length} and ${b.length}`);
     }
     let result = [];
     for (let i = 0; i < a.length; i++) {
-        result.push(((new BN(a[i])).mul(new BN(b[i])).mul(((new BN(bilinear_const)).pow(new BN(i))))).mod(new BN(order)));
+      result.push(((new BN(a[i])).mul(new BN(b[i])).mul(((new BN(bilinear_const)).pow(new BN(i))))).mod(new BN(order)));
     }
 
     return modular_sum(result, order);
@@ -509,10 +509,10 @@ class HadamardProductArgument {
     var vectors_b = [A[0]];
     for (var i = 1; i < this.m; i++) {
       let result = [];
-      for(let j = 0; j < vectors_b[i - 1].length; j++) {
-          let first = vectors_b[i - 1][j];
-          let second = A[i][j];
-          result[j] = (new BN(first)).mul(new BN(second)).mod(new BN(this.order));
+      for (let j = 0; j < vectors_b[i - 1].length; j++) {
+        let first = vectors_b[i - 1][j];
+        let second = A[i][j];
+        result[j] = (new BN(first)).mul(new BN(second)).mod(new BN(this.order));
       }
       vectors_b.push(result);
     }
@@ -520,7 +520,7 @@ class HadamardProductArgument {
     var random_comm_announcement = Array.from({ length: this.m }, () => com_pk.group.genKeyPair().getPrivate());
     this.announcement_b = [];
     for (var i = 0; i < this.m; i++) {
-        this.announcement_b.push(com_pk.commit(vectors_b[i], random_comm_announcement[i])[0]);
+      this.announcement_b.push(com_pk.commit(vectors_b[i], random_comm_announcement[i])[0]);
     }
     random_comm_announcement[0] = random_comm_A[0];
     random_comm_announcement[this.m - 1] = random_comm_b;
@@ -567,7 +567,7 @@ class HadamardProductArgument {
     let zippedArr = modified_vectors_b_slice[0].map((_, i) =>
       modified_vectors_b_slice.map((x) => x[i])
     );
-    
+
     let opening_value_commitment_D = zippedArr.map((arr) =>
       arr.reduce((sum, current) => (new BN(sum).add(new BN(current))).mod(new BN(this.order)))
     );
@@ -587,12 +587,12 @@ class HadamardProductArgument {
     zero_argument_random_B.push(random_value_commitment_D);
 
     this.zero_argument_proof = new ZeroArgument(
-        com_pk,
-        zero_argument_A,
-        zero_argument_B,
-        zero_argument_random_A,
-        zero_argument_random_B,
-        this.challenge_bilinear
+      com_pk,
+      zero_argument_A,
+      zero_argument_B,
+      zero_argument_random_A,
+      zero_argument_random_B,
+      this.challenge_bilinear
     );
   }
 
@@ -621,26 +621,26 @@ class HadamardProductArgument {
     */
     let check1 = this.announcement_b[0].isEqual(commitment_A[0]);
     let check2 = this.announcement_b[this.m - 1].isEqual(commitment_b);
-    
+
     let check3 = true;
     for (let i = 1; i < this.m - 1; i++) {
-        if (!com_pk.group.curve.validate(this.announcement_b[i].commitment)) {
-            check3 = false;
-            break;
-        }
+      if (!com_pk.group.curve.validate(this.announcement_b[i].commitment)) {
+        check3 = false;
+        break;
+      }
     }
     let vectors_commitments_D = [];
-    for(let i = 0; i < this.m - 1; i++) {
-        vectors_commitments_D[i] = (this.announcement_b[i]).pow((new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order)));
+    for (let i = 0; i < this.m - 1; i++) {
+      vectors_commitments_D[i] = (this.announcement_b[i]).pow((new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order)));
     }
 
     let exponents = [];
-    for(let i = 0; i < this.m - 1; i++) {
-        exponents[i] = (new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order));
+    for (let i = 0; i < this.m - 1; i++) {
+      exponents[i] = (new BN(this.challenge)).pow(new BN(i)).mod(new BN(this.order));
     }
 
     let value_commitment_D = MultiExponantiation.comm_weighted_sum(
-        this.announcement_b.slice(1, this.m), exponents
+      this.announcement_b.slice(1, this.m), exponents
     );
 
     let commitment_minus1 = com_pk.commit(Array(this.n).fill(-1), 0);
@@ -681,9 +681,11 @@ function modular_sum(values, modulo) {
 }
 
 
-module.exports = {ProductArgument,
-                  SingleValueProdArg, 
-                  ZeroArgument, 
-                  HadamardProductArgument,
-                  modular_prod, 
-                  modular_sum};
+module.exports = {
+  ProductArgument,
+  SingleValueProdArg,
+  ZeroArgument,
+  HadamardProductArgument,
+  modular_prod,
+  modular_sum
+};

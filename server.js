@@ -8,12 +8,14 @@ const userRoutes = require('./routes/user');
 const electionRoutes = require('./routes/election');
 
 mongoose.connect('mongodb://localhost:27017/VoteXX_db', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
+    .then(async () => {
         console.log('Connected to MongoDB');
     })
     .catch(err => {
         console.error('Error connecting to MongoDB', err);
     });
+
+global.elections = {};
 
 const app = express();
 const PORT = 3000;

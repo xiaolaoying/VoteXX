@@ -6,7 +6,7 @@
 function Party(id, ec, generatorH) {
   this.ec = ec;
   this.id = id;
-  this.generatorH = generatorH;
+  this.generatorH = generatorH; // Pedersen commitment key
   this.dkg = null;
   this.distributeDecryptor = null;
   this.pet = null;
@@ -24,7 +24,7 @@ var N = 10;
 var PartyList = [];
 
 //  for broadcast
-var BB = {yiList: [], dkgProofList: [], petCommitmentList: [], petStatementList: [], petRaisedCiphertextList: [], petProofList: [], decProofList: [], decStatementList: [], decC1XiList: []};
+var BB = { yiList: [], dkgProofList: [], petCommitmentList: [], petStatementList: [], petRaisedCiphertextList: [], petProofList: [], decProofList: [], decStatementList: [], decC1XiList: [] };
 var globalValid = true;
 
 
@@ -40,8 +40,8 @@ for (let i = 0; i < N; i++) {
 
 //  simulate the broadcast of yi&proof
 for (let i = 0; i < N; i++) {
-    BB.yiList.push(PartyList[i].dkg.yi);
-    BB.dkgProofList.push(PartyList[i].dkg.proof);
+  BB.yiList.push(PartyList[i].dkg.yi);
+  BB.dkgProofList.push(PartyList[i].dkg.proof);
 }
 
 //  ZKP
@@ -96,9 +96,9 @@ console.log('The public key(in hex string) is:', PartyList[0].dkg.y.encode("hex"
 //  input: encrypted m*n table, m: flags, n: number of voters
 //  output: encrypted 1*n table, 'OR' operation on each column
 
-const { DistributeDecryptor, PET, GenerateOrTruthTable, EncryptionTable, 
-        NumberToPlaintextTable, PlaintextToNumberTable, mixTable, ciphertextDiff, 
-      }  = require('../protocol/MIX_AND_MATCH/mix_and_match');
+const { DistributeDecryptor, PET, GenerateOrTruthTable, EncryptionTable,
+  NumberToPlaintextTable, PlaintextToNumberTable, mixTable, ciphertextDiff,
+} = require('../protocol/MIX_AND_MATCH/mix_and_match');
 
 const ec = require('../primitiv/ec/ec');
 const BN = require('bn.js');
@@ -149,7 +149,7 @@ for (let j = 0; j < n; j++) {
 
   //  2 input for each gate, the first input is also the output of the last gate
   var input = [];
-  input[0] = encTable[0][j];  
+  input[0] = encTable[0][j];
 
   //  each column has m-1 OR gates
   for (let i = 1; i < m; i++) {
@@ -158,7 +158,7 @@ for (let j = 0; j < n; j++) {
     var tmpORgate = GenerateOrTruthTable(ec); // plaintext table
     var encORgate = EncryptionTable(tmpORgate, ORTableRows, ORTableColumns, PartyList[0].dkg.y, ec);  // encrypted table
     var mixORgate = mixTable(encORgate, ORTableRows, ORTableColumns, ec, PartyList[0].dkg.y);  //  permuted table
-    
+
     //  onther input
     input[1] = encTable[i][j];
 
@@ -177,7 +177,7 @@ for (let j = 0; j < n; j++) {
       var rowMatched = true;
 
       //  PET for each column
-      for(let col = 0; col < ORTableColumns - 1; col++) {
+      for (let col = 0; col < ORTableColumns - 1; col++) {
 
         var originCipherDiff = ciphertextDiff(input[col], mixORgate[k][col]);
         var colMatched = true;
@@ -189,22 +189,22 @@ for (let j = 0; j < n; j++) {
           var tmpCommitment = PartyList[l].pet.generateCommitment();
           //  broadcast commitment
           BB.petCommitmentList[l] = tmpCommitment;
-  
+
           //  raise to exponent
           var raisedCiphertext = PartyList[l].pet.raiseToExponent(originCipherDiff);
           //  broadcast raised-ciphertext
           BB.petRaisedCiphertextList[l] = raisedCiphertext;
-  
+
           //  generate proof
           var tmpstruct = PartyList[l].pet.generateProof(BB.petCommitmentList[l], originCipherDiff, BB.petRaisedCiphertextList[l]);
           var tmpStatement = tmpstruct.statement;
           var tmpProof = tmpstruct.proof;
           //  broadcast proof & statement
-          BB.petProofList[l] = tmpProof; 
+          BB.petProofList[l] = tmpProof;
           BB.petStatementList[l] = tmpStatement;
 
         }
-        
+
         //  each party verify PET proof
         for (let l = 0; l < N; l++) {
           for (let p = 0; p < N; p++) {
@@ -221,7 +221,7 @@ for (let j = 0; j < n; j++) {
         if (globalValid === false) {
           // abort
         }
-  
+
         //  each party form a new ciphertext & decrypt(generate proof & c1Xi & broadcast)
         for (let l = 0; l < N; l++) {
 
@@ -234,13 +234,13 @@ for (let j = 0; j < n; j++) {
           //  broadcast proof & statement
           BB.decProofList[l] = tmpProof;
           BB.decStatementList[l] = tmpStatement;
-  
+
           //  generate c1Xi
           var c1Xi = PartyList[l].distributeDecryptor.generateC1Xi(newCiphertext);
           //  broadcast c1Xi
           BB.decC1XiList[l] = c1Xi;
         }
-  
+
         //  each party verify dec proof
         for (let l = 0; l < N; l++) {
           for (let p = 0; p < N; p++) {
@@ -254,11 +254,11 @@ for (let j = 0; j < n; j++) {
             }
           }
         }
-  
+
         if (globalValid === false) {
           // abort
         }
-  
+
         //  decrypt & match
         for (let l = 0; l < N; l++) {
           var newCiphertext = PartyList[l].pet.formNewCiphertext(BB.petRaisedCiphertextList);
@@ -271,8 +271,8 @@ for (let j = 0; j < n; j++) {
         //  check if the column is matched
         //  if any one of the element in this row doesn't match, then break
         rowMatched = rowMatched && colMatched;
-        if(rowMatched === false) {
-          break;  
+        if (rowMatched === false) {
+          break;
         }
       }
 
@@ -280,10 +280,10 @@ for (let j = 0; j < n; j++) {
       //  as long as one row is matched, then break
       if (rowMatched === true) {
         matchedRow = k;
-        break;  
+        break;
       }
     }
-    
+
     //  output for this OR gate (the input for the next OR gate)
     input[0] = mixORgate[matchedRow][ORTableColumns - 1];
   }
@@ -301,7 +301,7 @@ for (let j = 0; j < n; j++) {
 
 const decResultTable = [];
 decResultTable.push([]);
-for(let i = 0; i < n; i++) {
+for (let i = 0; i < n; i++) {
   for (let l = 0; l < N; l++) {
 
     //  ciphertext to be decrypted

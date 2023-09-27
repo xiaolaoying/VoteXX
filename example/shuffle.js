@@ -2,13 +2,13 @@ const EC = require('elliptic').ec;
 const BN = require('bn.js');
 
 const { KeyPair } = require('../primitiv/encryption/ElgamalEncryption.js');
-const { PublicKey } = require('../primitiv/commitment/pedersen_commitment.js');
+const { PublicKey } = require('../primitiv/Commitment/pedersen_commitment.js');
 
 const { ProductArgument, SingleValueProdArg, ZeroArgument, HadamardProductArgument, modular_prod } = require('../protocol/NIZKs/verifiable_shuffle/product_argument.js');
 const { MultiExponantiation } = require('../protocol/NIZKs/verifiable_shuffle/multi_exponantiation_argument.js');
 const { ShuffleArgument, shuffleArray } = require('../protocol/NIZKs/verifiable_shuffle/shuffle_argument.js');
 
-const {BallotBundle, VoteVector} = require('../primitiv/ballots/ballot_structure.js');
+const { BallotBundle, VoteVector } = require('../primitiv/ballots/ballot_structure.js');
 
 const ec = new EC('secp256k1');
 let com_pk = new PublicKey(ec, 3);
@@ -22,20 +22,20 @@ let proof = new SingleValueProdArg(com_pk, commit, product, msgs, rand);
 console.log("Single Value Product Argument:", proof.verify(com_pk, commit, product));
 
 // Zero Argument
-let A = [[new BN(10), new BN(20), new BN(30)], 
-         [new BN(40), new BN(20), new BN(30)], 
+let A = [[new BN(10), new BN(20), new BN(30)],
+         [new BN(40), new BN(20), new BN(30)],
          [new BN(60), new BN(20), new BN(40)]];
-let B = [[new BN(1), new BN(1), new BN(order).sub(new BN(1))], 
-         [new BN(1), new BN(1), new BN(order).sub(new BN(2))], 
+let B = [[new BN(1), new BN(1), new BN(order).sub(new BN(1))],
+         [new BN(1), new BN(1), new BN(order).sub(new BN(2))],
          [new BN(order).sub(new BN(1)), new BN(1), new BN(1)]];
 
 let commits_rand_A = [];
-for (let i = 0; i < 3; i++) {commits_rand_A.push(com_pk.commit_reduced(A[i], 3));}
+for (let i = 0; i < 3; i++) { commits_rand_A.push(com_pk.commit_reduced(A[i], 3)); }
 let comm_A = commits_rand_A.map(a => a[0]);
 let random_comm_A = commits_rand_A.map(a => a[1]);
 
 let commits_rand_B = [];
-for (let i = 0; i < 3; i++) {commits_rand_B.push(com_pk.commit_reduced(B[i], 3));}
+for (let i = 0; i < 3; i++) { commits_rand_B.push(com_pk.commit_reduced(B[i], 3)); }
 let comm_B = commits_rand_B.map(b => b[0]);
 let random_comm_B = commits_rand_B.map(b => b[1]);
 
@@ -43,8 +43,8 @@ let proof_Zero = new ZeroArgument(com_pk, A, B, random_comm_A, random_comm_B);
 console.info("Zero Argument:", proof_Zero.verify(com_pk, comm_A, comm_B));
 
 //HadamardProductArgument:
-let AA = [[new BN(10), new BN(20), new BN(30)], 
-          [new BN(40), new BN(20), new BN(30)], 
+let AA = [[new BN(10), new BN(20), new BN(30)],
+          [new BN(40), new BN(20), new BN(30)],
           [new BN(60), new BN(20), new BN(40)]];
 let commits_rands_AA = AA.map(a => com_pk.commit(a));
 let comm_AA = commits_rands_AA.map(a => a[0]);
@@ -72,10 +72,10 @@ const comm_A_1 = commits_rands_A_1.map(a => a[0]);
 const random_comm_A_1 = commits_rands_A_1.map(a => a[1]);
 
 const b_1 = modular_prod(
-Array.from({ length: 3 }, (_, j) =>
+    Array.from({ length: 3 }, (_, j) =>
         modular_prod(
-        Array.from({ length: 3 }, (_, i) => new BN(A_1[i][j])),
-        order
+            Array.from({ length: 3 }, (_, i) => new BN(A_1[i][j])),
+            order
         )
     ),
     order
@@ -88,7 +88,7 @@ const key_pair = new KeyPair(ec);
 const pk = key_pair.pk;
 
 let random = [];
-for(let i = 0; i < 9; i++){
+for (let i = 0; i < 9; i++) {
     random.push(ec.genKeyPair().getPrivate());
 }
 let random_matrix = [];
@@ -122,7 +122,7 @@ for (let i = 0; i < 3; i++) {
 
 let x = ec.genKeyPair().getPrivate();
 let exponents = [];
-for(let i = 0; i < 9; i++){
+for (let i = 0; i < 9; i++) {
     exponents.push(x.pow(new BN(i)));
 }
 let exponents_matrix = [];
@@ -131,7 +131,7 @@ for (let i = 0; i < 3; i++) {
     exponents_matrix.push(subList);
 }
 let permutated_exponents = [];
-for(let i = 0; i < 9; i++){
+for (let i = 0; i < 9; i++) {
     permutated_exponents.push(exponents[permutation[i]]);
 }
 let permutated_exponents_matrix = [];
@@ -152,8 +152,8 @@ for (let i = 0; i < 3; i++) {
 
 
 let reencryption_randomization = new BN(0);
-for(let i = 0; i < 3; i++){
-    for(let j = 0; j < 3; j++){
+for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
         reencryption_randomization = reencryption_randomization.add(permutated_exponents_matrix[i][j].mul(random_matrix[i][j])).mod(pk.order);
     }
 }
@@ -223,7 +223,7 @@ permutation.forEach((permuted_index, index) => {
 let ctxtsReshaped = ShuffleArgument.reshape_m_n(preparedCtxts, m);
 let shuffledCtxtsReshaped = ShuffleArgument.reshape_m_n(shuffledCtxts, m);
 let permutationReshaped = ShuffleArgument.reshape_m_n(permutation, m);
-let randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m); 
+let randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m);
 
 proof = new ShuffleArgument(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped, permutationReshaped, randomizersReshaped);
 console.log("Shuffle Argument(Ciphertext): ", proof.verify(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped));
@@ -261,7 +261,7 @@ permutation.forEach((permuted_index, index) => {
 ctxtsReshaped = ShuffleArgument.reshape_m_n(preparedCtxts, m);
 shuffledCtxtsReshaped = ShuffleArgument.reshape_m_n(shuffledCtxts, m);
 permutationReshaped = ShuffleArgument.reshape_m_n(permutation, m);
-randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m); 
+randomizersReshaped = ShuffleArgument.reshape_m_n(randomizers, m);
 
 proof = new ShuffleArgument(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped, permutationReshaped, randomizersReshaped);
 console.log("Shuffle Argument(Ballot): ", proof.verify(com_pk, pk, ctxtsReshaped, shuffledCtxtsReshaped));

@@ -18,10 +18,10 @@
                 <div class="row equal-height">
                     <div class="col-md-8" style="color: white;">
                         <h1>
-                            Make Your Vote
-                            <p>Please make your vote according to the objective situation and personal
+                            Cast Your Vote
+                            <!-- <p>Please make your vote according to the objective situation and personal
                                 preference (make sure it is your personal wish)
-                            </p>
+                            </p> -->
                         </h1>
 
                     </div>
@@ -74,13 +74,13 @@
             </div>
         </div>
 
-        <div class="container">
+        <!-- <div class="container">
             <div class="row">
                 <div class="col-md-10 col-md-push-1 container-form">
                     <form action="" id="voteform">
                         <div class="form-group">
                             <h3>
-                                <%= question %>
+                                
                             </h3>
                             <div>
                                 <label class="radio-inline">
@@ -91,6 +91,22 @@
                                 </label>
                             </div>
                         </div><br>
+                    </form>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-push-1 container-form">
+                    <form action="" id="voteform">
+                        <div class="form-group">
+                            <h3>
+                                <%= question %>
+                            </h3>
+                            <label for="secretKey" class="title">Enter Secret Key:</label>
+                            <input type="text" class="form-control" id="secretKey" placeholder="Enter secret key">
+                        </div>
                     </form>
                 </div>
             </div>
@@ -115,7 +131,7 @@
 
             </div>
         </div>
-        
+
     </div>
 
     <footer id="footer">
@@ -145,12 +161,14 @@
         document.getElementById("voteform").addEventListener("submit", function (event) {
             event.preventDefault();
 
+            var secretKey = $("#secretKey").val();
+
             // 1. Extract form data
-            const formData = new FormData(event.target);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+            // const formData = new FormData(event.target);
+            // const data = {};
+            // formData.forEach((value, key) => {
+            //     data[key] = value;
+            // });
 
             // 2. Use fetch API to send data
             fetch(window.location.href, {
@@ -158,12 +176,15 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify({ sk: secretKey }),
             })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         $("#successModal").modal("show");
+                        // $("#successModal").on("hidden.bs.modal", function () {
+                        //     window.location.href = "profile"; // Navigate to profile
+                        // });
                     } else {
                         alert("Error: " + data.message);
                     }

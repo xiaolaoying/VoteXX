@@ -7,16 +7,17 @@ $(document).ready(function () {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      body: JSON.stringify({ sk: secretKey }),
     })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
           $("#modalMessage").text("Nullification success!");
           $("#myModal").modal("show");
-          $("#myModal").on("hidden.bs.modal", function () {
-            window.location.href = "profile"; // Navigate to profile
-          });
+          // $("#myModal").on("hidden.bs.modal", function () {
+          //   window.location.href = "profile"; // Navigate to profile
+          // });
         } else {
           alert("Error: " + data.message);
         }
