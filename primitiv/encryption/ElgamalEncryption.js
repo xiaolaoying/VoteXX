@@ -2,7 +2,7 @@
  * ElGamal encryption
  */
 var BN = require('bn.js');
-const { BallotBundle, ValuesVector } = require('../ballots/ballot_structure.js');
+const { BallotBundle, ValuesVector } = require('../Ballots/ballot_structure.js');
 
 function ElgamalCiphertext(c1, c2) {
   this.c1 = c1;

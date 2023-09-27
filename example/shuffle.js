@@ -8,7 +8,7 @@ const { ProductArgument, SingleValueProdArg, ZeroArgument, HadamardProductArgume
 const { MultiExponantiation } = require('../protocol/NIZKs/verifiable_shuffle/multi_exponantiation_argument.js');
 const { ShuffleArgument, shuffleArray } = require('../protocol/NIZKs/verifiable_shuffle/shuffle_argument.js');
 
-const { BallotBundle, VoteVector } = require('../primitiv/ballots/ballot_structure.js');
+const { BallotBundle, VoteVector } = require('../primitiv/Ballots/ballot_structure.js');
 
 const ec = new EC('secp256k1');
 let com_pk = new PublicKey(ec, 3);
