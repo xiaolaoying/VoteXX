@@ -7,13 +7,13 @@ VoteXX is the first election system that has “extreme coercion resistance”. 
 The extended abstract of the paper can be found [here](https://eprint.iacr.org/2022/1212.pdf).
 
 Main features of VoteXX:
-* End-to-end verifiable
+* End-to-end Verifiable
 * Privacy
-* Extreme coercion-resistant (voter can nullify his voter even if the coercer knows all the secret information)
+* Extreme Coercion-resistant (voter can nullify his voter even if the coercer knows all the secret information)
 
 Roles of VoteXX:
 * Voter
-* Election authority: responsible for authenticating voters
+* Election Authority: responsible for authenticating voters
 * Trustees: respondible for tallying
 * Hedgehog: can nullify a voter's ballot if the voter cast the ballot under coercion
 
@@ -50,12 +50,12 @@ This will start a server running on `http://localhost:3000`.
 
 * Do the cryptographic operations in the frontend (right now they are done in the backend).
 * Correct the shuffle argument for shuffling a vector of ciphertexts.
-* Add shuffle arguments in mix and match protocol.
-* Store the bulletin board in the database (right now it is in the memory).
+* Add shuffle arguments in the mix and match protocol.
+* Store the bulletin board in the database (right now it is stored in the memory).
 * Support verifying the election using browser.
 * Support any number of trustees.
 * Support elegible voter list (right now everyone can vote).
-* Change alert to a beautiful BootStrap modal.
+* Change an alert to a beautiful BootStrap modal.
 * Support "forget password".
 * Support GitHub/Gooble login.
 * Optimize the shuffle argument.
