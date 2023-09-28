@@ -2,6 +2,8 @@
 
 VoteXX is the first election system that has “extreme coercion resistance”. This project aims at implementing a prototype of VoteXX.
 
+**Disclaimer:** This code is not production ready.
+
 ## Voting protocol
 
 The extended abstract of the paper can be found [here](https://eprint.iacr.org/2022/1212.pdf).
